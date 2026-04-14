@@ -30,3 +30,7 @@ id = "c303003bd718427c97f978773fce4f3a"
 [[kv_namespaces]]
 binding = "SESSIONS"
 id = "512331050ea04a35b23843b28af75c2c"
+
+# Daily flywheel — ingest GSC/GA4, store snapshots, score WoW
+[triggers]
+crons = ["0 6 * * *"]

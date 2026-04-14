@@ -141,4 +141,17 @@ const pages = defineCollection({
   }),
 })
 
-export const collections = { blog, topics, labs, tools, team, products, pages }
+const docs = defineCollection({
+  loader: glob({ pattern: '**/*.{md,mdx}', base: './content/en/docs' }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string().optional(),
+    order: z.number().default(0),
+    parent: z.string().optional(),
+    tags: z.array(z.string()).default([]),
+    date: z.coerce.date().optional(),
+    updated: z.coerce.date().optional(),
+  }),
+})
+
+export const collections = { blog, topics, labs, tools, team, products, pages, docs }

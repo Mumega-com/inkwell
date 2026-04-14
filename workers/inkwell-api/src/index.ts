@@ -355,4 +355,9 @@ app.get('/api/posts/:slug', async (c) => {
   return c.json({ slug, meta, markdown: content })
 })
 
-export default { fetch: app.fetch }
+import { scheduled } from './scheduled'
+
+export default {
+  fetch: app.fetch,
+  scheduled,
+}
