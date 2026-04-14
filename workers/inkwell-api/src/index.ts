@@ -1,6 +1,8 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { authRoutes } from './routes/auth'
+import { paymentRoutes } from './routes/payments'
+import { telegramRoutes } from './routes/telegram'
 import type { AppBindings } from './types'
 
 const app = new Hono<AppBindings>()
@@ -90,6 +92,7 @@ function parsePublishPayload(body: unknown):
 app.get('/health', (c) => c.json({ status: 'ok', ts: Date.now() }))
 
 app.route('/api/auth', authRoutes)
+app.route('/api/payments', paymentRoutes)
 
 // Record page view
 app.post('/api/view', async (c) => {

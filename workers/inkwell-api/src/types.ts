@@ -12,6 +12,14 @@ export interface Env {
   AUTH_CODE_TTL_SECONDS?: string
   AUTH_CODE_WEBHOOK_URL?: string
   AUTH_CODE_WEBHOOK_TOKEN?: string
+  STRIPE_SECRET_KEY: string
+  STRIPE_WEBHOOK_SECRET: string
+  STRIPE_PRICE_SEO: string
+  STRIPE_PRICE_SEO_ADS: string
+  STRIPE_PRICE_FULL: string
+  TELEGRAM_BOT_TOKEN: string
+  TELEGRAM_CHAT_ID?: string
+  SOS_BUS_URL?: string
 }
 
 export interface AuthSession {
