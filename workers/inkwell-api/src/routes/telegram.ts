@@ -57,11 +57,11 @@ function isValidUpdate(update: unknown): update is TelegramUpdate {
 // ── Rate limiting ────────────────────────────────────────────────────────────
 // Max 1 response per second per chat_id using KV with 1s TTL
 
-async function isRateLimited(kv: KVNamespace, chatId: number): Promise<boolean> {
+async function isRateLimited(env: AppBindings['Bindings'], chatId: number): Promise<boolean> {
   const key = `tg:rl:${chatId}`
-  const existing = await kv.get(key)
+  const existing = await env.SESSIONS.get(key)
   if (existing !== null) return true
-  await kv.put(key, '1', { expirationTtl: 1 })
+  await env.SESSIONS.put(key, '1', { expirationTtl: 1 })
   return false
 }
 
@@ -110,8 +110,13 @@ async function handleReport(env: AppBindings['Bindings']): Promise<string> {
     )
   }
 
-  const totals = rows.results.reduce(
-    (acc, r) => ({ clicks: acc.clicks + r.clicks, leads: acc.leads + r.leads, spend: acc.spend + r.spend }),
+  type Totals = { clicks: number; leads: number; spend: number }
+  const totals = rows.results.reduce<Totals>(
+    (acc: Totals, r: { date: string; clicks: number; leads: number; spend: number }) => ({
+      clicks: acc.clicks + r.clicks,
+      leads: acc.leads + r.leads,
+      spend: acc.spend + r.spend,
+    }),
     { clicks: 0, leads: 0, spend: 0 }
   )
   lines.push('')
@@ -187,7 +192,7 @@ async function forwardToSosBus(env: AppBindings['Bindings'], text: string, chatI
       return '⚠️ Could not reach the AI team right now. Try again shortly.'
     }
 
-    const data = await resp.json<{ reply?: string }>()
+    const data = (await resp.json()) as { reply?: string }
     return data.reply ?? '✅ Forwarded to the AI team.'
   } catch {
     return '⚠️ Could not reach the AI team right now. Try again shortly.'
@@ -230,7 +235,7 @@ telegramRoutes.post('/webhook', async (c) => {
   }
 
   // Rate limit: 1 response/sec per chat
-  if (await isRateLimited(c.env.SESSIONS, chatId)) {
+  if (await isRateLimited(c.env, chatId)) {
     return c.json({ ok: true })
   }
 
@@ -292,7 +297,7 @@ telegramRoutes.post('/setup', async (c) => {
     body: JSON.stringify({ url: webhookUrl }),
   })
 
-  const data = await resp.json<{ ok: boolean; description?: string }>()
+  const data = (await resp.json()) as { ok: boolean; description?: string }
 
   if (!data.ok) {
     return c.json({ error: 'telegram_error', description: data.description }, 502)
@@ -309,7 +314,7 @@ telegramRoutes.get('/info', async (c) => {
   }
 
   const resp = await fetch(tgApiUrl(token, 'getMe'))
-  const data = await resp.json<{ ok: boolean; result?: { id: number; first_name: string; username?: string } }>()
+  const data = (await resp.json()) as { ok: boolean; result?: { id: number; first_name: string; username?: string } }
 
   if (!data.ok) {
     return c.json({ error: 'telegram_error' }, 502)
