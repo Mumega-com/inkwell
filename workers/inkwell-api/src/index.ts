@@ -1,15 +1,9 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
+import { authRoutes } from './routes/auth'
+import type { AppBindings } from './types'
 
-interface Env {
-  DB: D1Database
-  CONTENT: KVNamespace
-  SITE_URL: string
-  PUBLISH_TOKEN?: string
-  CF_PAGES_DEPLOY_HOOK?: string
-}
-
-const app = new Hono<{ Bindings: Env }>()
+const app = new Hono<AppBindings>()
 
 app.use('*', cors({
   origin: '*',
@@ -95,6 +89,8 @@ function parsePublishPayload(body: unknown):
 // Health check
 app.get('/health', (c) => c.json({ status: 'ok', ts: Date.now() }))
 
+app.route('/api/auth', authRoutes)
+
 // Record page view
 app.post('/api/view', async (c) => {
   const body = await c.req.json<{ slug: string; referrer?: string; scroll_depth?: number }>()
@@ -106,7 +102,7 @@ app.post('/api/view', async (c) => {
   const mobile = c.req.header('sec-ch-ua-mobile')
   const device = mobile === '?1' ? 'mobile' : 'desktop'
 
-  await c.env.DB.prepare(
+  await c.env.DB_ANALYTICS.prepare(
     'INSERT INTO page_views (slug, referrer, scroll_depth, country, device, timestamp) VALUES (?, ?, ?, ?, ?, ?)'
   ).bind(slug, referrer ?? null, scroll_depth ?? null, country, device, new Date().toISOString()).run()
 
@@ -127,11 +123,11 @@ app.post('/api/reaction', async (c) => {
   const hashArray = Array.from(new Uint8Array(hashBuffer))
   const visitorHash = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('').slice(0, 16)
 
-  await c.env.DB.prepare(
+  await c.env.DB_ANALYTICS.prepare(
     'INSERT INTO reactions (slug, emoji, visitor_hash, timestamp) VALUES (?, ?, ?, ?)'
   ).bind(slug, emoji, visitorHash, new Date().toISOString()).run()
 
-  const counts = await c.env.DB.prepare(
+  const counts = await c.env.DB_ANALYTICS.prepare(
     'SELECT emoji, COUNT(*) as count FROM reactions WHERE slug = ? GROUP BY emoji'
   ).bind(slug).all<{ emoji: string; count: number }>()
 
@@ -147,7 +143,7 @@ app.post('/api/reaction', async (c) => {
 app.get('/api/reactions/:slug', async (c) => {
   const slug = c.req.param('slug')
 
-  const counts = await c.env.DB.prepare(
+  const counts = await c.env.DB_ANALYTICS.prepare(
     'SELECT emoji, COUNT(*) as count FROM reactions WHERE slug = ? GROUP BY emoji'
   ).bind(slug).all<{ emoji: string; count: number }>()
 
@@ -166,7 +162,7 @@ app.post('/api/subscribe', async (c) => {
 
   if (!email) return c.json({ error: 'email required' }, 400)
 
-  await c.env.DB.prepare(
+  await c.env.DB_ANALYTICS.prepare(
     'INSERT OR IGNORE INTO subscribers (email, name, status, source) VALUES (?, ?, ?, ?)'
   ).bind(email, name ?? '', 'active', source ?? 'website').run()
 
@@ -180,7 +176,7 @@ app.post('/api/unsubscribe', async (c) => {
 
   if (!email) return c.json({ error: 'email required' }, 400)
 
-  await c.env.DB.prepare(
+  await c.env.DB_ANALYTICS.prepare(
     'UPDATE subscribers SET status = ? WHERE email = ?'
   ).bind('unsubscribed', email).run()
 
@@ -191,11 +187,11 @@ app.post('/api/unsubscribe', async (c) => {
 app.get('/api/stats/:slug', async (c) => {
   const slug = c.req.param('slug')
 
-  const views = await c.env.DB.prepare(
+  const views = await c.env.DB_ANALYTICS.prepare(
     'SELECT COUNT(*) as count, AVG(scroll_depth) as avg_scroll FROM page_views WHERE slug = ?'
   ).bind(slug).first<{ count: number; avg_scroll: number | null }>()
 
-  const reactions = await c.env.DB.prepare(
+  const reactions = await c.env.DB_ANALYTICS.prepare(
     'SELECT emoji, COUNT(*) as count FROM reactions WHERE slug = ? GROUP BY emoji'
   ).bind(slug).all<{ emoji: string; count: number }>()
 
@@ -249,7 +245,7 @@ app.post('/api/publish', async (c) => {
   if (!overwrite) {
     const [existingMeta, existingIndex] = await Promise.all([
       c.env.CONTENT.get(`meta:${slug}`),
-      c.env.DB.prepare('SELECT slug FROM content_index WHERE slug = ? LIMIT 1').bind(slug).first<{ slug: string }>(),
+      c.env.DB_ANALYTICS.prepare('SELECT slug FROM content_index WHERE slug = ? LIMIT 1').bind(slug).first<{ slug: string }>(),
     ])
     if (existingMeta || existingIndex) {
       return c.json({ error: 'slug_exists', slug, hint: 'Use overwrite:true to replace, or choose a different slug' }, 409)
@@ -258,7 +254,7 @@ app.post('/api/publish', async (c) => {
 
   // Build frontmatter
   const frontmatter = [
-    `title: "${body.title}"`,
+    `title: "${title}"`,
     `date: "${date}"`,
     `author: "${author}"`,
     `tags: [${tags.map(t => `"${t}"`).join(', ')}]`,
@@ -266,7 +262,7 @@ app.post('/api/publish', async (c) => {
     `status: "${status}"`,
   ].join('\n')
 
-  const markdown = `---\n${frontmatter}\n---\n\n${body.content}`
+  const markdown = `---\n${frontmatter}\n---\n\n${content}`
 
   // Store in KV
   await c.env.CONTENT.put(`post:${slug}`, markdown)
@@ -281,7 +277,7 @@ app.post('/api/publish', async (c) => {
   }))
 
   // Index in D1
-  await c.env.DB.prepare(
+  await c.env.DB_ANALYTICS.prepare(
     'INSERT OR REPLACE INTO content_index (slug, title, type, lang, author, tags, description, published_at, updated_at, word_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
   ).bind(slug, title, 'blog', 'en', author, JSON.stringify(tags), description, date, date, content.split(/\s+/).length).run()
 
@@ -307,7 +303,7 @@ app.post('/api/publish', async (c) => {
 
 // List published content (public — no auth needed)
 app.get('/api/posts', async (c) => {
-  const posts = await c.env.DB.prepare(
+  const posts = await c.env.DB_ANALYTICS.prepare(
     "SELECT slug, title, author, tags, description, published_at FROM content_index WHERE type = 'blog' ORDER BY published_at DESC LIMIT 50"
   ).all()
 
@@ -331,7 +327,7 @@ app.get('/api/drafts', async (c) => {
     }
   }
 
-  const all = await c.env.DB.prepare(
+  const all = await c.env.DB_ANALYTICS.prepare(
     "SELECT slug, title, author, tags, description, published_at FROM content_index WHERE type = 'blog' ORDER BY published_at DESC LIMIT 50"
   ).all()
 

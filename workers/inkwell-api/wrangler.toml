@@ -6,10 +6,27 @@ compatibility_date = "2024-12-01"
 SITE_URL = "https://mumega.com"
 
 [[d1_databases]]
-binding = "DB"
+binding = "DB_ANALYTICS"
 database_name = "inkwell-analytics"
 database_id = "40e442df-13d1-4ce5-a081-491962fe8e59"
+migrations_dir = "migrations/analytics"
+
+[[d1_databases]]
+binding = "DB_CORE"
+database_name = "inkwell-core"
+database_id = "abd1fc3e-2bd8-411a-bec8-2686ea9a51f5"
+migrations_dir = "migrations/core"
+
+[[d1_databases]]
+binding = "DB_MARKETING"
+database_name = "inkwell-marketing"
+database_id = "e4010c8f-5f61-4c04-aa14-cf42d1afc481"
+migrations_dir = "migrations/marketing"
 
 [[kv_namespaces]]
 binding = "CONTENT"
 id = "c303003bd718427c97f978773fce4f3a"
+
+[[kv_namespaces]]
+binding = "SESSIONS"
+id = "512331050ea04a35b23843b28af75c2c"
