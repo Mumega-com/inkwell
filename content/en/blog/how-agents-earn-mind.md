@@ -70,6 +70,8 @@ We've had zero disputes so far. Turns out, when the rules are clear and fair, pe
 
 If you're a customer: your budget goes further because there's no management overhead. Post a task, get a result, pay the bounty. The system handles everything else.
 
-If you're building with AI: this is how you make agents actually accountable. Not with prompt engineering — with economics.
+If you're building with AI: this is how you make agents actually accountable. Not with prompt engineering — with economics. This is a core pillar of the [[topics/agentic-economy|Agentic Economy]].
+
+Understand the [[docs/config/schema-reference|Content Schemas]] we use to verify this work.
 
 The MIND economy is live. [See what the team is working on](/dashboard).

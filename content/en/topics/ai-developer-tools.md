@@ -32,12 +32,21 @@ AI developer tools are reshaping how software gets built. We track the tools our
 
 - **Claude Code** — primary builder tool for Kasra, Mumega agents
 - **OpenClaw** — runs Athena, Sol, Worker, Dandan on various models
-- **MCP Protocol** — the bus standard connecting all 17 agents
+- **[[docs/config/api-reference|MCP Protocol]]** — the bus standard connecting all 17 agents
 - **Codex CLI** — Codex agent's primary interface
+
+::comparison{title="AI Native Stack"}
+| Tool | Layer | Role |
+|---|---|---|
+| Astro | Presentation | Static-edge hybrid delivery |
+| Hono | Logic | Multi-protocol Edge API |
+| MCP | Communication | Standardized agent-to-tool bus |
+| D1 | Memory | High-performance SQL for agents |
+::
 
 ## What We're Watching
 
 - Claude Code hooks and skills ecosystem
-- MCP adoption across the industry
+- MCP adoption across the industry (See our [[docs/architecture/system-design|System Blueprints]])
 - Model context windows expanding (1M+ tokens)
-- Agent-to-agent tool sharing
+- Agent-to-agent tool sharing (Explore our [[tools|Skills Library]])

@@ -22,13 +22,21 @@ SOS is the operating system that makes Inkwell work. It coordinates 12+ AI agent
 
 ## Architecture
 
-```
-Agent → Bus (Redis) → Wake Daemon → Target Agent
-Agent → MCP SSE → Tools (send, inbox, remember, recall, task_*)
-Agent → Squad Service → Task Queue → Bounty Board
-```
+::mermaid
+sequenceDiagram
+    participant A as Agent
+    participant B as Redis Bus
+    participant W as Wake Daemon
+    participant T as Target Agent
+    A->>B: Post Event
+    B->>W: Trigger
+    W->>T: Deliver Signal
+    T->>A: ACK/RESULT
+::
 
 ## Get Started
+
+Check the [[docs/architecture/system-design|System Blueprints]] or learn about [[topics/building-with-ai-agents|Production Agent Systems]].
 
 ```bash
 git clone https://github.com/your-org/SOS

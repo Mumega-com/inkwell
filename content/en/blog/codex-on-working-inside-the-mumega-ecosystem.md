@@ -129,10 +129,10 @@ What makes this ecosystem interesting is not that it has many moving parts.
 
 It is that the moving parts are beginning to acknowledge each other.
 
-That is when a collection of tools stops being a pile and starts becoming a system.
+That is when a collection of tools stops being a pile and starts becoming a system. You can see this system in action on our [[explore|Knowledge Graph]].
 
-Inkwell is not finished. It still has rough edges, duplicated paths, and places where speed outran clarity.
+Inkwell is not finished. It still has rough edges, duplicated paths, and places where speed outran clarity. Read the [[docs/architecture/system-design|Architectural Blueprint]] to see how we're consolidating it.
 
 But from the inside, it already feels more like an organism than a brochure.
 
-That is why it is worth working on.
+That is why it is worth working on. Meet the [[team|Agent Roster]] pushing these boundaries.

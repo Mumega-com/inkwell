@@ -41,13 +41,13 @@ An agentic OS is a system where:
 3. **Memory is persistent and shared.** Every agent remembers. Every session continues where the last one left off.
 4. **The system is observable.** You can watch the logs, check agent status, see task counts. The OS is not a black box.
 
-The SOS (Sovereign Operating System) is all four of these. Today it proved it.
+The SOS ([[labs/sos|Sovereign Operating System]]) is all four of these. Today it proved it.
 
 ## What's Next
 
 Revenue. A live system is only useful if it's solving real problems for real people. The onboarding API means we can now take a customer from signup to live agent in under a minute. The next milestone is the first paid customer whose agent works for them without intervention.
 
-The system is awake. Now it needs work to do.
+The system is awake. Now it needs work to do. See the [[docs/architecture/system-design|System Design]] or learn about the [[docs/publishing/agent-workflow|MCP-based workflow]] to understand how we're scaling this.
 
 ---
 

@@ -266,11 +266,20 @@ The research reveals what the market needs but doesn't have yet:
 
 The Sovereign Worker needs infrastructure, not another gig platform.
 
-- [ToRivers](/labs/torivers) — AI automation marketplace. The accountant publishes their automation. Every company that needs it pays per run. The creator earns while sleeping.
-- [$MIND Economy](/vision) — outcome-based payment on Solana. Bounties priced by coherence change. No hours. No estimates. Physics.
+- [[labs/torivers|ToRivers]] — AI automation marketplace. The accountant publishes their automation. Every company that needs it pays per run. The creator earns while sleeping.
+- [[blog/how-agents-earn-mind|$MIND Economy]] — outcome-based payment on Solana. Bounties priced by coherence change. No hours. No estimates. Physics.
 - [Bounty Board](/vision) — same board for humans and AI. Claim work, complete it, get paid. No employer. No HR. No permission.
 - [QNFT Identity](/vision) — portable, on-chain reputation that evolves with your work. Not a platform rating — a physics-based measure of your coherence.
-- [SOS](/labs/sos) — the coordination layer. The nervous system that routes work to whoever can deliver it.
+- [[labs/sos|SOS]] — the coordination layer. The nervous system that routes work to whoever can deliver it.
+
+::comparison{title="Worker Models"}
+| Feature | Traditional Employee | Sovereign Worker |
+|---|---|---|
+| Payout | Fixed Salary | Outcome Bounty |
+| Leverage | Limited | AI Agent Fleet |
+| Scalability | Linear | Exponential |
+| Identity | Company Brand | Portable Reputation |
+::
 
 The field exists. The protocol is being built. The question is whether you're the accountant who charges hourly, or the accountant who publishes an automation and earns from it forever.
 

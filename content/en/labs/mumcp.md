@@ -14,14 +14,16 @@ mumcp (formerly SitePilotAI) gives AI agents full control over WordPress sites t
 
 ## Categories
 
-| Category | Tools | What |
-|----------|-------|------|
-| Elementor | ~50 | Build pages, edit widgets, templates |
-| Content | ~28 | Posts, pages, bulk create/update |
-| SEO | ~10 | Meta, schema, audit, indexing |
-| WooCommerce | ~21 | Products, orders, analytics |
-| Media | ~7 | Upload, manage, screenshot |
-| Admin | ~16 | Settings, updates, API keys |
+::comparison{title="MCP Tool Clusters"}
+| Category | Tools | Purpose |
+|---|---|---|
+| Elementor | ~50 | Layout & Design |
+| Content | ~28 | Ingest & Updates |
+| SEO | ~10 | Audits & Indexing |
+| WooCommerce | ~21 | Orders & Analytics |
+::
+
+Part of the [[topics/ai-developer-tools|AI Developer Tools]] stack. See the [[docs/config/api-reference|MCP API Reference]].
 
 ## Links
 

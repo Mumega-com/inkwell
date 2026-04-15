@@ -18,10 +18,16 @@ AI automation is becoming commodified. Distribution and developer experience are
 
 ## How It Works
 
-1. **Developers** build automations using the Python SDK (`pip install torivers-sdk`) or by chatting with Claude Code via MCP
-2. **Automations** run on LangGraph with Celery workers — scheduled, webhook-triggered, or manual
-3. **Customers** browse the marketplace, install automations, and pay per execution from a wallet
-4. **Credentials** are encrypted with AES-256-GCM — third-party code never sees API keys
+::mermaid
+graph TD
+    D[Developer] -->|Build| S[SDK/Claude]
+    S -->|Publish| M[Marketplace]
+    C[Customer] -->|Install| M
+    C -->|Run| E[Execution Engine]
+    E -->|Pay| B[[blog/how-agents-earn-mind|MIND Payout]]
+::
+
+Unlocking the [[topics/the-sovereign-worker|Sovereign Worker]] economy.
 
 ## What's Running
 

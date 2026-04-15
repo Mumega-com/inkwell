@@ -58,6 +58,19 @@ Inkwell is designed to be extended with your own workflows, workers, and integra
 - /products — Available offerings
 - /products/sitepilotai — AI-powered WordPress management
 
+### Documentation (Stripe-quality Guides)
+- /docs — Documentation Overview & Ingest Pipeline
+- /docs/getting-started — Quick setup and first post
+- /docs/architecture/system-design — Blueprint of the Vault and Edge
+- /docs/config/site-config — Full reference for inkwell.config.ts
+- /docs/config/schema-reference — Data structures for collections
+- /docs/config/api-reference — REST and MCP endpoint reference
+- /docs/publishing/agent-workflow — How agents publish to the well
+- /docs/publishing/deployment — Going live on Cloudflare
+- /docs/features/interactive-components — Charts, Mermaid, and Blocks
+- /docs/features/seo-discovery — Dominating AI and human search
+- /docs/features/backlinks-graph — Navigating the knowledge network
+
 ### Pages
 - /vision — Seven objectives for the CMS
 - /about — Origin story, reference implementation

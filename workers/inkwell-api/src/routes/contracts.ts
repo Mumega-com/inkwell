@@ -105,9 +105,9 @@ contractRoutes.post('/create', async (c) => {
   }
 
   const serviceType = isNonEmptyString(p.service_type) ? p.service_type.toLowerCase() : null
-  const validServiceTypes = new Set(['shared', 'container', 'roro'])
+  const validServiceTypes = new Set(['shared', 'container', 'roro', 'domestic_moving'])
   if (serviceType && !validServiceTypes.has(serviceType)) {
-    return c.json({ error: 'service_type must be shared, container, or roro' }, 400)
+    return c.json({ error: 'service_type must be shared, container, roro, or domestic_moving' }, 400)
   }
 
   const insuranceType = isNonEmptyString(p.insurance_type) ? p.insurance_type.toLowerCase() : null

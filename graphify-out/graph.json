@@ -9,7 +9,7 @@
       "source_file": "inkwell.config.example.ts",
       "source_location": "L1",
       "id": "inkwell_config_example_ts",
-      "community": 31,
+      "community": 40,
       "norm_label": "inkwell.config.example.ts"
     },
     {
@@ -18,7 +18,7 @@
       "source_file": "inkwell.config.ts",
       "source_location": "L1",
       "id": "inkwell_config_ts",
-      "community": 32,
+      "community": 41,
       "norm_label": "inkwell.config.ts"
     },
     {
@@ -27,7 +27,7 @@
       "source_file": "scripts/generate-og.ts",
       "source_location": "L1",
       "id": "scripts_generate_og_ts",
-      "community": 11,
+      "community": 13,
       "norm_label": "generate-og.ts"
     },
     {
@@ -36,7 +36,7 @@
       "source_file": "scripts/generate-og.ts",
       "source_location": "L22",
       "id": "generate_og_parsefrontmatter",
-      "community": 11,
+      "community": 13,
       "norm_label": "parsefrontmatter()"
     },
     {
@@ -45,7 +45,7 @@
       "source_file": "scripts/generate-og.ts",
       "source_location": "L34",
       "id": "generate_og_collectposts",
-      "community": 11,
+      "community": 13,
       "norm_label": "collectposts()"
     },
     {
@@ -54,7 +54,7 @@
       "source_file": "scripts/generate-og.ts",
       "source_location": "L54",
       "id": "generate_og_buildhtml",
-      "community": 11,
+      "community": 13,
       "norm_label": "buildhtml()"
     },
     {
@@ -63,7 +63,7 @@
       "source_file": "scripts/generate-og.ts",
       "source_location": "L173",
       "id": "generate_og_run",
-      "community": 11,
+      "community": 13,
       "norm_label": "run()"
     },
     {
@@ -72,7 +72,7 @@
       "source_file": "scripts/upload-media.ts",
       "source_location": "L1",
       "id": "scripts_upload_media_ts",
-      "community": 14,
+      "community": 16,
       "norm_label": "upload-media.ts"
     },
     {
@@ -81,7 +81,7 @@
       "source_file": "scripts/upload-media.ts",
       "source_location": "L16",
       "id": "upload_media_usage",
-      "community": 14,
+      "community": 16,
       "norm_label": "usage()"
     },
     {
@@ -90,7 +90,7 @@
       "source_file": "scripts/upload-media.ts",
       "source_location": "L26",
       "id": "upload_media_parseargs",
-      "community": 14,
+      "community": 16,
       "norm_label": "parseargs()"
     },
     {
@@ -99,7 +99,7 @@
       "source_file": "scripts/upload-media.ts",
       "source_location": "L40",
       "id": "upload_media_main",
-      "community": 14,
+      "community": 16,
       "norm_label": "main()"
     },
     {
@@ -108,7 +108,7 @@
       "source_file": "scripts/ingest.ts",
       "source_location": "L1",
       "id": "scripts_ingest_ts",
-      "community": 12,
+      "community": 14,
       "norm_label": "ingest.ts"
     },
     {
@@ -117,7 +117,7 @@
       "source_file": "scripts/ingest.ts",
       "source_location": "L20",
       "id": "ingest_parsefrontmatter",
-      "community": 12,
+      "community": 14,
       "norm_label": "parsefrontmatter()"
     },
     {
@@ -126,7 +126,7 @@
       "source_file": "scripts/ingest.ts",
       "source_location": "L32",
       "id": "ingest_generateslug",
-      "community": 12,
+      "community": 14,
       "norm_label": "generateslug()"
     },
     {
@@ -135,7 +135,7 @@
       "source_file": "scripts/ingest.ts",
       "source_location": "L37",
       "id": "ingest_autodescription",
-      "community": 12,
+      "community": 14,
       "norm_label": "autodescription()"
     },
     {
@@ -144,7 +144,7 @@
       "source_file": "scripts/ingest.ts",
       "source_location": "L63",
       "id": "ingest_run",
-      "community": 12,
+      "community": 14,
       "norm_label": "run()"
     },
     {
@@ -153,7 +153,7 @@
       "source_file": "scripts/flywheel.ts",
       "source_location": "L1",
       "id": "scripts_flywheel_ts",
-      "community": 13,
+      "community": 15,
       "norm_label": "flywheel.ts"
     },
     {
@@ -162,7 +162,7 @@
       "source_file": "scripts/flywheel.ts",
       "source_location": "L27",
       "id": "flywheel_parseitems",
-      "community": 13,
+      "community": 15,
       "norm_label": "parseitems()"
     },
     {
@@ -171,7 +171,7 @@
       "source_file": "scripts/flywheel.ts",
       "source_location": "L60",
       "id": "flywheel_suggestangle",
-      "community": 13,
+      "community": 15,
       "norm_label": "suggestangle()"
     },
     {
@@ -180,7 +180,7 @@
       "source_file": "scripts/flywheel.ts",
       "source_location": "L73",
       "id": "flywheel_suggesttype",
-      "community": 13,
+      "community": 15,
       "norm_label": "suggesttype()"
     },
     {
@@ -189,7 +189,7 @@
       "source_file": "scripts/flywheel.ts",
       "source_location": "L79",
       "id": "flywheel_main",
-      "community": 13,
+      "community": 15,
       "norm_label": "main()"
     },
     {
@@ -198,7 +198,7 @@
       "source_file": "scripts/cache-to-kv.ts",
       "source_location": "L1",
       "id": "scripts_cache_to_kv_ts",
-      "community": 15,
+      "community": 17,
       "norm_label": "cache-to-kv.ts"
     },
     {
@@ -207,7 +207,7 @@
       "source_file": "scripts/cache-to-kv.ts",
       "source_location": "L16",
       "id": "cache_to_kv_walkhtml",
-      "community": 15,
+      "community": 17,
       "norm_label": "walkhtml()"
     },
     {
@@ -216,7 +216,7 @@
       "source_file": "scripts/cache-to-kv.ts",
       "source_location": "L30",
       "id": "cache_to_kv_pathtoslug",
-      "community": 15,
+      "community": 17,
       "norm_label": "pathtoslug()"
     },
     {
@@ -225,7 +225,7 @@
       "source_file": "scripts/cache-to-kv.ts",
       "source_location": "L41",
       "id": "cache_to_kv_main",
-      "community": 15,
+      "community": 17,
       "norm_label": "main()"
     },
     {
@@ -234,8 +234,116 @@
       "source_file": "src/content.config.ts",
       "source_location": "L1",
       "id": "src_content_config_ts",
-      "community": 33,
+      "community": 42,
       "norm_label": "content.config.ts"
+    },
+    {
+      "label": "ChatWidget.tsx",
+      "file_type": "code",
+      "source_file": "src/components/ChatWidget.tsx",
+      "source_location": "L1",
+      "id": "src_components_chatwidget_tsx",
+      "community": 7,
+      "norm_label": "chatwidget.tsx"
+    },
+    {
+      "label": "getStorageKey()",
+      "file_type": "code",
+      "source_file": "src/components/ChatWidget.tsx",
+      "source_location": "L19",
+      "id": "chatwidget_getstoragekey",
+      "community": 7,
+      "norm_label": "getstoragekey()"
+    },
+    {
+      "label": "loadHistory()",
+      "file_type": "code",
+      "source_file": "src/components/ChatWidget.tsx",
+      "source_location": "L23",
+      "id": "chatwidget_loadhistory",
+      "community": 7,
+      "norm_label": "loadhistory()"
+    },
+    {
+      "label": "saveHistory()",
+      "file_type": "code",
+      "source_file": "src/components/ChatWidget.tsx",
+      "source_location": "L36",
+      "id": "chatwidget_savehistory",
+      "community": 7,
+      "norm_label": "savehistory()"
+    },
+    {
+      "label": "ensureKeyframes()",
+      "file_type": "code",
+      "source_file": "src/components/ChatWidget.tsx",
+      "source_location": "L201",
+      "id": "chatwidget_ensurekeyframes",
+      "community": 7,
+      "norm_label": "ensurekeyframes()"
+    },
+    {
+      "label": "check()",
+      "file_type": "code",
+      "source_file": "src/components/ChatWidget.tsx",
+      "source_location": "L245",
+      "id": "chatwidget_check",
+      "community": 7,
+      "norm_label": "check()"
+    },
+    {
+      "label": "handleKeyDown()",
+      "file_type": "code",
+      "source_file": "src/components/ChatWidget.tsx",
+      "source_location": "L337",
+      "id": "chatwidget_handlekeydown",
+      "community": 7,
+      "norm_label": "handlekeydown()"
+    },
+    {
+      "label": "MovingQuoteForm.tsx",
+      "file_type": "code",
+      "source_file": "src/components/MovingQuoteForm.tsx",
+      "source_location": "L1",
+      "id": "src_components_movingquoteform_tsx",
+      "community": 18,
+      "norm_label": "movingquoteform.tsx"
+    },
+    {
+      "label": "set()",
+      "file_type": "code",
+      "source_file": "src/components/MovingQuoteForm.tsx",
+      "source_location": "L55",
+      "id": "movingquoteform_set",
+      "community": 18,
+      "norm_label": "set()"
+    },
+    {
+      "label": "handleMoveSizeChange()",
+      "file_type": "code",
+      "source_file": "src/components/MovingQuoteForm.tsx",
+      "source_location": "L60",
+      "id": "movingquoteform_handlemovesizechange",
+      "community": 18,
+      "norm_label": "handlemovesizechange()"
+    },
+    {
+      "label": "handleSubmit()",
+      "file_type": "code",
+      "source_file": "src/components/MovingQuoteForm.tsx",
+      "source_location": "L74",
+      "id": "movingquoteform_handlesubmit",
+      "community": 18,
+      "norm_label": "handlesubmit()"
+    },
+    {
+      "label": "ContractPortal.tsx",
+      "file_type": "code",
+      "source_file": "src/components/ContractPortal.tsx",
+      "source_location": "L1",
+      "id": "src_components_contractportal_tsx",
+      "community": 43,
+      "norm_label": "contractportal.tsx"
     },
     {
       "label": "islands.ts",
@@ -243,8 +351,26 @@
       "source_file": "src/components/islands.ts",
       "source_location": "L1",
       "id": "src_components_islands_ts",
-      "community": 34,
+      "community": 44,
       "norm_label": "islands.ts"
+    },
+    {
+      "label": "ContractForm.tsx",
+      "file_type": "code",
+      "source_file": "src/components/ContractForm.tsx",
+      "source_location": "L1",
+      "id": "src_components_contractform_tsx",
+      "community": 28,
+      "norm_label": "contractform.tsx"
+    },
+    {
+      "label": "handleSubmit()",
+      "file_type": "code",
+      "source_file": "src/components/ContractForm.tsx",
+      "source_location": "L72",
+      "id": "contractform_handlesubmit",
+      "community": 28,
+      "norm_label": "handlesubmit()"
     },
     {
       "label": "ReadingProgress.tsx",
@@ -252,7 +378,7 @@
       "source_file": "src/components/navigation/ReadingProgress.tsx",
       "source_location": "L1",
       "id": "src_components_navigation_readingprogress_tsx",
-      "community": 22,
+      "community": 29,
       "norm_label": "readingprogress.tsx"
     },
     {
@@ -261,7 +387,7 @@
       "source_file": "src/components/navigation/ReadingProgress.tsx",
       "source_location": "L5",
       "id": "readingprogress_readingprogress",
-      "community": 22,
+      "community": 29,
       "norm_label": "readingprogress()"
     },
     {
@@ -270,7 +396,7 @@
       "source_file": "src/components/navigation/CommandPalette.tsx",
       "source_location": "L1",
       "id": "src_components_navigation_commandpalette_tsx",
-      "community": 23,
+      "community": 30,
       "norm_label": "commandpalette.tsx"
     },
     {
@@ -279,7 +405,7 @@
       "source_file": "src/components/navigation/CommandPalette.tsx",
       "source_location": "L24",
       "id": "commandpalette_onkeydown",
-      "community": 23,
+      "community": 30,
       "norm_label": "onkeydown()"
     },
     {
@@ -288,7 +414,7 @@
       "source_file": "src/components/navigation/TOC.tsx",
       "source_location": "L1",
       "id": "src_components_navigation_toc_tsx",
-      "community": 35,
+      "community": 45,
       "norm_label": "toc.tsx"
     },
     {
@@ -297,7 +423,7 @@
       "source_file": "src/components/engagement/NewsletterCTA.tsx",
       "source_location": "L1",
       "id": "src_components_engagement_newslettercta_tsx",
-      "community": 36,
+      "community": 46,
       "norm_label": "newslettercta.tsx"
     },
     {
@@ -306,7 +432,7 @@
       "source_file": "src/components/engagement/Reactions.tsx",
       "source_location": "L1",
       "id": "src_components_engagement_reactions_tsx",
-      "community": 16,
+      "community": 19,
       "norm_label": "reactions.tsx"
     },
     {
@@ -315,7 +441,7 @@
       "source_file": "src/components/engagement/Reactions.tsx",
       "source_location": "L18",
       "id": "reactions_getstoragekey",
-      "community": 16,
+      "community": 19,
       "norm_label": "getstoragekey()"
     },
     {
@@ -324,7 +450,7 @@
       "source_file": "src/components/engagement/Reactions.tsx",
       "source_location": "L22",
       "id": "reactions_getlocalreactions",
-      "community": 16,
+      "community": 19,
       "norm_label": "getlocalreactions()"
     },
     {
@@ -333,7 +459,7 @@
       "source_file": "src/components/engagement/Reactions.tsx",
       "source_location": "L32",
       "id": "reactions_setlocalreactions",
-      "community": 16,
+      "community": 19,
       "norm_label": "setlocalreactions()"
     },
     {
@@ -342,7 +468,7 @@
       "source_file": "src/components/engagement/ShareButtons.tsx",
       "source_location": "L1",
       "id": "src_components_engagement_sharebuttons_tsx",
-      "community": 37,
+      "community": 47,
       "norm_label": "sharebuttons.tsx"
     },
     {
@@ -351,7 +477,7 @@
       "source_file": "src/components/engagement/Feedback.tsx",
       "source_location": "L1",
       "id": "src_components_engagement_feedback_tsx",
-      "community": 24,
+      "community": 31,
       "norm_label": "feedback.tsx"
     },
     {
@@ -360,7 +486,7 @@
       "source_file": "src/components/engagement/Feedback.tsx",
       "source_location": "L20",
       "id": "feedback_submitfeedback",
-      "community": 24,
+      "community": 31,
       "norm_label": "submitfeedback()"
     },
     {
@@ -369,7 +495,7 @@
       "source_file": "src/components/engagement/SocialProofBar.tsx",
       "source_location": "L1",
       "id": "src_components_engagement_socialproofbar_tsx",
-      "community": 25,
+      "community": 32,
       "norm_label": "socialproofbar.tsx"
     },
     {
@@ -378,7 +504,7 @@
       "source_file": "src/components/engagement/SocialProofBar.tsx",
       "source_location": "L17",
       "id": "socialproofbar_socialproofbar",
-      "community": 25,
+      "community": 32,
       "norm_label": "socialproofbar()"
     },
     {
@@ -387,7 +513,7 @@
       "source_file": "src/components/visualization/KnowledgeGraph.tsx",
       "source_location": "L1",
       "id": "src_components_visualization_knowledgegraph_tsx",
-      "community": 26,
+      "community": 33,
       "norm_label": "knowledgegraph.tsx"
     },
     {
@@ -396,7 +522,7 @@
       "source_file": "src/components/visualization/KnowledgeGraph.tsx",
       "source_location": "L27",
       "id": "knowledgegraph_knowledgegraph",
-      "community": 26,
+      "community": 33,
       "norm_label": "knowledgegraph()"
     },
     {
@@ -405,7 +531,7 @@
       "source_file": "src/components/visualization/VideoHero.tsx",
       "source_location": "L1",
       "id": "src_components_visualization_videohero_tsx",
-      "community": 27,
+      "community": 34,
       "norm_label": "videohero.tsx"
     },
     {
@@ -414,7 +540,7 @@
       "source_file": "src/components/visualization/VideoHero.tsx",
       "source_location": "L16",
       "id": "videohero_formattime",
-      "community": 27,
+      "community": 34,
       "norm_label": "formattime()"
     },
     {
@@ -423,7 +549,7 @@
       "source_file": "src/components/visualization/NetworkHero.tsx",
       "source_location": "L1",
       "id": "src_components_visualization_networkhero_tsx",
-      "community": 28,
+      "community": 35,
       "norm_label": "networkhero.tsx"
     },
     {
@@ -432,8 +558,71 @@
       "source_file": "src/components/visualization/NetworkHero.tsx",
       "source_location": "L22",
       "id": "networkhero_networkhero",
-      "community": 28,
+      "community": 35,
       "norm_label": "networkhero()"
+    },
+    {
+      "label": "LineChart.tsx",
+      "file_type": "code",
+      "source_file": "src/components/charts/LineChart.tsx",
+      "source_location": "L1",
+      "id": "src_components_charts_linechart_tsx",
+      "community": 48,
+      "norm_label": "linechart.tsx"
+    },
+    {
+      "label": "BarChart.tsx",
+      "file_type": "code",
+      "source_file": "src/components/charts/BarChart.tsx",
+      "source_location": "L1",
+      "id": "src_components_charts_barchart_tsx",
+      "community": 49,
+      "norm_label": "barchart.tsx"
+    },
+    {
+      "label": "DataTable.tsx",
+      "file_type": "code",
+      "source_file": "src/components/charts/DataTable.tsx",
+      "source_location": "L1",
+      "id": "src_components_charts_datatable_tsx",
+      "community": 23,
+      "norm_label": "datatable.tsx"
+    },
+    {
+      "label": "formatCell()",
+      "file_type": "code",
+      "source_file": "src/components/charts/DataTable.tsx",
+      "source_location": "L19",
+      "id": "datatable_formatcell",
+      "community": 23,
+      "norm_label": "formatcell()"
+    },
+    {
+      "label": "StatusBadge()",
+      "file_type": "code",
+      "source_file": "src/components/charts/DataTable.tsx",
+      "source_location": "L33",
+      "id": "datatable_statusbadge",
+      "community": 23,
+      "norm_label": "statusbadge()"
+    },
+    {
+      "label": "KPICard.tsx",
+      "file_type": "code",
+      "source_file": "src/components/charts/KPICard.tsx",
+      "source_location": "L1",
+      "id": "src_components_charts_kpicard_tsx",
+      "community": 36,
+      "norm_label": "kpicard.tsx"
+    },
+    {
+      "label": "formatValue()",
+      "file_type": "code",
+      "source_file": "src/components/charts/KPICard.tsx",
+      "source_location": "L12",
+      "id": "kpicard_formatvalue",
+      "community": 36,
+      "norm_label": "formatvalue()"
     },
     {
       "label": "sitemap.xml.ts",
@@ -441,7 +630,7 @@
       "source_file": "src/pages/sitemap.xml.ts",
       "source_location": "L1",
       "id": "src_pages_sitemap_xml_ts",
-      "community": 29,
+      "community": 37,
       "norm_label": "sitemap.xml.ts"
     },
     {
@@ -450,7 +639,7 @@
       "source_file": "src/pages/sitemap.xml.ts",
       "source_location": "L6",
       "id": "sitemap_xml_get",
-      "community": 29,
+      "community": 37,
       "norm_label": "get()"
     },
     {
@@ -459,7 +648,7 @@
       "source_file": "src/pages/rss.xml.ts",
       "source_location": "L1",
       "id": "src_pages_rss_xml_ts",
-      "community": 19,
+      "community": 24,
       "norm_label": "rss.xml.ts"
     },
     {
@@ -468,7 +657,7 @@
       "source_file": "src/pages/rss.xml.ts",
       "source_location": "L5",
       "id": "rss_xml_escapexml",
-      "community": 19,
+      "community": 24,
       "norm_label": "escapexml()"
     },
     {
@@ -477,7 +666,7 @@
       "source_file": "src/pages/rss.xml.ts",
       "source_location": "L14",
       "id": "rss_xml_get",
-      "community": 19,
+      "community": 24,
       "norm_label": "get()"
     },
     {
@@ -486,7 +675,7 @@
       "source_file": "src/lib/annotations.ts",
       "source_location": "L1",
       "id": "src_lib_annotations_ts",
-      "community": 17,
+      "community": 20,
       "norm_label": "annotations.ts"
     },
     {
@@ -495,7 +684,7 @@
       "source_file": "src/lib/annotations.ts",
       "source_location": "L22",
       "id": "annotations_localannotationprovider",
-      "community": 17,
+      "community": 20,
       "norm_label": "localannotationprovider"
     },
     {
@@ -504,7 +693,7 @@
       "source_file": "src/lib/annotations.ts",
       "source_location": "L25",
       "id": "annotations_localannotationprovider_getannotations",
-      "community": 17,
+      "community": 20,
       "norm_label": ".getannotations()"
     },
     {
@@ -513,7 +702,7 @@
       "source_file": "src/lib/annotations.ts",
       "source_location": "L29",
       "id": "annotations_localannotationprovider_addannotation",
-      "community": 17,
+      "community": 20,
       "norm_label": ".addannotation()"
     },
     {
@@ -522,7 +711,7 @@
       "source_file": "src/lib/config.ts",
       "source_location": "L1",
       "id": "src_lib_config_ts",
-      "community": 38,
+      "community": 50,
       "norm_label": "config.ts"
     },
     {
@@ -531,7 +720,7 @@
       "source_file": "src/lib/kv-cache.ts",
       "source_location": "L1",
       "id": "src_lib_kv_cache_ts",
-      "community": 7,
+      "community": 8,
       "norm_label": "kv-cache.ts"
     },
     {
@@ -540,7 +729,7 @@
       "source_file": "src/lib/kv-cache.ts",
       "source_location": "L20",
       "id": "kv_cache_kvurl",
-      "community": 7,
+      "community": 8,
       "norm_label": "kvurl()"
     },
     {
@@ -549,7 +738,7 @@
       "source_file": "src/lib/kv-cache.ts",
       "source_location": "L24",
       "id": "kv_cache_headers",
-      "community": 7,
+      "community": 8,
       "norm_label": "headers()"
     },
     {
@@ -558,7 +747,7 @@
       "source_file": "src/lib/kv-cache.ts",
       "source_location": "L32",
       "id": "kv_cache_cachecontent",
-      "community": 7,
+      "community": 8,
       "norm_label": "cachecontent()"
     },
     {
@@ -567,7 +756,7 @@
       "source_file": "src/lib/kv-cache.ts",
       "source_location": "L70",
       "id": "kv_cache_getcachedcontent",
-      "community": 7,
+      "community": 8,
       "norm_label": "getcachedcontent()"
     },
     {
@@ -576,7 +765,7 @@
       "source_file": "src/lib/kv-cache.ts",
       "source_location": "L97",
       "id": "kv_cache_invalidatecache",
-      "community": 7,
+      "community": 8,
       "norm_label": "invalidatecache()"
     },
     {
@@ -585,7 +774,7 @@
       "source_file": "src/lib/theme.ts",
       "source_location": "L1",
       "id": "src_lib_theme_ts",
-      "community": 20,
+      "community": 25,
       "norm_label": "theme.ts"
     },
     {
@@ -594,7 +783,7 @@
       "source_file": "src/lib/theme.ts",
       "source_location": "L6",
       "id": "theme_iscolorpair",
-      "community": 20,
+      "community": 25,
       "norm_label": "iscolorpair()"
     },
     {
@@ -603,7 +792,7 @@
       "source_file": "src/lib/theme.ts",
       "source_location": "L10",
       "id": "theme_generatecssvars",
-      "community": 20,
+      "community": 25,
       "norm_label": "generatecssvars()"
     },
     {
@@ -918,7 +1107,7 @@
       "source_file": "src/lib/graph.ts",
       "source_location": "L1",
       "id": "src_lib_graph_ts",
-      "community": 18,
+      "community": 21,
       "norm_label": "graph.ts"
     },
     {
@@ -927,7 +1116,7 @@
       "source_file": "src/lib/graph.ts",
       "source_location": "L39",
       "id": "graph_edgekey",
-      "community": 18,
+      "community": 21,
       "norm_label": "edgekey()"
     },
     {
@@ -936,7 +1125,7 @@
       "source_file": "src/lib/graph.ts",
       "source_location": "L44",
       "id": "graph_tonode",
-      "community": 18,
+      "community": 21,
       "norm_label": "tonode()"
     },
     {
@@ -945,7 +1134,7 @@
       "source_file": "src/lib/graph.ts",
       "source_location": "L71",
       "id": "graph_buildgraphdata",
-      "community": 18,
+      "community": 21,
       "norm_label": "buildgraphdata()"
     },
     {
@@ -1143,7 +1332,7 @@
       "source_file": "src/lib/reading-time.ts",
       "source_location": "L1",
       "id": "src_lib_reading_time_ts",
-      "community": 30,
+      "community": 38,
       "norm_label": "reading-time.ts"
     },
     {
@@ -1152,7 +1341,7 @@
       "source_file": "src/lib/reading-time.ts",
       "source_location": "L3",
       "id": "reading_time_getreadingtime",
-      "community": 30,
+      "community": 38,
       "norm_label": "getreadingtime()"
     },
     {
@@ -1161,7 +1350,7 @@
       "source_file": "src/lib/remark-wikilinks.ts",
       "source_location": "L1",
       "id": "src_lib_remark_wikilinks_ts",
-      "community": 21,
+      "community": 26,
       "norm_label": "remark-wikilinks.ts"
     },
     {
@@ -1170,7 +1359,7 @@
       "source_file": "src/lib/remark-wikilinks.ts",
       "source_location": "L16",
       "id": "remark_wikilinks_remarkwikilinks",
-      "community": 21,
+      "community": 26,
       "norm_label": "remarkwikilinks()"
     },
     {
@@ -1179,7 +1368,7 @@
       "source_file": "src/lib/remark-wikilinks.ts",
       "source_location": "L69",
       "id": "remark_wikilinks_escapehtml",
-      "community": 21,
+      "community": 26,
       "norm_label": "escapehtml()"
     },
     {
@@ -1188,7 +1377,7 @@
       "source_file": "workers/inkwell-api/src/types.ts",
       "source_location": "L1",
       "id": "workers_inkwell_api_src_types_ts",
-      "community": 39,
+      "community": 51,
       "norm_label": "types.ts"
     },
     {
@@ -1197,7 +1386,7 @@
       "source_file": "workers/inkwell-api/src/scheduled.ts",
       "source_location": "L1",
       "id": "workers_inkwell_api_src_scheduled_ts",
-      "community": 8,
+      "community": 9,
       "norm_label": "scheduled.ts"
     },
     {
@@ -1206,7 +1395,7 @@
       "source_file": "workers/inkwell-api/src/scheduled.ts",
       "source_location": "L25",
       "id": "scheduled_ingestgsc",
-      "community": 8,
+      "community": 9,
       "norm_label": "ingestgsc()"
     },
     {
@@ -1215,7 +1404,7 @@
       "source_file": "workers/inkwell-api/src/scheduled.ts",
       "source_location": "L109",
       "id": "scheduled_ingestga4",
-      "community": 8,
+      "community": 9,
       "norm_label": "ingestga4()"
     },
     {
@@ -1224,7 +1413,7 @@
       "source_file": "workers/inkwell-api/src/scheduled.ts",
       "source_location": "L166",
       "id": "scheduled_storesnapshots",
-      "community": 8,
+      "community": 9,
       "norm_label": "storesnapshots()"
     },
     {
@@ -1233,7 +1422,7 @@
       "source_file": "workers/inkwell-api/src/scheduled.ts",
       "source_location": "L187",
       "id": "scheduled_scoreweekoverweek",
-      "community": 8,
+      "community": 9,
       "norm_label": "scoreweekoverweek()"
     },
     {
@@ -1242,7 +1431,7 @@
       "source_file": "workers/inkwell-api/src/scheduled.ts",
       "source_location": "L224",
       "id": "scheduled_scheduled",
-      "community": 8,
+      "community": 9,
       "norm_label": "scheduled()"
     },
     {
@@ -1251,52 +1440,52 @@
       "source_file": "workers/inkwell-api/src/index.ts",
       "source_location": "L1",
       "id": "workers_inkwell_api_src_index_ts",
-      "community": 9,
+      "community": 10,
       "norm_label": "index.ts"
     },
     {
       "label": "isNonEmptyString()",
       "file_type": "code",
       "source_file": "workers/inkwell-api/src/index.ts",
-      "source_location": "L19",
+      "source_location": "L22",
       "id": "index_isnonemptystring",
-      "community": 9,
+      "community": 10,
       "norm_label": "isnonemptystring()"
     },
     {
       "label": "normalizeSlug()",
       "file_type": "code",
       "source_file": "workers/inkwell-api/src/index.ts",
-      "source_location": "L23",
+      "source_location": "L26",
       "id": "index_normalizeslug",
-      "community": 9,
+      "community": 10,
       "norm_label": "normalizeslug()"
     },
     {
       "label": "cleanText()",
       "file_type": "code",
       "source_file": "workers/inkwell-api/src/index.ts",
-      "source_location": "L31",
+      "source_location": "L34",
       "id": "index_cleantext",
-      "community": 9,
+      "community": 10,
       "norm_label": "cleantext()"
     },
     {
       "label": "parseTags()",
       "file_type": "code",
       "source_file": "workers/inkwell-api/src/index.ts",
-      "source_location": "L35",
+      "source_location": "L38",
       "id": "index_parsetags",
-      "community": 9,
+      "community": 10,
       "norm_label": "parsetags()"
     },
     {
       "label": "parsePublishPayload()",
       "file_type": "code",
       "source_file": "workers/inkwell-api/src/index.ts",
-      "source_location": "L52",
+      "source_location": "L55",
       "id": "index_parsepublishpayload",
-      "community": 9,
+      "community": 10,
       "norm_label": "parsepublishpayload()"
     },
     {
@@ -1669,12 +1858,93 @@
       "norm_label": "sendcodedelivery()"
     },
     {
+      "label": "dashboard.ts",
+      "file_type": "code",
+      "source_file": "workers/inkwell-api/src/routes/dashboard.ts",
+      "source_location": "L1",
+      "id": "workers_inkwell_api_src_routes_dashboard_ts",
+      "community": 27,
+      "norm_label": "dashboard.ts"
+    },
+    {
+      "label": "periodToDays()",
+      "file_type": "code",
+      "source_file": "workers/inkwell-api/src/routes/dashboard.ts",
+      "source_location": "L50",
+      "id": "dashboard_periodtodays",
+      "community": 27,
+      "norm_label": "periodtodays()"
+    },
+    {
+      "label": "daysAgoIso()",
+      "file_type": "code",
+      "source_file": "workers/inkwell-api/src/routes/dashboard.ts",
+      "source_location": "L58",
+      "id": "dashboard_daysagoiso",
+      "community": 27,
+      "norm_label": "daysagoiso()"
+    },
+    {
+      "label": "questionnaire.ts",
+      "file_type": "code",
+      "source_file": "workers/inkwell-api/src/routes/questionnaire.ts",
+      "source_location": "L1",
+      "id": "workers_inkwell_api_src_routes_questionnaire_ts",
+      "community": 11,
+      "norm_label": "questionnaire.ts"
+    },
+    {
+      "label": "generateId()",
+      "file_type": "code",
+      "source_file": "workers/inkwell-api/src/routes/questionnaire.ts",
+      "source_location": "L65",
+      "id": "questionnaire_generateid",
+      "community": 11,
+      "norm_label": "generateid()"
+    },
+    {
+      "label": "getTodayQuestionIndex()",
+      "file_type": "code",
+      "source_file": "workers/inkwell-api/src/routes/questionnaire.ts",
+      "source_location": "L71",
+      "id": "questionnaire_gettodayquestionindex",
+      "community": 11,
+      "norm_label": "gettodayquestionindex()"
+    },
+    {
+      "label": "sendSms()",
+      "file_type": "code",
+      "source_file": "workers/inkwell-api/src/routes/questionnaire.ts",
+      "source_location": "L80",
+      "id": "questionnaire_sendsms",
+      "community": 11,
+      "norm_label": "sendsms()"
+    },
+    {
+      "label": "sendTelegram()",
+      "file_type": "code",
+      "source_file": "workers/inkwell-api/src/routes/questionnaire.ts",
+      "source_location": "L100",
+      "id": "questionnaire_sendtelegram",
+      "community": 11,
+      "norm_label": "sendtelegram()"
+    },
+    {
+      "label": "pushToMirror()",
+      "file_type": "code",
+      "source_file": "workers/inkwell-api/src/routes/questionnaire.ts",
+      "source_location": "L114",
+      "id": "questionnaire_pushtomirror",
+      "community": 11,
+      "norm_label": "pushtomirror()"
+    },
+    {
       "label": "payments.ts",
       "file_type": "code",
       "source_file": "workers/inkwell-api/src/routes/payments.ts",
       "source_location": "L1",
       "id": "workers_inkwell_api_src_routes_payments_ts",
-      "community": 10,
+      "community": 12,
       "norm_label": "payments.ts"
     },
     {
@@ -1683,7 +1953,7 @@
       "source_file": "workers/inkwell-api/src/routes/payments.ts",
       "source_location": "L44",
       "id": "payments_isnonemptystring",
-      "community": 10,
+      "community": 12,
       "norm_label": "isnonemptystring()"
     },
     {
@@ -1692,7 +1962,7 @@
       "source_file": "workers/inkwell-api/src/routes/payments.ts",
       "source_location": "L48",
       "id": "payments_getpriceid",
-      "community": 10,
+      "community": 12,
       "norm_label": "getpriceid()"
     },
     {
@@ -1701,7 +1971,7 @@
       "source_file": "workers/inkwell-api/src/routes/payments.ts",
       "source_location": "L56",
       "id": "payments_getplanfrompriceid",
-      "community": 10,
+      "community": 12,
       "norm_label": "getplanfrompriceid()"
     },
     {
@@ -1710,7 +1980,7 @@
       "source_file": "workers/inkwell-api/src/routes/payments.ts",
       "source_location": "L63",
       "id": "payments_stripeget",
-      "community": 10,
+      "community": 12,
       "norm_label": "stripeget()"
     },
     {
@@ -1719,8 +1989,44 @@
       "source_file": "workers/inkwell-api/src/routes/payments.ts",
       "source_location": "L71",
       "id": "payments_verifystripesignature",
-      "community": 10,
+      "community": 12,
       "norm_label": "verifystripesignature()"
+    },
+    {
+      "label": "contracts.ts",
+      "file_type": "code",
+      "source_file": "workers/inkwell-api/src/routes/contracts.ts",
+      "source_location": "L1",
+      "id": "workers_inkwell_api_src_routes_contracts_ts",
+      "community": 22,
+      "norm_label": "contracts.ts"
+    },
+    {
+      "label": "isNonEmptyString()",
+      "file_type": "code",
+      "source_file": "workers/inkwell-api/src/routes/contracts.ts",
+      "source_location": "L8",
+      "id": "contracts_isnonemptystring",
+      "community": 22,
+      "norm_label": "isnonemptystring()"
+    },
+    {
+      "label": "generateId()",
+      "file_type": "code",
+      "source_file": "workers/inkwell-api/src/routes/contracts.ts",
+      "source_location": "L12",
+      "id": "contracts_generateid",
+      "community": 22,
+      "norm_label": "generateid()"
+    },
+    {
+      "label": "generateReference()",
+      "file_type": "code",
+      "source_file": "workers/inkwell-api/src/routes/contracts.ts",
+      "source_location": "L18",
+      "id": "contracts_generatereference",
+      "community": 22,
+      "norm_label": "generatereference()"
     },
     {
       "label": "mcp.ts",
@@ -1847,6 +2153,24 @@
       "id": "mcp_calltool",
       "community": 3,
       "norm_label": "calltool()"
+    },
+    {
+      "label": "chat.ts",
+      "file_type": "code",
+      "source_file": "workers/inkwell-api/src/routes/chat.ts",
+      "source_location": "L1",
+      "id": "workers_inkwell_api_src_routes_chat_ts",
+      "community": 39,
+      "norm_label": "chat.ts"
+    },
+    {
+      "label": "buildFallbackReply()",
+      "file_type": "code",
+      "source_file": "workers/inkwell-api/src/routes/chat.ts",
+      "source_location": "L41",
+      "id": "chat_buildfallbackreply",
+      "community": 39,
+      "norm_label": "buildfallbackreply()"
     }
   ],
   "links": [
@@ -2213,6 +2537,150 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "src/components/ChatWidget.tsx",
+      "source_location": "L19",
+      "weight": 1.0,
+      "_src": "src_components_chatwidget_tsx",
+      "_tgt": "chatwidget_getstoragekey",
+      "source": "src_components_chatwidget_tsx",
+      "target": "chatwidget_getstoragekey",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/ChatWidget.tsx",
+      "source_location": "L23",
+      "weight": 1.0,
+      "_src": "src_components_chatwidget_tsx",
+      "_tgt": "chatwidget_loadhistory",
+      "source": "src_components_chatwidget_tsx",
+      "target": "chatwidget_loadhistory",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/ChatWidget.tsx",
+      "source_location": "L36",
+      "weight": 1.0,
+      "_src": "src_components_chatwidget_tsx",
+      "_tgt": "chatwidget_savehistory",
+      "source": "src_components_chatwidget_tsx",
+      "target": "chatwidget_savehistory",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/ChatWidget.tsx",
+      "source_location": "L201",
+      "weight": 1.0,
+      "_src": "src_components_chatwidget_tsx",
+      "_tgt": "chatwidget_ensurekeyframes",
+      "source": "src_components_chatwidget_tsx",
+      "target": "chatwidget_ensurekeyframes",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/ChatWidget.tsx",
+      "source_location": "L245",
+      "weight": 1.0,
+      "_src": "src_components_chatwidget_tsx",
+      "_tgt": "chatwidget_check",
+      "source": "src_components_chatwidget_tsx",
+      "target": "chatwidget_check",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/ChatWidget.tsx",
+      "source_location": "L337",
+      "weight": 1.0,
+      "_src": "src_components_chatwidget_tsx",
+      "_tgt": "chatwidget_handlekeydown",
+      "source": "src_components_chatwidget_tsx",
+      "target": "chatwidget_handlekeydown",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/ChatWidget.tsx",
+      "source_location": "L26",
+      "weight": 1.0,
+      "_src": "chatwidget_loadhistory",
+      "_tgt": "chatwidget_getstoragekey",
+      "source": "chatwidget_getstoragekey",
+      "target": "chatwidget_loadhistory",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/ChatWidget.tsx",
+      "source_location": "L40",
+      "weight": 1.0,
+      "_src": "chatwidget_savehistory",
+      "_tgt": "chatwidget_getstoragekey",
+      "source": "chatwidget_getstoragekey",
+      "target": "chatwidget_savehistory",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/MovingQuoteForm.tsx",
+      "source_location": "L55",
+      "weight": 1.0,
+      "_src": "src_components_movingquoteform_tsx",
+      "_tgt": "movingquoteform_set",
+      "source": "src_components_movingquoteform_tsx",
+      "target": "movingquoteform_set",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/MovingQuoteForm.tsx",
+      "source_location": "L60",
+      "weight": 1.0,
+      "_src": "src_components_movingquoteform_tsx",
+      "_tgt": "movingquoteform_handlemovesizechange",
+      "source": "src_components_movingquoteform_tsx",
+      "target": "movingquoteform_handlemovesizechange",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/MovingQuoteForm.tsx",
+      "source_location": "L74",
+      "weight": 1.0,
+      "_src": "src_components_movingquoteform_tsx",
+      "_tgt": "movingquoteform_handlesubmit",
+      "source": "src_components_movingquoteform_tsx",
+      "target": "movingquoteform_handlesubmit",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/ContractForm.tsx",
+      "source_location": "L72",
+      "weight": 1.0,
+      "_src": "src_components_contractform_tsx",
+      "_tgt": "contractform_handlesubmit",
+      "source": "src_components_contractform_tsx",
+      "target": "contractform_handlesubmit",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "src/components/navigation/ReadingProgress.tsx",
       "source_location": "L5",
       "weight": 1.0,
@@ -2352,6 +2820,42 @@
       "_tgt": "networkhero_networkhero",
       "source": "src_components_visualization_networkhero_tsx",
       "target": "networkhero_networkhero",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/charts/DataTable.tsx",
+      "source_location": "L19",
+      "weight": 1.0,
+      "_src": "src_components_charts_datatable_tsx",
+      "_tgt": "datatable_formatcell",
+      "source": "src_components_charts_datatable_tsx",
+      "target": "datatable_formatcell",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/charts/DataTable.tsx",
+      "source_location": "L33",
+      "weight": 1.0,
+      "_src": "src_components_charts_datatable_tsx",
+      "_tgt": "datatable_statusbadge",
+      "source": "src_components_charts_datatable_tsx",
+      "target": "datatable_statusbadge",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/charts/KPICard.tsx",
+      "source_location": "L12",
+      "weight": 1.0,
+      "_src": "src_components_charts_kpicard_tsx",
+      "_tgt": "kpicard_formatvalue",
+      "source": "src_components_charts_kpicard_tsx",
+      "target": "kpicard_formatvalue",
       "confidence_score": 1.0
     },
     {
@@ -4170,7 +4674,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "workers/inkwell-api/src/index.ts",
-      "source_location": "L19",
+      "source_location": "L22",
       "weight": 1.0,
       "_src": "workers_inkwell_api_src_index_ts",
       "_tgt": "index_isnonemptystring",
@@ -4182,7 +4686,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "workers/inkwell-api/src/index.ts",
-      "source_location": "L23",
+      "source_location": "L26",
       "weight": 1.0,
       "_src": "workers_inkwell_api_src_index_ts",
       "_tgt": "index_normalizeslug",
@@ -4194,7 +4698,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "workers/inkwell-api/src/index.ts",
-      "source_location": "L31",
+      "source_location": "L34",
       "weight": 1.0,
       "_src": "workers_inkwell_api_src_index_ts",
       "_tgt": "index_cleantext",
@@ -4206,7 +4710,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "workers/inkwell-api/src/index.ts",
-      "source_location": "L35",
+      "source_location": "L38",
       "weight": 1.0,
       "_src": "workers_inkwell_api_src_index_ts",
       "_tgt": "index_parsetags",
@@ -4218,7 +4722,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "workers/inkwell-api/src/index.ts",
-      "source_location": "L52",
+      "source_location": "L55",
       "weight": 1.0,
       "_src": "workers_inkwell_api_src_index_ts",
       "_tgt": "index_parsepublishpayload",
@@ -4230,7 +4734,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "workers/inkwell-api/src/index.ts",
-      "source_location": "L42",
+      "source_location": "L45",
       "weight": 1.0,
       "_src": "index_parsetags",
       "_tgt": "index_isnonemptystring",
@@ -4242,7 +4746,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "workers/inkwell-api/src/index.ts",
-      "source_location": "L60",
+      "source_location": "L63",
       "weight": 1.0,
       "_src": "index_parsepublishpayload",
       "_tgt": "index_isnonemptystring",
@@ -4254,7 +4758,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "workers/inkwell-api/src/index.ts",
-      "source_location": "L69",
+      "source_location": "L72",
       "weight": 1.0,
       "_src": "index_parsepublishpayload",
       "_tgt": "index_normalizeslug",
@@ -4266,7 +4770,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "workers/inkwell-api/src/index.ts",
-      "source_location": "L63",
+      "source_location": "L66",
       "weight": 1.0,
       "_src": "index_parsepublishpayload",
       "_tgt": "index_cleantext",
@@ -4278,7 +4782,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "workers/inkwell-api/src/index.ts",
-      "source_location": "L73",
+      "source_location": "L76",
       "weight": 1.0,
       "_src": "index_parsepublishpayload",
       "_tgt": "index_parsetags",
@@ -4901,6 +5405,90 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "workers/inkwell-api/src/routes/dashboard.ts",
+      "source_location": "L50",
+      "weight": 1.0,
+      "_src": "workers_inkwell_api_src_routes_dashboard_ts",
+      "_tgt": "dashboard_periodtodays",
+      "source": "workers_inkwell_api_src_routes_dashboard_ts",
+      "target": "dashboard_periodtodays",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "workers/inkwell-api/src/routes/dashboard.ts",
+      "source_location": "L58",
+      "weight": 1.0,
+      "_src": "workers_inkwell_api_src_routes_dashboard_ts",
+      "_tgt": "dashboard_daysagoiso",
+      "source": "workers_inkwell_api_src_routes_dashboard_ts",
+      "target": "dashboard_daysagoiso",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "workers/inkwell-api/src/routes/questionnaire.ts",
+      "source_location": "L65",
+      "weight": 1.0,
+      "_src": "workers_inkwell_api_src_routes_questionnaire_ts",
+      "_tgt": "questionnaire_generateid",
+      "source": "workers_inkwell_api_src_routes_questionnaire_ts",
+      "target": "questionnaire_generateid",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "workers/inkwell-api/src/routes/questionnaire.ts",
+      "source_location": "L71",
+      "weight": 1.0,
+      "_src": "workers_inkwell_api_src_routes_questionnaire_ts",
+      "_tgt": "questionnaire_gettodayquestionindex",
+      "source": "workers_inkwell_api_src_routes_questionnaire_ts",
+      "target": "questionnaire_gettodayquestionindex",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "workers/inkwell-api/src/routes/questionnaire.ts",
+      "source_location": "L80",
+      "weight": 1.0,
+      "_src": "workers_inkwell_api_src_routes_questionnaire_ts",
+      "_tgt": "questionnaire_sendsms",
+      "source": "workers_inkwell_api_src_routes_questionnaire_ts",
+      "target": "questionnaire_sendsms",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "workers/inkwell-api/src/routes/questionnaire.ts",
+      "source_location": "L100",
+      "weight": 1.0,
+      "_src": "workers_inkwell_api_src_routes_questionnaire_ts",
+      "_tgt": "questionnaire_sendtelegram",
+      "source": "workers_inkwell_api_src_routes_questionnaire_ts",
+      "target": "questionnaire_sendtelegram",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "workers/inkwell-api/src/routes/questionnaire.ts",
+      "source_location": "L114",
+      "weight": 1.0,
+      "_src": "workers_inkwell_api_src_routes_questionnaire_ts",
+      "_tgt": "questionnaire_pushtomirror",
+      "source": "workers_inkwell_api_src_routes_questionnaire_ts",
+      "target": "questionnaire_pushtomirror",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "workers/inkwell-api/src/routes/payments.ts",
       "source_location": "L44",
       "weight": 1.0,
@@ -4956,6 +5544,42 @@
       "_tgt": "payments_verifystripesignature",
       "source": "workers_inkwell_api_src_routes_payments_ts",
       "target": "payments_verifystripesignature",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "workers/inkwell-api/src/routes/contracts.ts",
+      "source_location": "L8",
+      "weight": 1.0,
+      "_src": "workers_inkwell_api_src_routes_contracts_ts",
+      "_tgt": "contracts_isnonemptystring",
+      "source": "workers_inkwell_api_src_routes_contracts_ts",
+      "target": "contracts_isnonemptystring",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "workers/inkwell-api/src/routes/contracts.ts",
+      "source_location": "L12",
+      "weight": 1.0,
+      "_src": "workers_inkwell_api_src_routes_contracts_ts",
+      "_tgt": "contracts_generateid",
+      "source": "workers_inkwell_api_src_routes_contracts_ts",
+      "target": "contracts_generateid",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "workers/inkwell-api/src/routes/contracts.ts",
+      "source_location": "L18",
+      "weight": 1.0,
+      "_src": "workers_inkwell_api_src_routes_contracts_ts",
+      "_tgt": "contracts_generatereference",
+      "source": "workers_inkwell_api_src_routes_contracts_ts",
+      "target": "contracts_generatereference",
       "confidence_score": 1.0
     },
     {
@@ -5220,6 +5844,18 @@
       "_tgt": "mcp_toolsiteinfo",
       "source": "mcp_toolsiteinfo",
       "target": "mcp_calltool",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "workers/inkwell-api/src/routes/chat.ts",
+      "source_location": "L41",
+      "weight": 1.0,
+      "_src": "workers_inkwell_api_src_routes_chat_ts",
+      "_tgt": "chat_buildfallbackreply",
+      "source": "workers_inkwell_api_src_routes_chat_ts",
+      "target": "chat_buildfallbackreply",
       "confidence_score": 1.0
     }
   ],
