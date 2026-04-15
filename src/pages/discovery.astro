@@ -1,0 +1,147 @@
+---
+import Base from '../layouts/Base.astro'
+import Header from '../components/layout/Header.astro'
+import Footer from '../components/layout/Footer.astro'
+import BusinessDiscovery from '../components/BusinessDiscovery'
+import { config } from '../lib/config'
+
+const apiBase = config.workerUrl ?? ''
+---
+
+<Base
+  title="Build Your 90-Day Growth Plan"
+  description="Answer 25 questions about your business and get a personalized 90-day marketing roadmap — free."
+>
+  <Header />
+
+  <main>
+    <section class="discovery-hero">
+      <div class="discovery-hero__inner">
+        <div class="discovery-hero__badge">Free Onboarding</div>
+        <h1 class="discovery-hero__title">
+          Build your personalized<br />90-day growth plan
+        </h1>
+        <p class="discovery-hero__subtitle">
+          25 questions. 5 minutes. A step-by-step roadmap built for your specific business, skills, and goals — not generic marketing advice.
+        </p>
+
+        <div class="discovery-hero__stats">
+          <div class="discovery-hero__stat">
+            <strong>~5 min</strong>
+            <span>to complete</span>
+          </div>
+          <div class="discovery-hero__divider" />
+          <div class="discovery-hero__stat">
+            <strong>8–12 steps</strong>
+            <span>personalized for you</span>
+          </div>
+          <div class="discovery-hero__divider" />
+          <div class="discovery-hero__stat">
+            <strong>90 days</strong>
+            <span>clear roadmap</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="discovery-form">
+      <BusinessDiscovery
+        client:load
+        apiBase={apiBase}
+        redirectBase=""
+      />
+    </section>
+  </main>
+
+  <Footer />
+</Base>
+
+<style>
+  .discovery-hero {
+    padding: 4rem 1.5rem 2rem;
+    text-align: center;
+    background: linear-gradient(180deg, rgba(212,160,23,0.04) 0%, transparent 100%);
+    border-bottom: 1px solid var(--ink-border);
+  }
+
+  .discovery-hero__inner {
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  .discovery-hero__badge {
+    display: inline-block;
+    padding: 0.25rem 0.875rem;
+    background: rgba(212,160,23,0.12);
+    border: 1px solid rgba(212,160,23,0.3);
+    border-radius: 2rem;
+    color: var(--ink-primary);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 1.25rem;
+  }
+
+  .discovery-hero__title {
+    font-size: clamp(1.75rem, 4vw, 2.75rem);
+    font-weight: 800;
+    color: var(--ink-text);
+    line-height: 1.15;
+    margin-bottom: 1rem;
+  }
+
+  .discovery-hero__subtitle {
+    color: var(--ink-muted);
+    font-size: 1.05rem;
+    line-height: 1.65;
+    max-width: 520px;
+    margin: 0 auto 2rem;
+  }
+
+  .discovery-hero__stats {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .discovery-hero__stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15rem;
+  }
+
+  .discovery-hero__stat strong {
+    color: var(--ink-primary);
+    font-size: 1.05rem;
+    font-weight: 700;
+  }
+
+  .discovery-hero__stat span {
+    color: var(--ink-dim);
+    font-size: 0.78rem;
+  }
+
+  .discovery-hero__divider {
+    width: 1px;
+    height: 2rem;
+    background: var(--ink-border);
+  }
+
+  .discovery-form {
+    padding: 3rem 1.5rem 5rem;
+  }
+
+  @media (max-width: 640px) {
+    .discovery-hero {
+      padding: 3rem 1rem 1.5rem;
+    }
+
+    .discovery-hero__divider {
+      display: none;
+    }
+  }
+</style>

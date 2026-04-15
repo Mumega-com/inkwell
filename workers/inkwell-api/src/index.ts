@@ -9,6 +9,7 @@ import { paymentRoutes } from './routes/payments'
 import { telegramRoutes } from './routes/telegram'
 import { questionnaireRoutes } from './routes/questionnaire'
 import { courseRoutes } from './routes/courses'
+import { discoveryRoutes } from './routes/discovery'
 import type { AppBindings } from './types'
 
 const app = new Hono<AppBindings>()
@@ -105,6 +106,7 @@ app.route('/api/payments', paymentRoutes)
 app.route('/api/telegram', telegramRoutes)
 app.route('/api/questionnaire', questionnaireRoutes)
 app.route('/api/courses', courseRoutes)
+app.route('/api/discovery', discoveryRoutes)
 app.route('/mcp', mcpRoutes)
 
 // Record page view
