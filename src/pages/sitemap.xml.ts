@@ -1,7 +1,6 @@
 import type { APIRoute } from 'astro'
 import { getCollection } from 'astro:content'
-
-const SITE = 'https://your-domain.com'
+import { config } from '../lib/config'
 
 export const GET: APIRoute = async () => {
   const blog = await getCollection('blog', (p) => p.data.status === 'published')
@@ -10,9 +9,13 @@ export const GET: APIRoute = async () => {
   const tools = await getCollection('tools')
   const team = await getCollection('team')
   const products = await getCollection('products')
+  const docs = await getCollection('docs')
+
+  const SITE = `https://${config.domain}`
 
   const staticPages = [
     { url: '/', priority: '1.0', changefreq: 'daily' },
+    { url: '/docs', priority: '0.9', changefreq: 'daily' },
     { url: '/topics', priority: '0.9', changefreq: 'daily' },
     { url: '/labs', priority: '0.8', changefreq: 'weekly' },
     { url: '/tools', priority: '0.8', changefreq: 'weekly' },
@@ -34,6 +37,7 @@ export const GET: APIRoute = async () => {
     ...tools.map((t) => ({ url: `/tools/${t.id}`, priority: '0.8', changefreq: 'weekly' as const })),
     ...team.map((m) => ({ url: `/team/${m.id}`, priority: '0.7', changefreq: 'weekly' as const })),
     ...products.map((p) => ({ url: `/products/${p.id}`, priority: '0.7', changefreq: 'weekly' as const })),
+    ...docs.map((d) => ({ url: d.id === 'index' ? '/docs' : `/docs/${d.id}`, priority: '0.8', changefreq: 'weekly' as const })),
   ]
 
   const allPages = [...staticPages, ...dynamicPages]

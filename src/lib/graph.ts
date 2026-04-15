@@ -1,31 +1,26 @@
 /**
  * Inkwell v2 — Knowledge graph builder
  *
- * Transforms the content index into graph data (nodes + edges)
+ * Transforms the content directory into graph data (nodes + edges)
  * for the KnowledgeGraph visualization component.
  */
 
-import { getAllContent, getContentIndex } from './content'
-import type { ContentItem } from './content'
+import { loadContentDirectory, routeFor } from './content-directory'
+import type { DirectoryEntry } from './content-directory'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 export interface GraphNode {
   slug: string
   title: string
-  type: string
-  author: string
   tags: string[]
-  views: number
-  date: string
-  series?: string
   url: string
 }
 
 export interface GraphEdge {
   source: string
   target: string
-  type: 'wikilink' | 'tag' | 'series' | 'backlink'
+  type: 'tag' | 'wikilink'
 }
 
 export interface GraphData {
@@ -33,97 +28,45 @@ export interface GraphData {
   edges: GraphEdge[]
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-/** Canonical key for an edge — ensures A→B and B→A are treated as one */
-function edgeKey(source: string, target: string, type: string): string {
-  const [a, b] = source < target ? [source, target] : [target, source]
-  return `${a}::${b}::${type}`
-}
-
-function toNode(item: ContentItem): GraphNode {
-  return {
-    slug: item.slug,
-    title: item.frontmatter.title,
-    type: item.frontmatter.type,
-    author: item.frontmatter.author,
-    tags: item.frontmatter.tags,
-    views: 0, // Will come from D1 analytics later
-    date: item.frontmatter.date,
-    series: item.frontmatter.series,
-    url: item.url,
-  }
-}
-
 // ─── Builder ─────────────────────────────────────────────────────────────────
 
-/**
- * Build the full knowledge graph from the content index.
- *
- * Edges are created from four sources:
- *  - wikilinks: explicit [[link]] references between content items
- *  - tags: items sharing 2+ tags (threshold avoids noise)
- *  - series: items in the same series
- *  - backlinks: reverse wikilinks (A links to B → backlink from B to A)
- *
- * All edges are deduplicated — no A→B and B→A for the same type.
- */
-export function buildGraphData(lang?: string): GraphData {
-  const items = getAllContent(lang)
-  const index = getContentIndex()
-  const slugSet = new Set(items.map((item) => item.slug))
+export async function buildGraphData(): Promise<GraphData> {
+  const directory = await loadContentDirectory()
+  const entries = directory.entries
 
   // Build nodes
-  const nodes = items.map(toNode)
+  const nodes: GraphNode[] = entries.map((entry: DirectoryEntry) => ({
+    slug: `${entry.collection}:${entry.id}`,
+    title: entry.title,
+    tags: entry.tags.filter((tag) => tag.toLowerCase() !== 'beta'),
+    url: routeFor(entry.collection, entry.id),
+  }))
 
-  // Build edges with deduplication
-  const seen = new Set<string>()
+  // Build edges
   const edges: GraphEdge[] = []
+  const seen = new Set<string>()
 
-  function addEdge(source: string, target: string, type: GraphEdge['type']): void {
-    if (source === target) return
-    if (!slugSet.has(source) || !slugSet.has(target)) return
+  for (const item of entries) {
+    const itemTags = item.tags.filter((tag) => tag.toLowerCase() !== 'beta')
+    if (itemTags.length === 0) continue
 
-    const key = edgeKey(source, target, type)
-    if (seen.has(key)) return
-    seen.add(key)
+    for (const other of entries) {
+      if (item.collection === other.collection && item.id === other.id) continue
 
-    edges.push({ source, target, type })
-  }
+      const otherTags = other.tags.filter((tag) => tag.toLowerCase() !== 'beta')
+      const sharedTags = itemTags.filter((tag) => otherTags.includes(tag))
+      
+      // Need 2+ tags to create a meaningful relationship
+      if (sharedTags.length < 2) continue
 
-  for (const item of items) {
-    // 1. Wikilinks — explicit references
-    for (const link of item.wikilinks) {
-      addEdge(item.slug, link.target, 'wikilink')
-    }
-
-    // 2. Series — items in the same series
-    if (item.frontmatter.series) {
-      for (const other of items) {
-        if (other.frontmatter.series === item.frontmatter.series) {
-          addEdge(item.slug, other.slug, 'series')
-        }
-      }
-    }
-
-    // 3. Shared tags — only when 2+ tags overlap to avoid noise
-    for (const other of items) {
-      if (other.slug === item.slug) continue
-
-      const sharedCount = item.frontmatter.tags.filter((tag) =>
-        other.frontmatter.tags.includes(tag)
-      ).length
-
-      if (sharedCount >= 2) {
-        addEdge(item.slug, other.slug, 'tag')
-      }
-    }
-  }
-
-  // 4. Backlinks — reverse direction of wikilinks
-  for (const [target, sources] of index.backlinks) {
-    for (const source of sources) {
-      addEdge(source, target, 'backlink')
+      const source = `${item.collection}:${item.id}`
+      const target = `${other.collection}:${other.id}`
+      
+      const key = [source, target].sort().join('::')
+      if (seen.has(key)) continue
+      seen.add(key)
+      
+      edges.push({ source, target, type: 'tag' })
     }
   }
 

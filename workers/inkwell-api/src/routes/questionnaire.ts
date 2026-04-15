@@ -4,38 +4,38 @@ import type { AppBindings } from '../types'
 export const questionnaireRoutes = new Hono<AppBindings>()
 
 // ── Question Bank ────────────────────────────────────────────────────────────
-// 30 questions rotating monthly (index 0–29)
+// 30 questions rotating monthly (index 0-29)
 
 const QUESTION_BANK: string[] = [
-  // Week 1 — Revenue & Pipeline (1–5)
+  // Week 1 — Revenue & Pipeline (1-5)
   'How many new quote requests came in this week?',
   "What's your biggest pending deal right now? What's blocking it?",
   'Did any customer pay this week? How much?',
   "What's your target revenue this month? Are you on track?",
   'Which route (country or province) is getting the most inquiries?',
 
-  // Week 2 — Operations & Delivery (6–10)
+  // Week 2 — Operations & Delivery (6-10)
   "Any shipments delayed right now? What's the reason?",
   'How many vehicles or loads are at the warehouse waiting to ship?',
   'Any customer complaints this week? What happened?',
   'Is your warehouse capacity tight or comfortable right now?',
   'Any new carrier or partner relationships worth exploring?',
 
-  // Week 3 — Marketing & Growth (11–15)
+  // Week 3 — Marketing & Growth (11-15)
   'Where did your best lead come from this week?',
   'What question do customers ask you most?',
   'Any community events or groups worth joining this month?',
   'What does your best competitor do better than you?',
   'If you could reach 100 people today, what would you tell them?',
 
-  // Week 4 — Strategy & Reflection (16–20)
+  // Week 4 — Strategy & Reflection (16-20)
   "What's the one thing that would double your business?",
   "What service do customers ask for that you don't offer yet?",
   'If a new customer called right now, how fast would you respond?',
   "What's your busiest month? Are you preparing for it?",
   'What did you learn this week that surprised you?',
 
-  // Additional rotating questions (21–30)
+  // Additional rotating questions (21-30)
   'What seasonal shift is coming up in the next 60 days?',
   'Is there a customer you should call back but haven\'t? What\'s stopping you?',
   'Are your prices still right for today\'s costs? When did you last review them?',

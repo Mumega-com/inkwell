@@ -27,6 +27,20 @@ const blog = defineCollection({
   }),
 })
 
+const books = defineCollection({
+  loader: glob({ pattern: '**/*.{md,mdx}', base: './content/en/books' }),
+  schema: z.object({
+    title: z.string(),
+    author: z.string().optional(),
+    date: z.coerce.date().optional(),
+    tags: z.array(z.string()).default([]),
+    description: z.string().optional(),
+    cover_image: z.string().optional(),
+    abstract: z.string().optional(),
+    weight: z.number().default(5),
+  }),
+})
+
 const topics = defineCollection({
   loader: glob({ pattern: '**/*.{md,mdx}', base: './content/en/topics' }),
   schema: z.object({
@@ -154,4 +168,4 @@ const docs = defineCollection({
   }),
 })
 
-export const collections = { blog, topics, labs, tools, team, products, pages, docs }
+export const collections = { blog, topics, labs, tools, team, products, pages, docs, books }

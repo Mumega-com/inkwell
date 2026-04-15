@@ -5,6 +5,12 @@ import Footer from '../../components/layout/Footer.astro'
 import PlanDashboard from '../../components/PlanDashboard'
 import { config } from '../../lib/config'
 
+export function getStaticPaths() {
+  return [
+    { params: { id: 'demo' } }
+  ]
+}
+
 const { id } = Astro.params
 const apiBase = config.workerUrl ?? ''
 ---

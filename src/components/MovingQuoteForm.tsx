@@ -30,8 +30,8 @@ const MOVE_SIZE_LABELS: Record<MoveSize, string> = {
 
 const PALLET_ESTIMATES: Record<MoveSize, string> = {
   small: '~0.5 pallet',
-  medium: '~1–2 pallets',
-  large: '~2–3 pallets',
+  medium: '~1-2 pallets',
+  large: '~2-3 pallets',
   full_house: '4+ pallets',
 }
 

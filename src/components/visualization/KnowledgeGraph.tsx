@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-interface GraphNode {
+export interface GraphNode {
   slug: string
   title: string
   tags: string[]
@@ -13,13 +13,13 @@ interface GraphNode {
   vy?: number
 }
 
-interface GraphEdge {
+export interface GraphEdge {
   source: string
   target: string
   type: string
 }
 
-interface KnowledgeGraphProps {
+export interface KnowledgeGraphProps {
   nodes: GraphNode[]
   edges: GraphEdge[]
 }

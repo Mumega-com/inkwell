@@ -10,7 +10,7 @@ weight: 10
 
 Inkwell is a full business operating system — not just a website builder. This course takes you from a blank config file to a running business: live dashboard, signed contracts, active ad campaigns, and a system that gets smarter every day.
 
-Eight lessons. The first three are free. Lessons 4–8 cover the paid-tier features: dashboard, contracts, campaigns, chat, and the weekly data review.
+Eight lessons. The first three are free. Lessons 4-8 cover the paid-tier features: dashboard, contracts, campaigns, chat, and the weekly data review.
 
 ## Who This Is For
 

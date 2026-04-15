@@ -71,6 +71,9 @@ npx wrangler secret put SOS_BUS_URL       # optional, for agent forwarding
 5. **Content** goes in `content/en/{type}/` as markdown with frontmatter
 6. **Worker code** is Web API only — no Node.js built-ins
 7. **Feature flags** in config — check `config.features.X` before rendering any v4 component
+8. **Inkwell is forkable — no Mumega-specific content in the repo.** Team profiles, internal project pages (TROP, SOS, etc.), Mumega ideology content (agentic-economy, sovereign-worker) belong on mumega.com (mumega-site repo), NOT here. Inkwell ships with generic example content only. A customer forking this should never see our internal team or projects.
+9. **graphify-out/cache/ is gitignored.** Only `graph.json` and `GRAPH_REPORT.md` are committed. Cache files are local build artifacts.
+10. **No committed graph data over 500KB.** If `graphify-out/graph.json` exceeds 500KB, run `graphify --compact` or exclude it from commits.
 
 ## Theme Colors
 All from config → CSS vars:

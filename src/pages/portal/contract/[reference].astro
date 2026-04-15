@@ -3,9 +3,11 @@
 // The [reference] segment is used only for URL routing; the actual reference is read from window.location.
 export function getStaticPaths() {
   // We cannot pre-generate paths for runtime contract references.
-  // Astro requires this export for dynamic routes in static mode, but we return empty —
+  // Astro requires this export for dynamic routes in static mode, but we return a demo path —
   // the page is deployed once and handles all references client-side.
-  return []
+  return [
+    { params: { reference: 'demo' } }
+  ]
 }
 
 const title = 'Your Contract — Viamar Freight'

@@ -83,7 +83,7 @@ Then test the dashboard endpoint:
 curl http://localhost:8787/api/dashboard/overview
 ```
 
-You should see a JSON response with traffic data. The first call may return zeros if your site is brand new — that's fine. After 24–48 hours of traffic, you'll see real numbers.
+You should see a JSON response with traffic data. The first call may return zeros if your site is brand new — that's fine. After 24-48 hours of traffic, you'll see real numbers.
 
 If you see an error, check:
 - The service account email is added to Search Console

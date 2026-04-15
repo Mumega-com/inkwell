@@ -1,0 +1,276 @@
+---
+import Base from './Base.astro'
+import { config } from '../lib/config'
+
+interface Props {
+  entry: {
+    id: string
+    collection: string
+    data: {
+      title: string
+      date?: Date
+      author?: string
+      tags?: string[]
+      description?: string
+      cover_image?: string
+      abstract?: string
+    }
+  }
+  chapters?: any[]
+  currentChapterIndex?: number
+  isIndex?: boolean
+}
+
+const { entry, chapters = [], currentChapterIndex = -1, isIndex = false } = Astro.props
+const { title, description, cover_image, author, date, abstract } = entry.data
+
+const prevChapter = currentChapterIndex > 0 ? chapters[currentChapterIndex - 1] : null
+const nextChapter = currentChapterIndex < chapters.length - 1 ? chapters[currentChapterIndex + 1] : null
+
+// Base URL for the book (e.g., /books/strategic-manual)
+const bookSlug = entry.id.split('/')[0]
+const baseUrl = `/books/${bookSlug}`
+---
+
+<Base
+  title={title}
+  description={description || abstract}
+  image={cover_image}
+  type="article"
+  publishedTime={date?.toISOString()}
+  author={author}
+>
+  <main class="book-layout">
+    <div class="book-container">
+      {isIndex ? (
+        <div class="book-index">
+          <header class="book-header">
+            <h1 class="book-title">{title}</h1>
+            <p class="book-author">By {author || config.name}</p>
+          </header>
+
+          {cover_image && <img src={cover_image} alt={title} class="book-cover" />}
+
+          <div class="book-abstract ink-prose">
+            <slot />
+          </div>
+
+          <section class="book-toc">
+            <h2>Table of Contents</h2>
+            <div class="toc-grid">
+              {chapters.map((ch, i) => (
+                <a href={`/books/${ch.id}`} class="toc-item">
+                  <span class="toc-num">{String(i + 1).padStart(2, '0')}</span>
+                  <span class="toc-title">{ch.data.title}</span>
+                </a>
+              ))}
+            </div>
+          </section>
+        </div>
+      ) : (
+        <div class="book-chapter">
+          <nav class="chapter-nav-top">
+            <a href={baseUrl} class="back-to-book">
+              ← Back to Manual
+            </a>
+          </nav>
+
+          <header class="chapter-header">
+            <h1 class="chapter-title">{title}</h1>
+            {description && <p class="chapter-desc">{description}</p>}
+          </header>
+
+          <article class="ink-prose chapter-content">
+            <slot />
+          </article>
+
+          <footer class="chapter-footer">
+            <div class="chapter-pagination">
+              {prevChapter ? (
+                <a href={`/books/${prevChapter.id}`} class="pag-link prev">
+                  <span class="pag-label">Previous</span>
+                  <span class="pag-title">{prevChapter.data.title}</span>
+                </a>
+              ) : <div />}
+
+              {nextChapter ? (
+                <a href={`/books/${nextChapter.id}`} class="pag-link next">
+                  <span class="pag-label">Next</span>
+                  <span class="pag-title">{nextChapter.data.title}</span>
+                </a>
+              ) : <div />}
+            </div>
+          </footer>
+        </div>
+      )}
+    </div>
+  </main>
+</Base>
+
+<style>
+  .book-layout {
+    padding-top: 5rem;
+    min-height: 100vh;
+    background: var(--ink-bg);
+  }
+
+  .book-container {
+    max-width: var(--ink-content-width);
+    margin: 0 auto;
+    padding: 2rem 1.5rem 6rem;
+  }
+
+  /* Index Styles */
+  .book-header {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  .book-title {
+    font-family: var(--ink-font-display);
+    font-size: clamp(2.5rem, 6vw, 3.5rem);
+    font-weight: 700;
+    color: var(--ink-text);
+    letter-spacing: -0.04em;
+    margin-bottom: 0.5rem;
+  }
+
+  .book-author {
+    font-family: var(--ink-font-mono);
+    font-size: 0.875rem;
+    color: var(--ink-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .book-cover {
+    width: 100%;
+    aspect-ratio: 16/9;
+    object-fit: cover;
+    border: 1px solid var(--ink-border);
+    margin-bottom: 3rem;
+  }
+
+  .book-toc {
+    margin-top: 4rem;
+    border-top: 1px solid var(--ink-border);
+    padding-top: 2rem;
+  }
+
+  .book-toc h2 {
+    font-family: var(--ink-font-display);
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+  }
+
+  .toc-grid {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .toc-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--ink-surface);
+    border: 1px solid var(--ink-border);
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .toc-item:hover {
+    border-color: var(--ink-primary);
+    transform: translateX(4px);
+  }
+
+  .toc-num {
+    font-family: var(--ink-font-mono);
+    font-size: 0.75rem;
+    color: var(--ink-primary);
+    opacity: 0.6;
+  }
+
+  .toc-title {
+    font-weight: 600;
+    color: var(--ink-text);
+  }
+
+  /* Chapter Styles */
+  .chapter-nav-top {
+    margin-bottom: 2rem;
+  }
+
+  .back-to-book {
+    font-family: var(--ink-font-mono);
+    font-size: 0.75rem;
+    color: var(--ink-muted);
+    text-decoration: none;
+  }
+
+  .back-to-book:hover {
+    color: var(--ink-primary);
+  }
+
+  .chapter-header {
+    margin-bottom: 3rem;
+  }
+
+  .chapter-title {
+    font-family: var(--ink-font-display);
+    font-size: 2.25rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    margin-bottom: 0.5rem;
+  }
+
+  .chapter-desc {
+    font-size: 1.125rem;
+    color: var(--ink-muted);
+    line-height: 1.5;
+  }
+
+  .chapter-footer {
+    margin-top: 5rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--ink-border);
+  }
+
+  .chapter-pagination {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+
+  .pag-link {
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    padding: 1.5rem;
+    background: var(--ink-surface);
+    border: 1px solid var(--ink-border);
+    transition: border-color 0.2s ease;
+  }
+
+  .pag-link:hover {
+    border-color: var(--ink-primary);
+  }
+
+  .pag-link.next {
+    text-align: right;
+  }
+
+  .pag-label {
+    font-family: var(--ink-font-mono);
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-bottom: 0.5rem;
+  }
+
+  .pag-title {
+    font-weight: 600;
+    color: var(--ink-text);
+  }
+</style>

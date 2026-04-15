@@ -1,0 +1,35 @@
+---
+import { getCollection, render } from 'astro:content'
+import BookLayout from '../../layouts/Book.astro'
+
+export async function getStaticPaths() {
+  const books = await getCollection('books')
+  return books.map((entry) => ({
+    params: { id: entry.id },
+    props: { entry },
+  }))
+}
+
+const { entry } = Astro.props
+const { Content } = await render(entry)
+
+const allBooks = await getCollection('books')
+const bookSlug = entry.id.split('/')[0]
+
+// Get all chapters in this book
+const chapters = allBooks
+  .filter((b) => b.id.startsWith(bookSlug) && b.id !== `${bookSlug}/index`)
+  .sort((a, b) => a.id.localeCompare(b.id))
+
+const isIndex = entry.id.endsWith('/index')
+const currentChapterIndex = chapters.findIndex((c) => c.id === entry.id)
+---
+
+<BookLayout 
+  entry={entry} 
+  chapters={chapters} 
+  currentChapterIndex={currentChapterIndex} 
+  isIndex={isIndex}
+>
+  <Content />
+</BookLayout>

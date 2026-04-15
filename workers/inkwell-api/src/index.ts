@@ -268,7 +268,7 @@ app.post('/api/publish', async (c) => {
 
   const parsed = parsePublishPayload(rawBody)
   if (!parsed.ok) {
-    return c.json({ error: parsed.error, details: parsed.details }, parsed.status)
+    return c.json({ error: parsed.error, details: parsed.details }, parsed.status as any)
   }
 
   const { title, content, slug: providedSlug, author, tags, description, status, overwrite } = parsed.value

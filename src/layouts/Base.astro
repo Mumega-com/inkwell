@@ -4,6 +4,7 @@ import { generateCssVars } from '../lib/theme'
 import { config } from '../lib/config'
 import { ChatWidget } from '../components/ChatWidget'
 import { CommandPalette } from '../components/navigation/CommandPalette'
+import { getCollection } from 'astro:content'
 
 interface Props {
   title: string
@@ -32,12 +33,21 @@ const isRtl = config.i18n.rtl.includes(lang)
 
 const { analytics } = config
 
+const allDocs = await getCollection('docs')
+const docItems = allDocs.map((doc) => ({
+  title: doc.data.title,
+  slug: doc.id,
+  type: 'doc',
+  url: doc.id === 'index' ? '/docs' : `/docs/${doc.id}`
+}))
+
 const commandPaletteItems = [
   { title: 'Home', slug: 'home', type: 'nav', url: '/' },
   { title: 'Blog', slug: 'blog', type: 'nav', url: '/blog' },
   { title: 'Explore', slug: 'explore', type: 'nav', url: '/explore' },
   { title: 'Search', slug: 'search', type: 'nav', url: '/search' },
   { title: 'About', slug: 'about', type: 'nav', url: '/about' },
+  ...docItems,
 ]
 ---
 

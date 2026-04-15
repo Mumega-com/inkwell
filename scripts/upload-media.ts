@@ -64,7 +64,7 @@ async function main() {
     headers: {
       Authorization: `Bearer ${apiToken}`,
     },
-    body,
+    body: new Uint8Array(body),
   })
 
   if (!res.ok) {

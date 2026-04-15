@@ -1,11 +1,11 @@
 # Graph Report - .  (2026-04-15)
 
 ## Corpus Check
-- 52 files · ~94,038 words
+- 57 files · ~91,616 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 242 nodes · 308 edges · 52 communities detected
+- 275 nodes · 343 edges · 57 communities detected
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
@@ -62,6 +62,11 @@
 - [[_COMMUNITY_Community 49|Community 49]]
 - [[_COMMUNITY_Community 50|Community 50]]
 - [[_COMMUNITY_Community 51|Community 51]]
+- [[_COMMUNITY_Community 52|Community 52]]
+- [[_COMMUNITY_Community 53|Community 53]]
+- [[_COMMUNITY_Community 54|Community 54]]
+- [[_COMMUNITY_Community 55|Community 55]]
+- [[_COMMUNITY_Community 56|Community 56]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `renderBlock()` - 16 edges
@@ -97,96 +102,96 @@ Cohesion: 0.24
 Nodes (10): callTool(), periodDays(), toolCreateCheckout(), toolGetDashboard(), toolGetLeads(), toolGetSeoData(), toolPublishContent(), toolSendTelegram() (+2 more)
 
 ### Community 4 - "Community 4"
+Cohesion: 0.21
+Nodes (4): save(), select(), set(), toggleMulti()
+
+### Community 5 - "Community 5"
 Cohesion: 0.2
 Nodes (2): sendMessage(), tgApiUrl()
 
-### Community 5 - "Community 5"
+### Community 6 - "Community 6"
+Cohesion: 0.2
+Nodes (0): 
+
+### Community 7 - "Community 7"
 Cohesion: 0.33
 Nodes (6): labelFor(), loadContentDirectory(), resolveReference(), resolveReferences(), routeFor(), sortDirectoryEntries()
 
-### Community 6 - "Community 6"
+### Community 8 - "Community 8"
 Cohesion: 0.36
 Nodes (6): authSessionMiddleware(), getAuthCookieName(), getSessionTokenFromCookieHeader(), parseCookieHeader(), readSessionFromRequest(), requireAuth()
 
-### Community 7 - "Community 7"
+### Community 9 - "Community 9"
 Cohesion: 0.38
 Nodes (3): getStorageKey(), loadHistory(), saveHistory()
 
-### Community 8 - "Community 8"
+### Community 10 - "Community 10"
 Cohesion: 0.73
 Nodes (5): cacheContent(), getCachedContent(), headers(), invalidateCache(), kvUrl()
 
-### Community 9 - "Community 9"
+### Community 11 - "Community 11"
 Cohesion: 0.6
 Nodes (5): ingestGA4(), ingestGSC(), scheduled(), scoreWeekOverWeek(), storeSnapshots()
 
-### Community 10 - "Community 10"
+### Community 12 - "Community 12"
 Cohesion: 0.67
 Nodes (5): cleanText(), isNonEmptyString(), normalizeSlug(), parsePublishPayload(), parseTags()
 
-### Community 11 - "Community 11"
-Cohesion: 0.33
-Nodes (0): 
-
-### Community 12 - "Community 12"
-Cohesion: 0.33
-Nodes (0): 
-
 ### Community 13 - "Community 13"
+Cohesion: 0.33
+Nodes (0): 
+
+### Community 14 - "Community 14"
+Cohesion: 0.33
+Nodes (0): 
+
+### Community 15 - "Community 15"
 Cohesion: 0.6
 Nodes (3): buildHtml(), collectPosts(), run()
 
-### Community 14 - "Community 14"
+### Community 16 - "Community 16"
 Cohesion: 0.7
 Nodes (4): autoDescription(), generateSlug(), parseFrontmatter(), run()
 
-### Community 15 - "Community 15"
+### Community 17 - "Community 17"
 Cohesion: 0.7
 Nodes (4): main(), parseItems(), suggestAngle(), suggestType()
 
-### Community 16 - "Community 16"
-Cohesion: 0.83
-Nodes (3): main(), parseArgs(), usage()
-
-### Community 17 - "Community 17"
-Cohesion: 0.83
-Nodes (3): main(), pathToSlug(), walkHtml()
-
 ### Community 18 - "Community 18"
-Cohesion: 0.5
+Cohesion: 0.4
 Nodes (0): 
 
 ### Community 19 - "Community 19"
 Cohesion: 0.83
-Nodes (3): getLocalReactions(), getStorageKey(), setLocalReactions()
+Nodes (3): main(), parseArgs(), usage()
 
 ### Community 20 - "Community 20"
-Cohesion: 0.5
-Nodes (1): LocalAnnotationProvider
+Cohesion: 0.83
+Nodes (3): main(), pathToSlug(), walkHtml()
 
 ### Community 21 - "Community 21"
 Cohesion: 0.5
 Nodes (0): 
 
 ### Community 22 - "Community 22"
-Cohesion: 0.5
-Nodes (0): 
+Cohesion: 0.67
+Nodes (2): handleComplete(), loadPlan()
 
 ### Community 23 - "Community 23"
-Cohesion: 0.67
-Nodes (0): 
+Cohesion: 1.0
+Nodes (3): api(), completeLesson(), loadProgress()
 
 ### Community 24 - "Community 24"
-Cohesion: 0.67
-Nodes (0): 
+Cohesion: 0.83
+Nodes (3): getLocalReactions(), getStorageKey(), setLocalReactions()
 
 ### Community 25 - "Community 25"
-Cohesion: 1.0
-Nodes (2): escapeXml(), GET()
+Cohesion: 0.5
+Nodes (1): LocalAnnotationProvider
 
 ### Community 26 - "Community 26"
-Cohesion: 1.0
-Nodes (2): generateCssVars(), isColorPair()
+Cohesion: 0.5
+Nodes (0): 
 
 ### Community 27 - "Community 27"
 Cohesion: 0.67
@@ -198,18 +203,18 @@ Nodes (0):
 
 ### Community 29 - "Community 29"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): escapeXml(), GET()
 
 ### Community 30 - "Community 30"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): generateCssVars(), isColorPair()
 
 ### Community 31 - "Community 31"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 32 - "Community 32"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 33 - "Community 33"
@@ -288,52 +293,74 @@ Nodes (0):
 Cohesion: 1.0
 Nodes (0): 
 
+### Community 52 - "Community 52"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 53 - "Community 53"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 54 - "Community 54"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 55 - "Community 55"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 56 - "Community 56"
+Cohesion: 1.0
+Nodes (0): 
+
 ## Knowledge Gaps
-- **Thin community `Community 29`** (2 nodes): `handleSubmit()`, `ContractForm.tsx`
+- **Thin community `Community 33`** (2 nodes): `handleSubmit()`, `ContractForm.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 30`** (2 nodes): `ReadingProgress()`, `ReadingProgress.tsx`
+- **Thin community `Community 34`** (2 nodes): `ReadingProgress()`, `ReadingProgress.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 31`** (2 nodes): `onKeyDown()`, `CommandPalette.tsx`
+- **Thin community `Community 35`** (2 nodes): `onKeyDown()`, `CommandPalette.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 32`** (2 nodes): `SocialProofBar()`, `SocialProofBar.tsx`
+- **Thin community `Community 36`** (2 nodes): `SocialProofBar()`, `SocialProofBar.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 33`** (2 nodes): `KnowledgeGraph()`, `KnowledgeGraph.tsx`
+- **Thin community `Community 37`** (2 nodes): `KnowledgeGraph()`, `KnowledgeGraph.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 34`** (2 nodes): `VideoHero.tsx`, `formatTime()`
+- **Thin community `Community 38`** (2 nodes): `VideoHero.tsx`, `formatTime()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 35`** (2 nodes): `NetworkHero()`, `NetworkHero.tsx`
+- **Thin community `Community 39`** (2 nodes): `NetworkHero()`, `NetworkHero.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 36`** (2 nodes): `formatValue()`, `KPICard.tsx`
+- **Thin community `Community 40`** (2 nodes): `formatValue()`, `KPICard.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 37`** (2 nodes): `GET()`, `sitemap.xml.ts`
+- **Thin community `Community 41`** (2 nodes): `GET()`, `sitemap.xml.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 38`** (2 nodes): `getReadingTime()`, `reading-time.ts`
+- **Thin community `Community 42`** (2 nodes): `buildGraphData()`, `graph.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 39`** (2 nodes): `buildFallbackReply()`, `chat.ts`
+- **Thin community `Community 43`** (2 nodes): `getReadingTime()`, `reading-time.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 40`** (1 nodes): `inkwell.config.example.ts`
+- **Thin community `Community 44`** (2 nodes): `buildFallbackReply()`, `chat.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 41`** (1 nodes): `inkwell.config.ts`
+- **Thin community `Community 45`** (1 nodes): `inkwell.config.example.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 42`** (1 nodes): `content.config.ts`
+- **Thin community `Community 46`** (1 nodes): `inkwell.config.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 43`** (1 nodes): `ContractPortal.tsx`
+- **Thin community `Community 47`** (1 nodes): `content.config.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 44`** (1 nodes): `islands.ts`
+- **Thin community `Community 48`** (1 nodes): `ContractPortal.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 45`** (1 nodes): `TOC.tsx`
+- **Thin community `Community 49`** (1 nodes): `islands.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 46`** (1 nodes): `NewsletterCTA.tsx`
+- **Thin community `Community 50`** (1 nodes): `TOC.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 47`** (1 nodes): `ShareButtons.tsx`
+- **Thin community `Community 51`** (1 nodes): `NewsletterCTA.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 48`** (1 nodes): `LineChart.tsx`
+- **Thin community `Community 52`** (1 nodes): `ShareButtons.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 49`** (1 nodes): `BarChart.tsx`
+- **Thin community `Community 53`** (1 nodes): `LineChart.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 50`** (1 nodes): `config.ts`
+- **Thin community `Community 54`** (1 nodes): `BarChart.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 51`** (1 nodes): `types.ts`
+- **Thin community `Community 55`** (1 nodes): `config.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 56`** (1 nodes): `types.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 
 ## Suggested Questions

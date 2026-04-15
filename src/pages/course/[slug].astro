@@ -1,6 +1,12 @@
 ---
 import CoursePlayer from '../../components/CoursePlayer'
 
+export function getStaticPaths() {
+  return [
+    { params: { slug: 'ai-governance' } },
+  ]
+}
+
 const { slug } = Astro.params
 
 const COURSE_META: Record<string, { title: string; description: string; price: number }> = {

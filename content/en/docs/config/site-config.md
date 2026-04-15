@@ -1,14 +1,50 @@
 ---
-title: "Site Configuration"
-description: "A complete reference for inkwell.config.ts — the brain of your CMS."
+title: "Theming & Configuration"
+description: "A complete reference for inkwell.config.ts and the Inkwell Design System."
 parent: "index"
 order: 5
-tags: ["config", "docs"]
+tags: ["config", "docs", "theming"]
 ---
 
-The `inkwell.config.ts` file controls every aspect of your site's identity, theme, and features.
+The `inkwell.config.ts` file is the **brain** of your CMS. It controls your site's identity, design system, and feature set.
 
-## 1. Site Identity
+## 1. Design System (CSS Variables)
+
+Inkwell uses a **Light/Dark** hybrid system. Your configuration is transformed at build-time into CSS custom properties (variables) available to both Astro and React components.
+
+::mermaid
+graph LR
+  C[inkwell.config.ts] --> T[lib/theme.ts]
+  T --> V[:root CSS Variables]
+  V --> A[Astro Layouts]
+  V --> R[React Islands]
+::
+
+### Core Variable Map
+
+| Variable | Config Source | Default |
+|---|---|---|
+| `--ink-primary` | `theme.colors.primary` | `#D4A017` |
+| `--ink-secondary` | `theme.colors.secondary` | `#06B6D4` |
+| `--ink-bg` | Auto-generated | `#0A0A0A` (Dark) |
+| `--ink-surface` | Auto-generated | `#141414` (Dark) |
+| `--ink-radius` | `theme.borderRadius` | `8px` |
+
+## 2. Typography
+
+Inkwell is optimized for **JetBrains Mono** and high-readability sans-serif fonts.
+
+::comparison{title="Font Families"}
+| Type | Variable | Default |
+|---|---|---|
+| **Display** | `--ink-font-display` | Inter / System |
+| **Body** | `--ink-font-body` | Inter / System |
+| **Mono** | `--ink-font-mono` | JetBrains Mono |
+::
+
+To change fonts, update the `@import` in `src/styles/base.css` and the variable values in your config.
+
+## 3. Site Identity
 
 ::comparison{title="Identity Fields"}
 | Property | Type | Description |
@@ -18,34 +54,9 @@ The `inkwell.config.ts` file controls every aspect of your site's identity, them
 | `tagline` | `string` | A short pitch for your homepage hero. |
 ::
 
-## 2. Theme Configuration
-
-Inkwell uses a **Light/Dark** hybrid system generated at build-time into CSS custom properties.
-
-::mermaid
-graph LR
-  C[Config] --> T[theme.ts]
-  T --> V[CSS Variables]
-  V --> A[Astro Layouts]
-  V --> R[React Islands]
-::
-
-### Color Palette
-
-::comparison{title="Core Colors"}
-| Color | Default | Purpose |
-|---|---|---|
-| `primary` | `#D4A017` | Buttons, links, and accents. |
-| `secondary` | `#06B6D4` | Tool tags and secondary highlights. |
-| `bg` | Dark/Light | Root background color. |
-| `surface` | Dark/Light | Card and panel backgrounds. |
-::
-
-## 3. Feature Flags
+## 4. Feature Flags
 
 Toggle site capabilities with simple booleans.
-
-::metric{label="Features Active" value="10/10" trend="up"}
 
 ::comparison{title="Feature Flags"}
 | Flag | Description |
@@ -55,21 +66,9 @@ Toggle site capabilities with simple booleans.
 | `readingProgress` | Display the progress bar during scroll. |
 | `knowledgeGraph` | Enable the `/explore` interactive graph. |
 | `search` | Build and serve the Pagefind search index. |
+| `feedback` | Enable the qualitative feedback widget. |
 ::
-
-## 4. SEO & Social
-
-Document your site for AI and human search engines.
-
-::callout[info]
-The `knowsAbout` field is a high-leverage property for AI search visibility (ChatGPT/Gemini). It tells models what topics your site is an authority on.
-::
-
-## 5. Worker & Publishing
-
-- `workerUrl`: The base URL of your Cloudflare Worker (`inkwell-api`).
-- `publish`: Toggles for `inbox`, `api`, and `mcp` publishing methods.
 
 ---
 
-[[architecture/system-design|Learn more about how the config is processed]] or [[features/interactive-components|Explore interactive blocks]].
+[[architecture/system-design|Review the Architecture]] or [[publishing/deployment|Deploy to Cloudflare]].

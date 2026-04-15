@@ -45,6 +45,7 @@ Inkwell is a **headless content engine** that treats the filesystem as the sourc
 - [[strategy/content-strategy|Content Strategy]] — Voice, tone, and editorial pillars.
 - [[concepts/glossary|Glossary & Concepts]] — FRC physics and terminology.
 - [[reference/internal-abstractions|Internal Abstractions]] — Blueprints of the core logic.
+- [[reference/troubleshooting|Troubleshooting & FAQ]] — Common issues and resolutions.
 
 ::callout[tip]
 Use `npm run flywheel` to automatically discover trending topics and generate content briefs like this one!

@@ -1,7 +1,7 @@
 export const config = {
   name: 'Inkwell',
   domain: 'inkwell.dev',
-  tagline: 'The business operating system. Fork it. Configure it. Let the agent run it.',
+  tagline: 'The agent-first publishing organism. Fork it. Configure it. Scale it.',
 
   theme: {
     colors: {
@@ -58,8 +58,8 @@ export const config = {
 
   seo: {
     organization: {
-      name: 'Mumega',
-      url: 'https://mumega.com',
+      name: 'Inkwell',
+      url: 'https://inkwell.dev',
       logo: '/logo.svg',
       knowsAbout: [
         'Agent-operated publishing',
@@ -69,7 +69,7 @@ export const config = {
         'Internal tools',
       ],
     },
-    defaultAuthor: { name: 'Mumega', url: 'https://mumega.com' },
+    defaultAuthor: { name: 'Inkwell', url: 'https://inkwell.dev' },
   },
 
   workerUrl: '',

@@ -1,7 +1,9 @@
 ---
 // Shipment tracking page — static page, timeline data fetched client-side.
 export function getStaticPaths() {
-  return []
+  return [
+    { params: { reference: 'demo' } }
+  ]
 }
 
 const title = 'Shipment Tracker — Viamar Freight'

@@ -503,9 +503,9 @@ export default function BusinessDiscovery({ apiBase = '', redirectBase = '' }: P
           <div style={questionBlock}>
             <label style={labelStyle}>How many years have you been in business?</label>
             {opts(
-              ['0_1', '0–1 years (just getting started)'],
-              ['1_3', '1–3 years (finding my footing)'],
-              ['3_10', '3–10 years (established and growing)'],
+              ['0_1', '0-1 years (just getting started)'],
+              ['1_3', '1-3 years (finding my footing)'],
+              ['3_10', '3-10 years (established and growing)'],
               ['10_plus', '10+ years (seasoned operator)'],
             ).map(({ value, label }) => (
               <OptionCard
@@ -522,8 +522,8 @@ export default function BusinessDiscovery({ apiBase = '', redirectBase = '' }: P
             <label style={labelStyle}>Team size?</label>
             {opts(
               ['just_me', 'Just me'],
-              ['2_5', '2–5 people'],
-              ['6_20', '6–20 people'],
+              ['2_5', '2-5 people'],
+              ['6_20', '6-20 people'],
               ['20_plus', '20+ people'],
             ).map(({ value, label }) => (
               <OptionCard
@@ -541,8 +541,8 @@ export default function BusinessDiscovery({ apiBase = '', redirectBase = '' }: P
             {opts(
               ['pre_revenue', 'Pre-revenue (not yet making money)'],
               ['under_10k', 'Under $10K/mo'],
-              ['10k_50k', '$10K–$50K/mo'],
-              ['50k_200k', '$50K–$200K/mo'],
+              ['10k_50k', '$10K-$50K/mo'],
+              ['50k_200k', '$50K-$200K/mo'],
               ['200k_plus', '$200K+/mo'],
             ).map(({ value, label }) => (
               <OptionCard
@@ -750,7 +750,7 @@ export default function BusinessDiscovery({ apiBase = '', redirectBase = '' }: P
             {opts(
               ['zero', '$0 — organic only'],
               ['under_500', 'Under $500/mo'],
-              ['500_2000', '$500–$2,000/mo'],
+              ['500_2000', '$500-$2,000/mo'],
               ['2000_plus', '$2,000+/mo'],
             ).map(({ value, label }) => (
               <OptionCard
@@ -836,7 +836,7 @@ export default function BusinessDiscovery({ apiBase = '', redirectBase = '' }: P
             <TextArea
               value={answers.ideal_customer ?? ''}
               onChange={(v) => set('ideal_customer', v)}
-              placeholder="e.g. Small trucking companies in Ontario with 5–20 trucks who ship cross-border..."
+              placeholder="e.g. Small trucking companies in Ontario with 5-20 trucks who ship cross-border..."
               maxLength={200}
             />
           </div>

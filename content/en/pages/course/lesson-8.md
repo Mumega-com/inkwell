@@ -21,10 +21,10 @@ Look at your top 10 queries. Which ones gained impressions? Which ones lost? Cli
 Who came in this week? Where did they come from — organic search, paid ads, direct? Do any of them need a follow-up? This is where you close the loop between traffic and revenue.
 
 **4. Open the Campaigns view (if running ads).**
-Cost this week vs. conversions. Is your cost-per-lead improving or getting worse? After 4–6 weeks, you'll have enough data to know whether this campaign is worth continuing or needs a strategy change.
+Cost this week vs. conversions. Is your cost-per-lead improving or getting worse? After 4-6 weeks, you'll have enough data to know whether this campaign is worth continuing or needs a strategy change.
 
 **5. Look at the Calendar.**
-Is anything notable coming up in the next 2–3 weeks? A local event, a holiday, a seasonal shift in demand? If so, plan one piece of content around it now. Publishing three days before an event is too late. Publishing two weeks before is ideal.
+Is anything notable coming up in the next 2-3 weeks? A local event, a holiday, a seasonal shift in demand? If so, plan one piece of content around it now. Publishing three days before an event is too late. Publishing two weeks before is ideal.
 
 ## Which KPIs Actually Matter
 
@@ -45,8 +45,8 @@ Everything else is context. Revenue follows leads. Leads follow traffic. Traffic
 Google Search Console is the most underused tool in most businesses. Here's how to read it:
 
 - **Queries:** The actual words people type. Sort by impressions descending. These are your most-seen topics.
-- **CTR:** Click-through rate. Industry average is 2–5% for non-branded queries. If you're below that, your title tags aren't compelling.
-- **Position:** Your average ranking for a query. Positions 1–3 get the clicks. Position 4–10 gets some. Below 10, almost nothing.
+- **CTR:** Click-through rate. Industry average is 2-5% for non-branded queries. If you're below that, your title tags aren't compelling.
+- **Position:** Your average ranking for a query. Positions 1-3 get the clicks. Position 4-10 gets some. Below 10, almost nothing.
 - **Pages:** Which pages attract the most search traffic. Double down on those topics.
 
 If a page has high impressions but low CTR, rewrite the title and description. If it has good CTR but low impressions, it's a niche term — that's fine, don't over-optimize.
@@ -63,7 +63,7 @@ If a page has high impressions but low CTR, rewrite the title and description. I
 - CTR is below 1% after the first month (your copy or targeting is wrong)
 - You're getting clicks but zero conversions (your landing page isn't working)
 
-Don't change strategy based on one bad week. Data is noisy. Look for trends over 3–4 weeks.
+Don't change strategy based on one bad week. Data is noisy. Look for trends over 3-4 weeks.
 
 ## The Questionnaire
 

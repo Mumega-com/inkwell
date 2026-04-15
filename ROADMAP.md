@@ -23,6 +23,16 @@
 - [x] **Mermaid diagrams** — ::mermaid blocks with CDN lazy-load, dark theme
 - [x] **Twitter Card meta** — summary_large_image verified in Base.astro
 - [x] **Auto-description** — Ingest generates from first sentence if missing
+- [x] **Live Feedback** — POST /api/feedback endpoint + two-stage React component
+
+## P2.5 — Documentation (Stripe-Quality)
+
+- [x] **Integrated Docs** — New `docs` collection with hierarchical navigation
+- [x] **10+ High-Fidelity Guides** — Getting Started, Architecture, API, Schemas, etc.
+- [x] **Perfect Interconnectedness** — Complete semantic web of [[wikilinks]] across all collections
+- [x] **Developer Reference** — Documentation of core internal abstractions
+- [x] **Agentic entry point** — Optimized `llms.txt` for external AI legibility
+- [x] **Strategy Manuals** — Market Positioning, Content Strategy, and Roadmap guides
 
 ## P3 — Differentiators (what no other CMS does)
 

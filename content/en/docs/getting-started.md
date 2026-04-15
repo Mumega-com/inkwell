@@ -7,6 +7,19 @@ tags: ["getting-started", "docs"]
 
 Welcome to Inkwell! This guide will walk you through setting up your own Inkwell instance and getting your first piece of content published.
 
+## Why Inkwell?
+
+Inkwell isn't just a CMS; it's a **publishing organism**. It treats your filesystem as the source of truth, the edge as your performance layer, and AI agents as your primary collaborators.
+
+::comparison{title="Inkwell's Core Differentiators"}
+| Feature | Traditional CMS | Inkwell |
+|---|---|---|
+| **Storage** | Database-locked | Git-native Markdown |
+| **Logic** | Proprietary UI | Config-driven Code |
+| **Agents** | Add-on (Chatbot) | Native (MCP Bridge) |
+| **Speed** | 2-3s Latency | <100ms Edge TTFB |
+::
+
 ## 1. Prerequisites
 
 Before you begin, ensure you have the following installed:

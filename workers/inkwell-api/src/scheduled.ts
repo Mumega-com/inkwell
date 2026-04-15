@@ -11,6 +11,7 @@
  */
 
 import type { Env } from './types'
+import type { D1Database, ScheduledEvent, ExecutionContext } from '@cloudflare/workers-types'
 
 interface NormalizedMetric {
   source: string

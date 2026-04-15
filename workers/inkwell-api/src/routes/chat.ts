@@ -97,17 +97,17 @@ Most customers choose option 2 or 3. Want me to calculate a cost for your vehicl
   if (/how long|transit|time|days|week|delivery|arrive|eta/.test(lower)) {
     return `Typical transit times from major Canadian hubs:
 
-• **Toronto → Vancouver**: 7–10 business days
-• **Toronto → Calgary**: 5–7 business days
-• **Toronto → Halifax**: 4–6 business days
-• **Any Canadian city → USA**: add 2–4 days for customs clearance
-• **Canada → Europe**: 18–25 days (via container)
+• **Toronto → Vancouver**: 7-10 business days
+• **Toronto → Calgary**: 5-7 business days
+• **Toronto → Halifax**: 4-6 business days
+• **Any Canadian city → USA**: add 2-4 days for customs clearance
+• **Canada → Europe**: 18-25 days (via container)
 
-Door-to-door pickup adds 1–2 days to these estimates. Need a more specific ETA? Share your route and I'll check live availability.`
+Door-to-door pickup adds 1-2 days to these estimates. Need a more specific ETA? Share your route and I'll check live availability.`
   }
 
   // Default
-  return "I'll connect you with our team right away. Call **1-800-277-7570** (Mon–Fri 8am–6pm ET) or leave your question here and we'll follow up within 2 hours."
+  return "I'll connect you with our team right away. Call **1-800-277-7570** (Mon-Fri 8am-6pm ET) or leave your question here and we'll follow up within 2 hours."
 }
 
 // ── Route ─────────────────────────────────────────────────────────────────────

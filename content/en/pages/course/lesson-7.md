@@ -84,7 +84,7 @@ Log into Google Ads. Create a new campaign:
 - **Type:** Search
 - **Budget:** $10/day
 - **Bidding:** Maximize conversions (switch to Target CPA after 30+ conversions)
-- **Keywords:** 5–10 exact and phrase match terms your customers actually search for
+- **Keywords:** 5-10 exact and phrase match terms your customers actually search for
 - **Ad copy:** Headline matches what they searched. Description explains your offer.
 - **Final URL:** Your landing page URL
 

@@ -57,6 +57,18 @@ Built with **Hono**, the Worker handles:
 | 99/100 | PageSpeed Score |
 ::
 
-::callout[info]
-Inkwell is designed to be **stateless**. The source of truth is the markdown file. All dynamic state is stored in Cloudflare's edge databases (D1/KV).
+## Evolutionary Blueprint
+
+Inkwell is built to evolve from a static generator into a self-observing system.
+
+::timeline
+**P1: Core** | Foundation of [[backlinks]] and Markdown processing.
+**P2: Product** | Search, analytics, and MCP-driven tools.
+**P3: Edge** | Distributed state via KV and global content distribution.
+**P4: Organism** | Autonomous optimization governed by [[concepts/glossary|FRC Physics]].
 ::
+
+---
+
+[[docs/config/api-reference|Explore the API Reference]] or [[docs/strategy/roadmap|View the full Roadmap]].
+

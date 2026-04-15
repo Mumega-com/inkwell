@@ -1,3 +1,5 @@
+import type { D1Database, KVNamespace } from '@cloudflare/workers-types'
+
 export interface Env {
   DB_ANALYTICS: D1Database
   DB_CORE: D1Database
