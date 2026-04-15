@@ -46,10 +46,32 @@ Creates a Stripe Checkout session.
 - **Payload:** `{ "plan": "seo" | "seo-ads" | "full", "email": "user@example.com" }`
 - **Response:** `{ "success": true, "url": "..." }`
 
+The same endpoint also supports digital publishing purchases and subscriptions.
+- **Payload:** `{ "email": "reader@example.com", "customerSlug": "publisher", "productKey": "book-membership" }`
+- **Alternative payload:** `{ "email": "reader@example.com", "customerSlug": "publisher", "priceId": "price_123", "resourceExternalId": "book/chapter-01", "mode": "payment" }`
+- **Behavior:** creates a Stripe Checkout session and writes enough metadata for the webhook to create or update `access_grants`.
+
 ### `GET /api/payments/subscription-status`
 Requires an active session. Returns live data from Stripe.
 
-## 4. Content Ingest (Internal)
+## 4. Publishing API
+
+Reader access, library, and progress primitives for digital products.
+
+::timeline
+GET /api/publishing/library | Returns the authenticated reader library from active access grants.
+GET /api/publishing/access/:externalId?customer=slug | Resolves public, preview, login-required, or purchase-required access.
+POST /api/publishing/progress | Upserts reading progress for the authenticated reader.
+GET /api/publishing/progress/:externalId | Returns saved reading progress for one resource.
+::
+
+### Publishing Data Contract
+
+- **Content system** owns books, chapters, previews, and release timing.
+- **Inkwell** owns accounts, billing, entitlements, and reader state.
+- **Access grants** are tenant-scoped and linked to `portal_accounts`.
+
+## 5. Content Ingest (Internal)
 
 ::mermaid
 graph LR

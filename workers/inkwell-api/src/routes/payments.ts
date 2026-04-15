@@ -5,9 +5,16 @@ import type { AppBindings } from '../types'
 type Plan = 'seo' | 'seo-ads' | 'full'
 
 interface CreateCheckoutBody {
-  plan: Plan
   email: string
   customerName?: string
+  plan?: Plan
+  mode?: 'subscription' | 'payment'
+  priceId?: string
+  customerSlug?: string
+  productKey?: string
+  resourceExternalId?: string
+  successPath?: string
+  cancelPath?: string
 }
 
 interface StripeSession {
@@ -39,6 +46,13 @@ interface StripeEvent {
   }
 }
 
+type PublishingProductRow = {
+  id: string
+  customer_slug: string
+  product_key: string
+  stripe_price_id: string | null
+}
+
 const VALID_PLANS = new Set<Plan>(['seo', 'seo-ads', 'full'])
 
 function isNonEmptyString(value: unknown): value is string {
@@ -58,6 +72,160 @@ function getPlanFromPriceId(env: AppBindings['Bindings'], priceId: string): Plan
   if (priceId === env.STRIPE_PRICE_SEO_ADS) return 'seo-ads'
   if (priceId === env.STRIPE_PRICE_FULL) return 'full'
   return null
+}
+
+function normalizeCustomerSlug(value: string): string {
+  return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+}
+
+function normalizePath(value: string | undefined, fallback: string): string {
+  if (!isNonEmptyString(value)) return fallback
+  const trimmed = value.trim()
+  if (!trimmed.startsWith('/')) return fallback
+  if (trimmed.startsWith('//')) return fallback
+  return trimmed
+}
+
+function safeJsonParse(value: string | null): Record<string, unknown> {
+  if (!value) return {}
+  try {
+    const parsed = JSON.parse(value)
+    return parsed && typeof parsed === 'object' ? parsed as Record<string, unknown> : {}
+  } catch {
+    return {}
+  }
+}
+
+async function resolvePublishingProduct(
+  env: AppBindings['Bindings'],
+  customerSlug: string,
+  productKey: string,
+): Promise<PublishingProductRow | null> {
+  return env.DB_CORE.prepare(
+    `SELECT id, customer_slug, product_key, stripe_price_id
+     FROM publishing_products
+     WHERE customer_slug = ? AND product_key = ? AND status IN ('draft', 'active', 'published')
+     LIMIT 1`
+  ).bind(customerSlug, productKey).first<PublishingProductRow>()
+}
+
+async function ensurePortalAccountForCheckout(
+  env: AppBindings['Bindings'],
+  customerSlug: string,
+  email: string | null,
+  customerName: string | null,
+  metadata: Record<string, unknown>,
+): Promise<string> {
+  const normalizedEmail = email?.trim().toLowerCase() ?? null
+  const now = new Date().toISOString()
+  const existing = normalizedEmail
+    ? await env.DB_CORE.prepare(
+      `SELECT id, metadata_json
+       FROM portal_accounts
+       WHERE customer_slug = ? AND email = ?
+       LIMIT 1`
+    ).bind(customerSlug, normalizedEmail).first<{ id: string; metadata_json: string | null }>()
+    : null
+
+  if (existing) {
+    const mergedMetadata = {
+      ...safeJsonParse(existing.metadata_json),
+      ...metadata,
+    }
+
+    await env.DB_CORE.prepare(
+      `UPDATE portal_accounts
+       SET full_name = COALESCE(?, full_name),
+           email = COALESCE(?, email),
+           metadata_json = ?,
+           updated_at = ?,
+           status = 'active'
+       WHERE id = ?`
+    ).bind(
+      customerName,
+      normalizedEmail,
+      JSON.stringify(mergedMetadata),
+      now,
+      existing.id,
+    ).run()
+
+    return existing.id
+  }
+
+  const id = crypto.randomUUID()
+  await env.DB_CORE.prepare(
+    `INSERT INTO portal_accounts
+     (id, customer_slug, full_name, email, status, metadata_json, created_at, updated_at)
+     VALUES (?, ?, ?, ?, 'active', ?, ?, ?)`
+  ).bind(
+    id,
+    customerSlug,
+    customerName,
+    normalizedEmail,
+    JSON.stringify(metadata),
+    now,
+    now,
+  ).run()
+
+  return id
+}
+
+async function grantDigitalAccess(
+  env: AppBindings['Bindings'],
+  customerSlug: string,
+  portalAccountId: string,
+  productId: string | null,
+  resourceExternalId: string | null,
+  grantType: 'purchase' | 'subscription',
+  metadata: Record<string, unknown>,
+): Promise<void> {
+  const now = new Date().toISOString()
+  const existing = resourceExternalId
+    ? await env.DB_CORE.prepare(
+      `SELECT id, metadata_json
+       FROM access_grants
+       WHERE customer_slug = ? AND portal_account_id = ? AND resource_external_id = ? AND status = 'active'
+       LIMIT 1`
+    ).bind(customerSlug, portalAccountId, resourceExternalId).first<{ id: string; metadata_json: string | null }>()
+    : null
+
+  if (existing) {
+    await env.DB_CORE.prepare(
+      `UPDATE access_grants
+       SET product_id = COALESCE(?, product_id),
+           grant_type = ?,
+           metadata_json = ?,
+           updated_at = ?
+       WHERE id = ?`
+    ).bind(
+      productId,
+      grantType,
+      JSON.stringify({
+        ...safeJsonParse(existing.metadata_json),
+        ...metadata,
+      }),
+      now,
+      existing.id,
+    ).run()
+    return
+  }
+
+  await env.DB_CORE.prepare(
+    `INSERT INTO access_grants
+     (id, customer_slug, portal_account_id, product_id, resource_external_id, grant_type, status, granted_at, metadata_json, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, 'active', ?, ?, ?, ?)`
+  ).bind(
+    crypto.randomUUID(),
+    customerSlug,
+    portalAccountId,
+    productId,
+    resourceExternalId,
+    grantType,
+    now,
+    JSON.stringify(metadata),
+    now,
+    now,
+  ).run()
 }
 
 async function stripeGet(secretKey: string, path: string): Promise<Response> {
@@ -124,43 +292,91 @@ paymentRoutes.post('/create-checkout', async (c) => {
   }
 
   const payload = body as Record<string, unknown>
-  const plan = payload.plan
   const email = payload.email
   const customerName = payload.customerName
-
-  if (!isNonEmptyString(plan) || !VALID_PLANS.has(plan as Plan)) {
-    return c.json({ success: false, error: 'invalid_plan', hint: 'Use seo, seo-ads, or full' }, 400)
-  }
+  const priceIdFromBody = payload.priceId
+  const customerSlug = isNonEmptyString(payload.customerSlug) ? normalizeCustomerSlug(payload.customerSlug) : 'inkwell'
+  const productKey = isNonEmptyString(payload.productKey) ? payload.productKey.trim() : null
+  const resourceExternalId = isNonEmptyString(payload.resourceExternalId) ? payload.resourceExternalId.trim() : null
+  const successPath = isNonEmptyString(payload.successPath) ? payload.successPath : undefined
+  const cancelPath = isNonEmptyString(payload.cancelPath) ? payload.cancelPath : undefined
+  const requestedMode = payload.mode === 'payment' ? 'payment' : 'subscription'
+  const plan = payload.plan
 
   if (!isNonEmptyString(email) || !email.includes('@')) {
     return c.json({ success: false, error: 'valid_email_required' }, 400)
   }
 
-  const validPlan = plan as Plan
-  const priceId = getPriceId(c.env, validPlan)
-  if (!priceId) {
-    console.error(`[payments] price ID not configured for plan: ${validPlan}`)
-    return c.json({ success: false, error: 'plan_not_configured' }, 503)
+  let checkoutMode: 'subscription' | 'payment' = requestedMode
+  let priceId: string | undefined
+  let metadataKind: 'plan' | 'digital' = 'plan'
+  let validPlan: Plan | null = null
+  let publishingProductId: string | null = null
+  let publishingProductKey: string | null = null
+
+  if (isNonEmptyString(plan)) {
+    if (!VALID_PLANS.has(plan as Plan)) {
+      return c.json({ success: false, error: 'invalid_plan', hint: 'Use seo, seo-ads, or full' }, 400)
+    }
+    validPlan = plan as Plan
+    priceId = getPriceId(c.env, validPlan)
+    if (!priceId) {
+      console.error(`[payments] price ID not configured for plan: ${validPlan}`)
+      return c.json({ success: false, error: 'plan_not_configured' }, 503)
+    }
+  } else {
+    metadataKind = 'digital'
+    checkoutMode = requestedMode
+
+    if (isNonEmptyString(priceIdFromBody)) {
+      priceId = priceIdFromBody.trim()
+    } else if (productKey) {
+      const product = await resolvePublishingProduct(c.env, customerSlug, productKey)
+      if (!product?.stripe_price_id) {
+        return c.json({ success: false, error: 'digital_product_not_configured' }, 404)
+      }
+      publishingProductId = product.id
+      publishingProductKey = product.product_key
+      priceId = product.stripe_price_id
+    } else {
+      return c.json({ success: false, error: 'price_id_or_product_key_required' }, 400)
+    }
   }
 
   if (!c.env.STRIPE_SECRET_KEY) {
     console.error('[payments] STRIPE_SECRET_KEY not configured')
     return c.json({ success: false, error: 'payment_not_configured' }, 503)
   }
+  if (!priceId) {
+    return c.json({ success: false, error: 'price_not_resolved' }, 503)
+  }
 
   const siteUrl = c.env.SITE_URL ?? ''
   const params = new URLSearchParams()
-  params.append('mode', 'subscription')
+  params.append('mode', checkoutMode)
   params.append('payment_method_types[]', 'card')
   params.append('line_items[0][price]', priceId)
   params.append('line_items[0][quantity]', '1')
   params.append('customer_email', email.toLowerCase().trim())
-  params.append('metadata[plan]', validPlan)
+  params.append('metadata[kind]', metadataKind)
+  params.append('metadata[customerSlug]', customerSlug)
   if (isNonEmptyString(customerName)) {
     params.append('metadata[customerName]', customerName.trim().slice(0, 200))
   }
-  params.append('success_url', `${siteUrl}/portal/welcome?session_id={CHECKOUT_SESSION_ID}`)
-  params.append('cancel_url', `${siteUrl}/pricing`)
+  if (validPlan) {
+    params.append('metadata[plan]', validPlan)
+  }
+  if (resourceExternalId) {
+    params.append('metadata[resourceExternalId]', resourceExternalId)
+  }
+  if (publishingProductId) {
+    params.append('metadata[publishingProductId]', publishingProductId)
+  }
+  if (publishingProductKey ?? productKey) {
+    params.append('metadata[productKey]', (publishingProductKey ?? productKey) as string)
+  }
+  params.append('success_url', `${siteUrl}${normalizePath(successPath, '/portal/welcome')}?session_id={CHECKOUT_SESSION_ID}`)
+  params.append('cancel_url', `${siteUrl}${normalizePath(cancelPath, metadataKind === 'digital' ? '/subscribe' : '/pricing')}`)
   params.append('allow_promotion_codes', 'true')
 
   let stripeRes: Response
@@ -227,28 +443,41 @@ paymentRoutes.post('/webhook', async (c) => {
 
         const email = session.customer_email
         const plan = session.metadata?.plan as Plan | undefined
+        const kind = session.metadata?.kind === 'digital' ? 'digital' : 'plan'
         const customerName = session.metadata?.customerName ?? null
-        const now = new Date().toISOString()
-        const id = crypto.randomUUID()
-
-        await c.env.DB_CORE.prepare(
-          `INSERT OR IGNORE INTO portal_accounts
-           (id, customer_slug, full_name, email, status, metadata_json, created_at, updated_at)
-           VALUES (?, ?, ?, ?, 'active', ?, ?, ?)`
-        ).bind(
-          id,
-          'inkwell',
+        const customerSlug = normalizeCustomerSlug(session.metadata?.customerSlug ?? 'inkwell') || 'inkwell'
+        const resourceExternalId = session.metadata?.resourceExternalId ?? null
+        const publishingProductId = session.metadata?.publishingProductId ?? null
+        const portalAccountId = await ensurePortalAccountForCheckout(
+          c.env,
+          customerSlug,
+          email,
           customerName,
-          email ?? null,
-          JSON.stringify({
+          {
             plan: plan ?? null,
             stripe_customer: session.customer,
             stripe_subscription: session.subscription,
+            stripe_kind: kind,
             source: 'stripe_checkout',
-          }),
-          now,
-          now,
-        ).run()
+          },
+        )
+
+        if (kind === 'digital') {
+          await grantDigitalAccess(
+            c.env,
+            customerSlug,
+            portalAccountId,
+            isNonEmptyString(publishingProductId) ? publishingProductId : null,
+            isNonEmptyString(resourceExternalId) ? resourceExternalId : null,
+            session.subscription ? 'subscription' : 'purchase',
+            {
+              stripe_customer: session.customer,
+              stripe_subscription: session.subscription,
+              stripe_checkout_session: session.id,
+              productKey: session.metadata?.productKey ?? null,
+            },
+          )
+        }
         break
       }
 
@@ -272,6 +501,18 @@ paymentRoutes.post('/webhook', async (c) => {
           sub.status,
           sub.customer,
         ).run()
+
+        if (!['active', 'trialing'].includes(sub.status)) {
+          await c.env.DB_CORE.prepare(
+            `UPDATE access_grants
+             SET status = 'inactive',
+                 updated_at = ?
+             WHERE json_extract(metadata_json, '$.stripe_subscription') = ?`
+          ).bind(
+            new Date().toISOString(),
+            sub.id,
+          ).run()
+        }
         break
       }
 
@@ -291,6 +532,16 @@ paymentRoutes.post('/webhook', async (c) => {
           new Date().toISOString(),
           new Date().toISOString(),
           sub.customer,
+        ).run()
+
+        await c.env.DB_CORE.prepare(
+          `UPDATE access_grants
+           SET status = 'inactive',
+               updated_at = ?
+           WHERE json_extract(metadata_json, '$.stripe_subscription') = ?`
+        ).bind(
+          new Date().toISOString(),
+          sub.id,
         ).run()
         break
       }

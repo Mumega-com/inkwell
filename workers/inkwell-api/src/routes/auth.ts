@@ -219,6 +219,34 @@ async function ensurePortalAccount(
     }
   }
 
+  const purchaselessMatch = await db.prepare(
+    `SELECT id, full_name, email, phone
+     FROM portal_accounts
+     WHERE customer_slug = ?
+       AND identity_id IS NULL
+       AND ((? IS NOT NULL AND email = ?) OR (? IS NOT NULL AND phone = ?))
+     LIMIT 1`
+  ).bind(customerSlug, email, email, phone, phone).first<PortalAccountRow>()
+
+  if (purchaselessMatch) {
+    await db.prepare(
+      `UPDATE portal_accounts
+       SET identity_id = ?,
+           full_name = COALESCE(?, full_name),
+           email = COALESCE(?, email),
+           phone = COALESCE(?, phone),
+           updated_at = ?
+       WHERE id = ?`
+    ).bind(identity.id, fullName, email, phone, updatedAt, purchaselessMatch.id).run()
+
+    return {
+      id: purchaselessMatch.id,
+      full_name: fullName ?? purchaselessMatch.full_name,
+      email: email ?? purchaselessMatch.email,
+      phone: phone ?? purchaselessMatch.phone,
+    }
+  }
+
   const created: PortalAccountRow = {
     id: crypto.randomUUID(),
     full_name: fullName,

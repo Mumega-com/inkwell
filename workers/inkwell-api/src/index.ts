@@ -6,6 +6,7 @@ import { contractRoutes } from './routes/contracts'
 import { dashboardRoutes } from './routes/dashboard'
 import { mcpRoutes } from './routes/mcp'
 import { paymentRoutes } from './routes/payments'
+import { publishingRoutes } from './routes/publishing'
 import { telegramRoutes } from './routes/telegram'
 import { questionnaireRoutes } from './routes/questionnaire'
 import { courseRoutes } from './routes/courses'
@@ -103,6 +104,7 @@ app.route('/api/chat', chatRoutes)
 app.route('/api/contracts', contractRoutes)
 app.route('/api/dashboard', dashboardRoutes)
 app.route('/api/payments', paymentRoutes)
+app.route('/api/publishing', publishingRoutes)
 app.route('/api/telegram', telegramRoutes)
 app.route('/api/questionnaire', questionnaireRoutes)
 app.route('/api/courses', courseRoutes)
