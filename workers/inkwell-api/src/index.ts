@@ -15,6 +15,7 @@ import { publishingRoutes } from './routes/publishing'
 import { questionnaireRoutes } from './routes/questionnaire'
 import { telegramRoutes } from './routes/telegram'
 import { routeGate } from './middleware/route-gate'
+import { tenantResolver } from './middleware/tenant'
 import { scheduled } from './scheduled'
 import type { AppBindings } from './types'
 
@@ -26,7 +27,10 @@ app.use('*', cors({
   allowHeaders: ['Content-Type'],
 }))
 
-app.get('/health', (c) => c.json({ status: 'ok', ts: Date.now() }))
+// Tenant resolution (non-breaking: null = single-site mode)
+app.use('*', tenantResolver())
+
+app.get('/health', (c) => c.json({ status: 'ok', ts: Date.now(), tenant: c.get('tenant_slug') }))
 
 // Core routes (always enabled)
 app.route('/api', analyticsRoutes)
