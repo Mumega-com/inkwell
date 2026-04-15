@@ -437,6 +437,101 @@ body * {
   }
 }
 
+/* Feedback widget */
+.feedback-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem 0;
+}
+
+.feedback-label {
+  font-family: var(--ink-font-display);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--ink-text);
+}
+
+.feedback-buttons {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.feedback-btn {
+  font-family: var(--ink-font-mono);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 0.5rem 1.25rem;
+  border-radius: var(--ink-radius);
+  border: 1px solid var(--ink-border);
+  background: var(--ink-surface);
+  color: var(--ink-text);
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.feedback-btn:hover:not(:disabled) {
+  border-color: var(--ink-primary);
+  color: var(--ink-primary);
+  background: rgba(212, 160, 23, 0.05);
+}
+
+.feedback-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.feedback-btn.submit {
+  background: var(--ink-primary);
+  color: var(--ink-bg);
+  border-color: var(--ink-primary);
+}
+
+.feedback-btn.submit:hover:not(:disabled) {
+  opacity: 0.9;
+  background: var(--ink-primary);
+  color: var(--ink-bg);
+}
+
+.feedback-btn.skip {
+  color: var(--ink-dim);
+  border: none;
+  background: none;
+  padding-left: 0.5rem;
+}
+
+.feedback-btn.skip:hover {
+  color: var(--ink-muted);
+  background: none;
+}
+
+.feedback-thanks {
+  font-family: var(--ink-font-display);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+.feedback-textarea {
+  width: 100%;
+  max-width: var(--ink-content-width);
+  font-family: var(--ink-font-body);
+  font-size: 0.875rem;
+  padding: 0.75rem;
+  border-radius: var(--ink-radius);
+  border: 1px solid var(--ink-border);
+  background: var(--ink-surface);
+  color: var(--ink-text);
+  resize: vertical;
+  transition: border-color 150ms ease;
+}
+
+.feedback-textarea:focus {
+  outline: none;
+  border-color: var(--ink-primary);
+}
+
 /* Utility: hidden on mobile */
 @media (max-width: 768px) {
   .ink-hide-mobile {

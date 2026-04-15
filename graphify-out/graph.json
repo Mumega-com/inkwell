@@ -360,7 +360,7 @@
       "source_file": "src/components/ContractForm.tsx",
       "source_location": "L1",
       "id": "src_components_contractform_tsx",
-      "community": 28,
+      "community": 29,
       "norm_label": "contractform.tsx"
     },
     {
@@ -369,7 +369,7 @@
       "source_file": "src/components/ContractForm.tsx",
       "source_location": "L72",
       "id": "contractform_handlesubmit",
-      "community": 28,
+      "community": 29,
       "norm_label": "handlesubmit()"
     },
     {
@@ -378,7 +378,7 @@
       "source_file": "src/components/navigation/ReadingProgress.tsx",
       "source_location": "L1",
       "id": "src_components_navigation_readingprogress_tsx",
-      "community": 29,
+      "community": 30,
       "norm_label": "readingprogress.tsx"
     },
     {
@@ -387,7 +387,7 @@
       "source_file": "src/components/navigation/ReadingProgress.tsx",
       "source_location": "L5",
       "id": "readingprogress_readingprogress",
-      "community": 29,
+      "community": 30,
       "norm_label": "readingprogress()"
     },
     {
@@ -396,7 +396,7 @@
       "source_file": "src/components/navigation/CommandPalette.tsx",
       "source_location": "L1",
       "id": "src_components_navigation_commandpalette_tsx",
-      "community": 30,
+      "community": 31,
       "norm_label": "commandpalette.tsx"
     },
     {
@@ -405,7 +405,7 @@
       "source_file": "src/components/navigation/CommandPalette.tsx",
       "source_location": "L24",
       "id": "commandpalette_onkeydown",
-      "community": 30,
+      "community": 31,
       "norm_label": "onkeydown()"
     },
     {
@@ -477,17 +477,26 @@
       "source_file": "src/components/engagement/Feedback.tsx",
       "source_location": "L1",
       "id": "src_components_engagement_feedback_tsx",
-      "community": 31,
+      "community": 23,
       "norm_label": "feedback.tsx"
     },
     {
       "label": "submitFeedback()",
       "file_type": "code",
       "source_file": "src/components/engagement/Feedback.tsx",
-      "source_location": "L20",
+      "source_location": "L24",
       "id": "feedback_submitfeedback",
-      "community": 31,
+      "community": 23,
       "norm_label": "submitfeedback()"
+    },
+    {
+      "label": "sendFinalFeedback()",
+      "file_type": "code",
+      "source_file": "src/components/engagement/Feedback.tsx",
+      "source_location": "L29",
+      "id": "feedback_sendfinalfeedback",
+      "community": 23,
+      "norm_label": "sendfinalfeedback()"
     },
     {
       "label": "SocialProofBar.tsx",
@@ -585,7 +594,7 @@
       "source_file": "src/components/charts/DataTable.tsx",
       "source_location": "L1",
       "id": "src_components_charts_datatable_tsx",
-      "community": 23,
+      "community": 24,
       "norm_label": "datatable.tsx"
     },
     {
@@ -594,7 +603,7 @@
       "source_file": "src/components/charts/DataTable.tsx",
       "source_location": "L19",
       "id": "datatable_formatcell",
-      "community": 23,
+      "community": 24,
       "norm_label": "formatcell()"
     },
     {
@@ -603,7 +612,7 @@
       "source_file": "src/components/charts/DataTable.tsx",
       "source_location": "L33",
       "id": "datatable_statusbadge",
-      "community": 23,
+      "community": 24,
       "norm_label": "statusbadge()"
     },
     {
@@ -648,7 +657,7 @@
       "source_file": "src/pages/rss.xml.ts",
       "source_location": "L1",
       "id": "src_pages_rss_xml_ts",
-      "community": 24,
+      "community": 25,
       "norm_label": "rss.xml.ts"
     },
     {
@@ -657,7 +666,7 @@
       "source_file": "src/pages/rss.xml.ts",
       "source_location": "L5",
       "id": "rss_xml_escapexml",
-      "community": 24,
+      "community": 25,
       "norm_label": "escapexml()"
     },
     {
@@ -666,7 +675,7 @@
       "source_file": "src/pages/rss.xml.ts",
       "source_location": "L14",
       "id": "rss_xml_get",
-      "community": 24,
+      "community": 25,
       "norm_label": "get()"
     },
     {
@@ -774,7 +783,7 @@
       "source_file": "src/lib/theme.ts",
       "source_location": "L1",
       "id": "src_lib_theme_ts",
-      "community": 25,
+      "community": 26,
       "norm_label": "theme.ts"
     },
     {
@@ -783,7 +792,7 @@
       "source_file": "src/lib/theme.ts",
       "source_location": "L6",
       "id": "theme_iscolorpair",
-      "community": 25,
+      "community": 26,
       "norm_label": "iscolorpair()"
     },
     {
@@ -792,7 +801,7 @@
       "source_file": "src/lib/theme.ts",
       "source_location": "L10",
       "id": "theme_generatecssvars",
-      "community": 25,
+      "community": 26,
       "norm_label": "generatecssvars()"
     },
     {
@@ -1350,7 +1359,7 @@
       "source_file": "src/lib/remark-wikilinks.ts",
       "source_location": "L1",
       "id": "src_lib_remark_wikilinks_ts",
-      "community": 26,
+      "community": 27,
       "norm_label": "remark-wikilinks.ts"
     },
     {
@@ -1359,7 +1368,7 @@
       "source_file": "src/lib/remark-wikilinks.ts",
       "source_location": "L16",
       "id": "remark_wikilinks_remarkwikilinks",
-      "community": 26,
+      "community": 27,
       "norm_label": "remarkwikilinks()"
     },
     {
@@ -1368,7 +1377,7 @@
       "source_file": "src/lib/remark-wikilinks.ts",
       "source_location": "L69",
       "id": "remark_wikilinks_escapehtml",
-      "community": 26,
+      "community": 27,
       "norm_label": "escapehtml()"
     },
     {
@@ -1447,7 +1456,7 @@
       "label": "isNonEmptyString()",
       "file_type": "code",
       "source_file": "workers/inkwell-api/src/index.ts",
-      "source_location": "L22",
+      "source_location": "L23",
       "id": "index_isnonemptystring",
       "community": 10,
       "norm_label": "isnonemptystring()"
@@ -1456,7 +1465,7 @@
       "label": "normalizeSlug()",
       "file_type": "code",
       "source_file": "workers/inkwell-api/src/index.ts",
-      "source_location": "L26",
+      "source_location": "L27",
       "id": "index_normalizeslug",
       "community": 10,
       "norm_label": "normalizeslug()"
@@ -1465,7 +1474,7 @@
       "label": "cleanText()",
       "file_type": "code",
       "source_file": "workers/inkwell-api/src/index.ts",
-      "source_location": "L34",
+      "source_location": "L35",
       "id": "index_cleantext",
       "community": 10,
       "norm_label": "cleantext()"
@@ -1474,7 +1483,7 @@
       "label": "parseTags()",
       "file_type": "code",
       "source_file": "workers/inkwell-api/src/index.ts",
-      "source_location": "L38",
+      "source_location": "L39",
       "id": "index_parsetags",
       "community": 10,
       "norm_label": "parsetags()"
@@ -1483,7 +1492,7 @@
       "label": "parsePublishPayload()",
       "file_type": "code",
       "source_file": "workers/inkwell-api/src/index.ts",
-      "source_location": "L55",
+      "source_location": "L56",
       "id": "index_parsepublishpayload",
       "community": 10,
       "norm_label": "parsepublishpayload()"
@@ -1863,7 +1872,7 @@
       "source_file": "workers/inkwell-api/src/routes/dashboard.ts",
       "source_location": "L1",
       "id": "workers_inkwell_api_src_routes_dashboard_ts",
-      "community": 27,
+      "community": 28,
       "norm_label": "dashboard.ts"
     },
     {
@@ -1872,7 +1881,7 @@
       "source_file": "workers/inkwell-api/src/routes/dashboard.ts",
       "source_location": "L50",
       "id": "dashboard_periodtodays",
-      "community": 27,
+      "community": 28,
       "norm_label": "periodtodays()"
     },
     {
@@ -1881,7 +1890,7 @@
       "source_file": "workers/inkwell-api/src/routes/dashboard.ts",
       "source_location": "L58",
       "id": "dashboard_daysagoiso",
-      "community": 27,
+      "community": 28,
       "norm_label": "daysagoiso()"
     },
     {
@@ -2766,12 +2775,24 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/engagement/Feedback.tsx",
-      "source_location": "L20",
+      "source_location": "L24",
       "weight": 1.0,
       "_src": "src_components_engagement_feedback_tsx",
       "_tgt": "feedback_submitfeedback",
       "source": "src_components_engagement_feedback_tsx",
       "target": "feedback_submitfeedback",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/engagement/Feedback.tsx",
+      "source_location": "L29",
+      "weight": 1.0,
+      "_src": "src_components_engagement_feedback_tsx",
+      "_tgt": "feedback_sendfinalfeedback",
+      "source": "src_components_engagement_feedback_tsx",
+      "target": "feedback_sendfinalfeedback",
       "confidence_score": 1.0
     },
     {
@@ -4674,7 +4695,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "workers/inkwell-api/src/index.ts",
-      "source_location": "L22",
+      "source_location": "L23",
       "weight": 1.0,
       "_src": "workers_inkwell_api_src_index_ts",
       "_tgt": "index_isnonemptystring",
@@ -4686,7 +4707,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "workers/inkwell-api/src/index.ts",
-      "source_location": "L26",
+      "source_location": "L27",
       "weight": 1.0,
       "_src": "workers_inkwell_api_src_index_ts",
       "_tgt": "index_normalizeslug",
@@ -4698,7 +4719,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "workers/inkwell-api/src/index.ts",
-      "source_location": "L34",
+      "source_location": "L35",
       "weight": 1.0,
       "_src": "workers_inkwell_api_src_index_ts",
       "_tgt": "index_cleantext",
@@ -4710,7 +4731,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "workers/inkwell-api/src/index.ts",
-      "source_location": "L38",
+      "source_location": "L39",
       "weight": 1.0,
       "_src": "workers_inkwell_api_src_index_ts",
       "_tgt": "index_parsetags",
@@ -4722,7 +4743,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "workers/inkwell-api/src/index.ts",
-      "source_location": "L55",
+      "source_location": "L56",
       "weight": 1.0,
       "_src": "workers_inkwell_api_src_index_ts",
       "_tgt": "index_parsepublishpayload",
@@ -4734,7 +4755,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "workers/inkwell-api/src/index.ts",
-      "source_location": "L45",
+      "source_location": "L46",
       "weight": 1.0,
       "_src": "index_parsetags",
       "_tgt": "index_isnonemptystring",
@@ -4746,7 +4767,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "workers/inkwell-api/src/index.ts",
-      "source_location": "L63",
+      "source_location": "L64",
       "weight": 1.0,
       "_src": "index_parsepublishpayload",
       "_tgt": "index_isnonemptystring",
@@ -4758,7 +4779,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "workers/inkwell-api/src/index.ts",
-      "source_location": "L72",
+      "source_location": "L73",
       "weight": 1.0,
       "_src": "index_parsepublishpayload",
       "_tgt": "index_normalizeslug",
@@ -4770,7 +4791,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "workers/inkwell-api/src/index.ts",
-      "source_location": "L66",
+      "source_location": "L67",
       "weight": 1.0,
       "_src": "index_parsepublishpayload",
       "_tgt": "index_cleantext",
@@ -4782,7 +4803,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "workers/inkwell-api/src/index.ts",
-      "source_location": "L76",
+      "source_location": "L77",
       "weight": 1.0,
       "_src": "index_parsepublishpayload",
       "_tgt": "index_parsetags",

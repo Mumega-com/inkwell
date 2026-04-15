@@ -32,3 +32,10 @@ Publishing, review, deployment, and later analytics should all fit the same ment
 ## VII. Stay maintainable over time
 
 The code should remain understandable enough that the next fork can keep evolving without a rewrite.
+
+---
+
+**Deeper Dive:**
+- Read the [[whitepaper|Whitepaper]] for the full thesis.
+- Explore the [[docs/concepts/glossary|Glossary & Concepts]] to understand FRC physics.
+- See the [[docs/architecture/system-design|System Blueprints]].

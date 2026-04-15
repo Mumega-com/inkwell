@@ -1,11 +1,11 @@
 # Graph Report - .  (2026-04-15)
 
 ## Corpus Check
-- 52 files · ~92,311 words
+- 52 files · ~94,038 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 241 nodes · 307 edges · 52 communities detected
+- 242 nodes · 308 edges · 52 communities detected
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
@@ -177,23 +177,23 @@ Cohesion: 0.67
 Nodes (0): 
 
 ### Community 24 - "Community 24"
-Cohesion: 1.0
-Nodes (2): escapeXml(), GET()
+Cohesion: 0.67
+Nodes (0): 
 
 ### Community 25 - "Community 25"
 Cohesion: 1.0
-Nodes (2): generateCssVars(), isColorPair()
+Nodes (2): escapeXml(), GET()
 
 ### Community 26 - "Community 26"
-Cohesion: 0.67
-Nodes (0): 
+Cohesion: 1.0
+Nodes (2): generateCssVars(), isColorPair()
 
 ### Community 27 - "Community 27"
 Cohesion: 0.67
 Nodes (0): 
 
 ### Community 28 - "Community 28"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 29 - "Community 29"
@@ -289,13 +289,11 @@ Cohesion: 1.0
 Nodes (0): 
 
 ## Knowledge Gaps
-- **Thin community `Community 28`** (2 nodes): `handleSubmit()`, `ContractForm.tsx`
+- **Thin community `Community 29`** (2 nodes): `handleSubmit()`, `ContractForm.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 29`** (2 nodes): `ReadingProgress()`, `ReadingProgress.tsx`
+- **Thin community `Community 30`** (2 nodes): `ReadingProgress()`, `ReadingProgress.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 30`** (2 nodes): `onKeyDown()`, `CommandPalette.tsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 31`** (2 nodes): `submitFeedback()`, `Feedback.tsx`
+- **Thin community `Community 31`** (2 nodes): `onKeyDown()`, `CommandPalette.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Community 32`** (2 nodes): `SocialProofBar()`, `SocialProofBar.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.

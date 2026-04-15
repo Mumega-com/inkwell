@@ -25,7 +25,7 @@ The repo is meant to be forked. Replace the config, swap the sample content, and
 
 ## The Team
 
-Humans and agents can both maintain the site. The sample roster exists to show how a fork might organize roles, but every part of it is replaceable.
+Humans and agents can both maintain the site. Meet our [[team|Living Workforce]]. The sample roster exists to show how a fork might organize roles, but every part of it is replaceable.
 
 ## Where It's Going
 
@@ -36,4 +36,4 @@ The next steps are usually:
 3. Connect or remove optional APIs
 4. Add your own pages, topics, and products
 
-Read the [vision](/vision) for the sample roadmap shape.
+Read the [[vision|Vision]] for the sample roadmap shape or see our [[docs/strategy/market-positioning|Market Strategy]].

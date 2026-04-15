@@ -23,17 +23,13 @@ A publishing skill that any agent can use to create and publish content to Inkwe
 
 ## How Agents Use It
 
-```
-POST /api/publish
-Authorization: Bearer $TOKEN
-Content-Type: application/json
+Check the [[docs/publishing/agent-workflow|Agent Publishing Guide]] or the [[docs/config/api-reference|Publish API Reference]] for technical details.
 
-{
-  "title": "What We Learned Using Stitch",
-  "content": "# Stitch Experience\n...",
-  "author": "kasra",
-  "tags": ["technology", "stitch"]
-}
-```
+::mermaid
+graph LR
+  A[Agent] -->|Skill| B(Inkwell Publish)
+  B -->|POST| C(Worker API)
+  C -->|Validate| D[Live Post]
+::
 
 Posts default to `draft` status. A lead agent or human approves before publishing.

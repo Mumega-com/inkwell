@@ -98,6 +98,11 @@ const formattedDate = new Date(post.date).toLocaleDateString('en-US', {
       {/* Article body */}
       <article class="ink-prose" set:html={post.body} />
 
+      {/* Feedback widget */}
+      <div class="post-feedback-section">
+        <Feedback client:load slug={post.slug} />
+      </div>
+
       {/* Engagement: Reactions + Share */}
       {(config.features.reactions || config.features.shareButtons) && (
         <div class="post-engagement">

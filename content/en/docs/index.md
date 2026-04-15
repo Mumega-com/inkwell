@@ -40,6 +40,11 @@ Inkwell is a **headless content engine** that treats the filesystem as the sourc
 - [[features/seo-discovery|SEO & Discovery]] — Dominating the search landscape.
 - [[features/backlinks-graph|Backlinks & The Graph]] — Navigating the network.
 - [[config/api-reference|API Reference]] — REST and MCP endpoints.
+- [[strategy/market-positioning|Market Positioning]] — Inkwell vs. The Unicorns.
+- [[strategy/roadmap|Project Roadmap]] — Evolutionary path and planned features.
+- [[strategy/content-strategy|Content Strategy]] — Voice, tone, and editorial pillars.
+- [[concepts/glossary|Glossary & Concepts]] — FRC physics and terminology.
+- [[reference/internal-abstractions|Internal Abstractions]] — Blueprints of the core logic.
 
 ::callout[tip]
 Use `npm run flywheel` to automatically discover trending topics and generate content briefs like this one!

@@ -1,102 +1,31 @@
-# Inkwell — Forkable Astro CMS
+# Inkwell Agentic CMS
 
-> A config-driven content system with Markdown publishing, static output, search, and optional Worker integrations.
+The forkable, Astro-powered CMS for agent-first publishing. Built on the Cloudflare edge.
 
-## Identity
+## Sections
 
-Inkwell Project is building a forkable CMS for agent-first publishing. It focuses on Markdown content, configurable themes, search, RSS, structured data, and optional API/Worker integrations.
+- [Docs](/docs) — Full Stripe-quality technical manuals.
+- [Blog](/blog) — Strategic insights and build journals.
+- [Team](/team) — Living workforce of humans and agents.
+- [Labs](/labs) — Experiments in FRC physics and SOS kernels.
+- [Market](/docs/strategy/market-positioning) — Positioning against Sanity, Contentful, and Mintlify.
+- [Concepts](/docs/concepts/glossary) — Rosetta Stone for FRC (Φ, μ, Δ).
+- [Internal Abstractions](/docs/reference/internal-abstractions) — Blueprints for renderers, SEO, and the Edge layer.
 
-## Key Numbers
+## Key Features
 
-- Reference implementation with content collections, layouts, and publishing workflows
-- Optional Worker/API integrations for reactions, newsletter, and publishing
-- Pagefind static search and structured metadata
-- Example content covering blogs, labs, topics, tools, and team pages
+- **Wikilinks & Backlinks:** Semantic internal network.
+- **14 Block Types:** Charts, Mermaid diagrams, Comparison tables.
+- **Agent-Ready:** MCP Tools, JSON-LD, and structured schemas.
+- **Edge-First:** Cloudflare Pages, Workers, D1, KV, and R2.
+- **Feedback:** Real-time feedback loop with qualitative analysis.
 
-## Products & Offerings
+## Core Mandates
 
-### For Publishers
-Write content in Markdown, publish through files or APIs, and keep the CMS simple to fork.
+1. **Perfect Interconnectedness:** Every file must be semantically linked.
+2. **Stripe Quality:** Docs must be high-fidelity, interactive, and visually polished.
+3. **Agentic Legibility:** The system must be clear to both humans and LLM agents.
 
-### For Builders
-Inkwell is designed to be extended with your own workflows, workers, and integrations.
+---
 
-## Sitemap
-
-### Topics (Living Knowledge Hubs)
-- /topics — Index of all tracked topics
-- /topics/agentic-economy — The rise of autonomous AI agents as economic actors
-- /topics/ai-developer-tools — CMS tooling, MCP, search, and the modern publishing stack
-
-### Labs (What We Build)
-- /labs — All projects and experiments
-- /labs/sos — Optional system integration examples
-- /labs/inkwell — AI-first CMS on Astro + Cloudflare
-- /labs/mumcp — WordPress MCP tools
-- /labs/torivers — AI automation marketplace
-- /labs/trop — Example content brand
-
-### Tools (Ready to Use)
-- /tools — Skills, plugins, MCP servers
-- /tools/inkwell-publish — Publishing skill for AI agents
-- /tools/sos-mcp — Example MCP bus integration
-
-### Team (Who Builds This)
-- /team — Full roster of agents and humans
-- /team/kay — Founder
-- /team/kasra — Builder + Architect
-- /team/codex — Infrastructure + Security
-- /team/sol — Content + Writing
-- /team/athena — Quality Gate
-- /team/river — Example oracle profile
-- /team/mumcp — WordPress commander
-- /team/worker — Task execution
-- /team/dandan — Project lead
-- /team/cyrus — Browser bridge
-
-### Products
-- /products — Available offerings
-- /products/sitepilotai — AI-powered WordPress management
-
-### Documentation (Stripe-quality Guides)
-- /docs — Documentation Overview & Ingest Pipeline
-- /docs/getting-started — Quick setup and first post
-- /docs/architecture/system-design — Blueprint of the Vault and Edge
-- /docs/config/site-config — Full reference for inkwell.config.ts
-- /docs/config/schema-reference — Data structures for collections
-- /docs/config/api-reference — REST and MCP endpoint reference
-- /docs/publishing/agent-workflow — How agents publish to the well
-- /docs/publishing/deployment — Going live on Cloudflare
-- /docs/features/interactive-components — Charts, Mermaid, and Blocks
-- /docs/features/seo-discovery — Dominating AI and human search
-- /docs/features/backlinks-graph — Navigating the knowledge network
-
-### Pages
-- /vision — Seven objectives for the CMS
-- /about — Origin story, reference implementation
-- /blog — Experience feed and build journals
-- /explore — Knowledge graph visualization
-- /privacy — Privacy policy
-- /terms — Terms of service
-
-## Technical
-
-- Framework: Astro 6 (static site generation)
-- Hosting: Cloudflare Pages
-- Search: Pagefind (static index)
-- API: Cloudflare Workers (Hono)
-- Storage: Cloudflare D1, R2, KV
-- Agent Bus: SOS MCP (SSE on port 6070)
-- Memory: Optional external memory layer
-
-## Open Source
-
-- Inkwell: https://github.com/your-org/inkwell
-- Site: https://github.com/your-org/inkwell-site
-
-## Contact
-
-- Website: https://your-domain.com
-- App: https://app.your-domain.com
-- GitHub: https://github.com/your-org
-- Community: https://discord.gg/inkwell
+[[docs/getting-started|Read the Getting Started guide]] to begin.

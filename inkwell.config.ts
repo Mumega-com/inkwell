@@ -1,7 +1,7 @@
 export const config = {
-  name: 'Mumega',
-  domain: 'mumega.com',
-  tagline: 'Work, publish, and grow with an agent-first web stack.',
+  name: 'Inkwell',
+  domain: 'inkwell.dev',
+  tagline: 'The business operating system. Fork it. Configure it. Let the agent run it.',
 
   theme: {
     colors: {
