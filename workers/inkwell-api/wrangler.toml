@@ -1,6 +1,7 @@
 name = "inkwell-api"
 main = "src/index.ts"
 compatibility_date = "2024-12-01"
+account_id = "e39eaf94f33092c4efd029d94ae1e9dd"
 
 [vars]
 # Set to your domain
