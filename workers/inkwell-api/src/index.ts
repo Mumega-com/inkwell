@@ -8,6 +8,7 @@ import { mcpRoutes } from './routes/mcp'
 import { paymentRoutes } from './routes/payments'
 import { telegramRoutes } from './routes/telegram'
 import { questionnaireRoutes } from './routes/questionnaire'
+import { courseRoutes } from './routes/courses'
 import type { AppBindings } from './types'
 
 const app = new Hono<AppBindings>()
@@ -103,6 +104,7 @@ app.route('/api/dashboard', dashboardRoutes)
 app.route('/api/payments', paymentRoutes)
 app.route('/api/telegram', telegramRoutes)
 app.route('/api/questionnaire', questionnaireRoutes)
+app.route('/api/courses', courseRoutes)
 app.route('/mcp', mcpRoutes)
 
 // Record page view
@@ -195,6 +197,27 @@ app.post('/api/unsubscribe', async (c) => {
   ).bind('unsubscribed', email).run()
 
   return c.json({ ok: true, status: 'unsubscribed' })
+})
+
+// Feedback
+app.post('/api/feedback', async (c) => {
+  const body = await c.req.json<{ slug: string; type: 'positive' | 'negative'; text?: string }>()
+  const { slug, type, text } = body
+
+  if (!slug || !type) return c.json({ error: 'slug and type required' }, 400)
+
+  const ip = c.req.header('cf-connecting-ip') ?? 'anonymous'
+  const encoder = new TextEncoder()
+  const data = encoder.encode(ip + slug)
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+  const hashArray = Array.from(new Uint8Array(hashBuffer))
+  const visitorHash = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('').slice(0, 16)
+
+  await c.env.DB_ANALYTICS.prepare(
+    'INSERT INTO feedback (slug, type, text, visitor_hash, timestamp) VALUES (?, ?, ?, ?, ?)'
+  ).bind(slug, type, text ?? null, visitorHash, new Date().toISOString()).run()
+
+  return c.json({ ok: true })
 })
 
 // Stats for a slug
