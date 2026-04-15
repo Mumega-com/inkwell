@@ -1,156 +1,200 @@
 # Inkwell
 
-Config-driven Astro CMS for agent-first publishing on Cloudflare.
+A complete business operating system any small business can fork, configure, and run — free on Cloudflare.
 
-Inkwell is not a dashboard app and not a marketing site template. It is the content layer:
-- markdown/MDX content collections
-- config-driven theming and SEO
-- static search via Pagefind
-- optional Worker-backed reactions, newsletter, and publish APIs
-- inbox-style publishing for agents and automation
-- Obsidian-friendly vault mode for editing the same `content/en/` tree
+Inkwell started as an AI-first CMS. v4 adds a full business layer on top: dashboard, contracts, payments, chat, Telegram steering, and a daily analytics flywheel. The content engine still works exactly as before.
 
-This repo includes **reference demo content** so the system has something real to render. Treat that content as example material, not as required product logic.
+**Fork = customer. Config = their brand. Agent operates it.**
 
-## What Is Forkable
+---
 
-Fork this repo when you want:
-- a blog/docs/content site on Astro
-- a Markdown-first publishing workflow
-- a Worker-backed publish/reaction/newsletter edge layer
-- a site that agents can publish into through files or HTTP
+## What It Does
 
-Do **not** treat this repo as your customer app, dashboard, billing surface, or onboarding hub. It is the CMS layer.
+### Content Engine (v3 — included)
+- 7 content collections: blog, topics, labs, tools, team, products, pages
+- Markdown + MDX with Zod validation
+- SEO: JSON-LD, sitemap, RSS, llms.txt, Open Graph
+- Client-side search via Pagefind (zero cost)
+- Dark/light theme from config
+- i18n + RTL support
+- Inbox publish: drop markdown, run `npm run publish`
 
-## Quick Start
+### Business Dashboard (v4)
+- 5 pages: overview, SEO, leads, campaigns, seasonal calendar
+- KPI cards with trend indicators
+- Line charts, bar charts, sortable data tables via Recharts
+- Sidebar nav on desktop, bottom tabs on mobile
+- All data from Worker API — no SSR blocking
 
-```bash
-git clone https://github.com/your-org/inkwell.git
-cd inkwell
-npm install
-npm run dev
+### Contract Portal (v4)
+- Create contracts via API
+- Customer signs with e-signature on their phone — no login needed
+- Insurance selection: All Risk / Total Loss / Decline
+- 9-step shipment tracking timeline
+- SMS via Twilio, email via Resend
+- Shareable link works on any device
+
+### Price Estimator (v4)
+- Interactive form: destination + vehicle type
+- Shows price ranges, transit times, import duties
+- "Request exact quote" CTA captures lead to D1
+
+### Payments (v4)
+- Stripe Checkout with 3 subscription plans
+- Webhook handles auto-provisioning
+- Subscription status API
+
+### Telegram Steering (v4)
+- Bot commands: `/status`, `/report`, `/leads`, `/approve`, `/help`
+- Forwards unknown messages to SOS bus for AI handling
+- Rate limiting via KV
+
+### Chat Widget (v4)
+- Floating AI assistant on every page
+- FAQ fallback for tracking, pricing, documents, insurance, transit times
+- Forwards to SOS bus agent when connected
+- Chat history in localStorage
+
+### MCP Server (v4)
+- 8 tools: `publish_content`, `get_dashboard`, `get_seo_data`, `get_leads`, `create_checkout`, `subscription_status`, `send_telegram`, `site_info`
+- Any AI agent connects with one URL
+- Streamable HTTP via `POST /mcp`
+
+### Daily Flywheel (v4)
+- Cron trigger — configurable, default 6am daily
+- Ingests GSC + GA4 data
+- Stores normalized snapshots in D1
+- Week-over-week scoring
+- Reports to SOS bus
+
+---
+
+## Stack
+
+| Layer | Tech |
+|-------|------|
+| Frontend | Astro 6 |
+| Backend | Cloudflare Workers (Hono) |
+| Database | D1 (core + marketing + analytics) |
+| Cache/Sessions | KV |
+| Media | R2 (optional) |
+| Payments | Stripe |
+| SMS | Twilio |
+| Email | Resend |
+| Search | Pagefind |
+| Charts | Recharts |
+| Hosting | Cloudflare Pages (free tier) |
+
+---
+
+## One Config Drives Everything
+
+```typescript
+// inkwell.config.ts
+{
+  name: "Your Business",
+  domain: "yourbusiness.com",
+  theme: { colors: { primary: "#D4A017" } },
+  features: {
+    dashboard: true,
+    chat: true,
+    newsletter: true,
+    contracts: true,
+    estimator: true,
+    payments: true,
+    telegram: true,
+    flywheel: true,
+    // toggle any feature on or off
+  },
+  connectors: {
+    gsc: { siteUrl: "..." },
+    ga4: { propertyId: "..." },
+    ghl: { locationId: "..." },
+    // add data sources as needed
+  }
+}
 ```
 
-Then replace these first:
-1. `inkwell.config.ts`
-2. `content/en/`
-3. `.env` values for analytics and Worker bindings
+---
 
-If you want a clean starting point, use [`inkwell.config.example.ts`](./inkwell.config.example.ts) as the base for your own config.
+## Deploy
 
-## Core Ideas
+```bash
+git clone https://github.com/Mumega-com/inkwell
+npm install
+# Edit inkwell.config.ts
+npm run build
+npx wrangler pages deploy dist
+# Done. Free. Forever.
+```
 
-- **Config, not scattered theme code** — site identity, theme, analytics, and feature flags live in `inkwell.config.ts`
-- **Zero-JS by default** — Astro renders HTML; React hydrates only where interactivity matters
-- **Agent-friendly publishing** — content can arrive from inbox files, HTTP APIs, or your own tool layer
-- **Cloudflare-native optional edge layer** — use Pages, Workers, KV, D1, and R2 when you want them, but the content build itself stays simple
+Worker secrets (set once, never in code):
+```bash
+npx wrangler secret put STRIPE_SECRET_KEY
+npx wrangler secret put TWILIO_AUTH_TOKEN
+npx wrangler secret put RESEND_API_KEY
+npx wrangler secret put TELEGRAM_BOT_TOKEN
+```
 
-## Features
-
-- Markdown + MDX content
-- Wikilinks / backlinks
-- Pagefind search
-- Reading progress
-- Table of contents
-- Share buttons
-- Reactions
-- Newsletter CTA
-- Knowledge graph / explore surface
-- JSON-LD / sitemap / RSS
-- OG image generation
-- Inbox ingest + one-command publish flow
+---
 
 ## Project Structure
 
 ```text
-inkwell.config.ts          # Active site config
-inkwell.config.example.ts  # Safer starter config for forks
+inkwell.config.ts          # All configuration
 content/
-  inbox/                   # Drop markdown here for ingest/publish
-  en/blog/                 # Demo blog content
-  en/pages/                # Demo static pages
+  inbox/                   # Drop markdown here → npm run ingest
+  en/blog/                 # Blog content
+  en/pages/                # Static pages
 src/
   pages/                   # Astro routes
   components/
-    content/               # Callout, figure, author card, etc.
+    content/               # Callout, figure, author card
     engagement/            # Reactions, newsletter, social proof
-    layout/                # Header, footer, language switcher
-    navigation/            # TOC, command palette, reading progress
+    layout/                # Header, footer, nav
     seo/                   # JSON-LD helpers
-    visualization/         # Video hero, knowledge graph
+    dashboard/             # KPI cards, charts, tables
+    chat/                  # Floating chat widget
 workers/
-  inkwell-api/             # Optional Cloudflare Worker API
+  inkwell-api/             # Cloudflare Worker (Hono)
+    routes/
+      dashboard.ts         # Dashboard data API
+      contracts.ts         # Contract create/sign/track
+      leads.ts             # Lead capture
+      checkout.ts          # Stripe Checkout
+      mcp.ts               # MCP server (8 tools)
+      telegram.ts          # Telegram webhook
+      flywheel.ts          # Daily cron ingestion
 scripts/
-  ingest.ts                # Inbox -> content collections
-  publish.sh               # Build, commit, push convenience flow
-  generate-og.ts           # Open Graph image generator
+  ingest.ts                # Inbox → content collections
+  publish.sh               # Build, commit, push
 ```
+
+---
 
 ## Commands
 
 ```bash
-npm run dev
-npm run build
-npm run preview
-npm run ingest
-npm run publish
-npm run generate:og
-npm run deploy
+npm run dev          # Dev server
+npm run build        # Production build
+npm run preview      # Preview production build
+npm run ingest       # Process content/inbox/
+npm run publish      # Ingest + build + commit + push
+npm run deploy       # Deploy to Cloudflare Pages
 ```
 
-## Publishing Modes
-
-### 1. Inbox publish
-
-Drop a markdown file into `content/inbox/` and run:
-
-```bash
-npm run publish
-```
-
-That flow ingests content, builds the site, commits the content changes, and pushes them.
-
-### 2. Direct content authoring
-
-Write markdown directly into `content/en/blog/` or `content/en/pages/`, then build and commit normally.
-
-### 3. API-backed publishing
-
-If you deploy the Worker layer, you can expose your own `POST /api/publish` path and send content from agents or external systems.
-
-## Obsidian Vault Mode
-
-The `content/en/` tree is also set up as an Obsidian vault. Open it directly in Obsidian, or use:
-
-```bash
-bash scripts/open-obsidian-vault.sh
-```
-
-The vault-specific settings live in `content/en/.obsidian/` and are intentionally lightweight so they do not interfere with Astro builds.
+---
 
 ## Fork Checklist
 
-Before calling your fork production-ready, replace:
-- `inkwell.config.ts` site name, domain, theme, analytics, and Worker URL
-- demo content under `content/en/`
-- favicon/logo assets in `public/`
-- any Worker/API tokens and Cloudflare account settings
+1. Replace `inkwell.config.ts` — name, domain, theme, analytics
+2. Replace content under `content/en/`
+3. Replace favicon/logo in `public/`
+4. Set Worker secrets via `wrangler secret put`
+5. Toggle features on/off in config
+6. Deploy
 
-You should also decide whether you want:
-- a pure static content site
-- a static site plus Worker APIs
-- a CMS used by a larger hub/app elsewhere
-
-## Notes On Demo Content
-
-The current sample content documents one possible implementation because that is the first live reference. That does **not** mean Inkwell is tied to any specific brand or deployment.
-
-The reusable parts are:
-- content schemas
-- layout system
-- publishing scripts
-- Worker integration points
-- search, graph, and engagement components
+---
 
 ## License
 
