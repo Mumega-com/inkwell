@@ -1,0 +1,74 @@
+---
+import Dashboard from '../../layouts/Dashboard.astro'
+import { KPICard } from '../../components/charts/KPICard'
+import { DataTable } from '../../components/charts/DataTable'
+---
+
+<Dashboard title="Campaigns" active="campaigns">
+  <style>
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .section-gap {
+      margin-bottom: 1.5rem;
+    }
+    .campaign-section-title {
+      color: var(--ink-text);
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin: 0 0 0.75rem;
+    }
+    @media (max-width: 900px) {
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 640px) {
+      .kpi-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+
+  <div class="kpi-grid">
+    <KPICard
+      client:visible
+      title="Total Ad Spend"
+      endpoint="/api/dashboard/campaigns"
+      field="total_spend"
+      format="currency"
+      icon="💰"
+    />
+    <KPICard
+      client:visible
+      title="Total Leads"
+      endpoint="/api/dashboard/campaigns"
+      field="total_leads"
+      icon="◎"
+    />
+    <KPICard
+      client:visible
+      title="Avg CPA"
+      endpoint="/api/dashboard/campaigns"
+      field="avg_cpa"
+      format="currency"
+      icon="◈"
+    />
+  </div>
+
+  <div class="section-gap">
+    <DataTable
+      client:visible
+      title="Active Campaigns"
+      endpoint="/api/dashboard/campaigns-list"
+      columns={[
+        { key: 'name',    label: 'Campaign',  width: '30%' },
+        { key: 'channel', label: 'Channel',   width: '12%' },
+        { key: 'budget',  label: 'Budget',    format: 'currency', align: 'right' },
+        { key: 'spend',   label: 'Spent',     format: 'currency', align: 'right' },
+        { key: 'leads',   label: 'Leads',     format: 'number',   align: 'right' },
+        { key: 'cpa',     label: 'CPA',       format: 'currency', align: 'right' },
+        { key: 'status',  label: 'Status',    format: 'status',   align: 'center' },
+      ]}
+    />
+  </div>
+</Dashboard>

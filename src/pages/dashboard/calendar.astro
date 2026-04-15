@@ -1,0 +1,304 @@
+---
+import Dashboard from '../../layouts/Dashboard.astro'
+
+const months = [
+  {
+    name: 'January',
+    short: 'Jan',
+    level: 'low',
+    label: 'Off-peak',
+    events: ['Post-holiday lull', 'Promo opportunities'],
+    actions: ['Run off-peak promotions', 'Lock in contracts early', 'Plan Q1 content'],
+  },
+  {
+    name: 'February',
+    short: 'Feb',
+    level: 'low',
+    label: 'Off-peak',
+    events: ['Valentine\'s Day', 'African markets active'],
+    actions: ['Push African route promos', 'Upsell packaging deals'],
+  },
+  {
+    name: 'March',
+    short: 'Mar',
+    level: 'building',
+    label: 'Building',
+    events: ['Europe bookings open', 'Easter shipping prep'],
+    actions: ['Start Europe campaign', 'Capture Easter demand', 'Offer early-bird rates'],
+  },
+  {
+    name: 'April',
+    short: 'Apr',
+    level: 'building',
+    label: 'Building',
+    events: ['Easter', 'Africa ramp-up begins'],
+    actions: ['Increase Africa frequency', 'Easter last-mile promos', 'Review capacity'],
+  },
+  {
+    name: 'May',
+    short: 'May',
+    level: 'peak',
+    label: 'Peak',
+    events: ['Summer booking surge', 'Book 4+ weeks ahead'],
+    actions: ['Enforce advance booking policy', 'Upsell insurance', 'Surge pricing active'],
+  },
+  {
+    name: 'June',
+    short: 'Jun',
+    level: 'peak',
+    label: 'Peak',
+    events: ['Italian summer begins ☀️', 'Highest rates of year'],
+    actions: ['Italy/Europe premium routes', 'Max capacity utilization', 'Monitor rate floors'],
+  },
+  {
+    name: 'July',
+    short: 'Jul',
+    level: 'peak',
+    label: 'Peak',
+    events: ['Italian summer peak ☀️', 'Canada Day logistics'],
+    actions: ['Europe volume at max', 'Book only priority clients', 'Yield management'],
+  },
+  {
+    name: 'August',
+    short: 'Aug',
+    level: 'peak',
+    label: 'Peak',
+    events: ['Caribana 🥁', 'Nigerian pre-holiday shipping'],
+    actions: ['Caribana community push', 'Nigeria early-Xmas pipeline', 'Diaspora events sponsorship'],
+  },
+  {
+    name: 'September',
+    short: 'Sep',
+    level: 'shoulder',
+    label: 'Shoulder',
+    events: ['Nigeria peak season', 'Caribbean PSS surcharge'],
+    actions: ['Nigeria campaign active', 'PSS notice to clients', 'Shoulder pricing strategy'],
+  },
+  {
+    name: 'October',
+    short: 'Oct',
+    level: 'shoulder',
+    label: 'Shoulder',
+    events: ['Christmas shipping deadline 🎄', 'Last call for guaranteed Xmas delivery'],
+    actions: ['Christmas cutoff campaign', 'Urgency messaging', 'Pre-book December capacity'],
+  },
+  {
+    name: 'November',
+    short: 'Nov',
+    level: 'winding',
+    label: 'Winding Down',
+    events: ['Last Christmas packages', 'Carrier holiday prep'],
+    actions: ['Final Christmas push', 'Communicate carrier cutoffs', 'Client Q4 reviews'],
+  },
+  {
+    name: 'December',
+    short: 'Dec',
+    level: 'low',
+    label: 'Low (Carrier holidays)',
+    events: ['Carrier holidays', 'Year-end client gifts'],
+    actions: ['Minimal operations', 'Year-end reports', 'Plan Q1 campaigns'],
+  },
+]
+
+const levelColors: Record<string, { bg: string; border: string; badge: string; badgeText: string }> = {
+  low:      { bg: 'rgba(255,255,255,0.03)', border: 'rgba(255,255,255,0.08)', badge: 'rgba(255,255,255,0.08)', badgeText: 'rgba(255,255,255,0.45)' },
+  building: { bg: 'rgba(6,182,212,0.06)',   border: 'rgba(6,182,212,0.25)',   badge: 'rgba(6,182,212,0.15)',  badgeText: '#06B6D4' },
+  peak:     { bg: 'rgba(212,160,23,0.08)',   border: 'rgba(212,160,23,0.35)',  badge: 'rgba(212,160,23,0.2)',  badgeText: '#D4A017' },
+  shoulder: { bg: 'rgba(251,146,60,0.08)',   border: 'rgba(251,146,60,0.3)',   badge: 'rgba(251,146,60,0.15)', badgeText: '#FB923C' },
+  winding:  { bg: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.12)', badge: 'rgba(255,255,255,0.1)', badgeText: 'rgba(255,255,255,0.6)' },
+}
+---
+
+<Dashboard title="Seasonal Calendar" active="calendar">
+  <style>
+    .calendar-intro {
+      margin-bottom: 1.5rem;
+    }
+    .calendar-intro p {
+      color: var(--ink-muted);
+      font-size: 0.88rem;
+      line-height: 1.6;
+    }
+
+    .calendar-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.78rem;
+      color: var(--ink-muted);
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+    }
+
+    .month-card {
+      border-radius: 8px;
+      padding: 1rem 1.1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      transition: transform 0.15s;
+    }
+
+    .month-card:hover {
+      transform: translateY(-2px);
+    }
+
+    .month-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .month-name {
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--ink-text);
+    }
+
+    .month-badge {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 2px 8px;
+      border-radius: 10px;
+      white-space: nowrap;
+    }
+
+    .month-events {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .month-events li {
+      font-size: 0.8rem;
+      color: var(--ink-text);
+      padding: 2px 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.4rem;
+    }
+
+    .month-events li::before {
+      content: '·';
+      color: var(--ink-muted);
+      flex-shrink: 0;
+      margin-top: -1px;
+    }
+
+    .month-divider {
+      height: 1px;
+      background: var(--ink-border);
+      margin: 2px 0;
+    }
+
+    .month-actions {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .month-actions li {
+      font-size: 0.75rem;
+      color: var(--ink-muted);
+      padding: 1px 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.4rem;
+    }
+
+    .month-actions li::before {
+      content: '→';
+      flex-shrink: 0;
+      font-size: 0.7rem;
+      margin-top: 1px;
+    }
+
+    @media (max-width: 1100px) {
+      .calendar-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @media (max-width: 768px) {
+      .calendar-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 480px) {
+      .calendar-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+
+  <div class="calendar-intro">
+    <p>Seasonal shipping calendar for diaspora markets — Africa, Caribbean, Europe. Use this to time campaigns, manage capacity, and communicate rate changes to clients.</p>
+  </div>
+
+  <div class="calendar-legend">
+    <div class="legend-item">
+      <span class="legend-dot" style="background: rgba(255,255,255,0.3)"></span>
+      Low / Off-peak
+    </div>
+    <div class="legend-item">
+      <span class="legend-dot" style="background: #06B6D4"></span>
+      Building
+    </div>
+    <div class="legend-item">
+      <span class="legend-dot" style="background: #D4A017"></span>
+      Peak (highest rates)
+    </div>
+    <div class="legend-item">
+      <span class="legend-dot" style="background: #FB923C"></span>
+      Shoulder
+    </div>
+  </div>
+
+  <div class="calendar-grid">
+    {months.map((month) => {
+      const colors = levelColors[month.level] ?? levelColors.low
+      return (
+        <div
+          class="month-card"
+          style={`background: ${colors.bg}; border: 1px solid ${colors.border};`}
+        >
+          <div class="month-header">
+            <span class="month-name">{month.name}</span>
+            <span
+              class="month-badge"
+              style={`background: ${colors.badge}; color: ${colors.badgeText};`}
+            >
+              {month.label}
+            </span>
+          </div>
+
+          <ul class="month-events">
+            {month.events.map((ev) => <li>{ev}</li>)}
+          </ul>
+
+          <div class="month-divider" />
+
+          <ul class="month-actions">
+            {month.actions.map((action) => <li>{action}</li>)}
+          </ul>
+        </div>
+      )
+    })}
+  </div>
+</Dashboard>
