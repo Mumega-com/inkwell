@@ -71,3 +71,22 @@ Use `::timeline` for historical sequences.
 2026-03-15 | Edge Layer | KV and D1 integrations live.
 2026-04-14 | Documentation | Full Stripe-quality docs system.
 ::
+
+## 6. Live Feedback Loop
+
+The **Feedback** component (found at the bottom of every post) provides a direct, qualitative connection between the reader and the maintainer.
+
+::comparison{title="Feedback Mechanics"}
+| Feature | Implementation |
+|---|---|
+| **Binary Vote** | "Was this helpful?" (Yes/No) |
+| **Qualitative Detail** | Optional text area for specific improvements. |
+| **Spam Prevention** | Visitor-hashing via Cloudflare Worker (D1 backend). |
+| **Persistence** | `localStorage` state to prevent duplicate voting. |
+::
+
+See how this is implemented in the [[reference/internal-abstractions|Internal Abstractions]] guide.
+
+---
+
+[[features/seo-discovery|Review SEO & Discovery]] or [[features/backlinks-graph|Explore the Graph]].
