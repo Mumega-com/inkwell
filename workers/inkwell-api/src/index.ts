@@ -16,6 +16,7 @@ import { questionnaireRoutes } from './routes/questionnaire'
 import { telegramRoutes } from './routes/telegram'
 import { routeGate } from './middleware/route-gate'
 import { tenantResolver } from './middleware/tenant'
+import { usageTracker } from './middleware/usage'
 import { scheduled } from './scheduled'
 import type { AppBindings } from './types'
 
@@ -29,6 +30,9 @@ app.use('*', cors({
 
 // Tenant resolution (non-breaking: null = single-site mode)
 app.use('*', tenantResolver())
+
+// API usage tracking per tenant per day (fire-and-forget, non-blocking)
+app.use('*', usageTracker())
 
 app.get('/health', (c) => c.json({ status: 'ok', ts: Date.now(), tenant: c.get('tenant_slug') }))
 
