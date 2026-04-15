@@ -2,6 +2,7 @@
 import '../styles/base.css'
 import { generateCssVars } from '../lib/theme'
 import { config } from '../lib/config'
+import { ChatWidget } from '../components/ChatWidget'
 import { CommandPalette } from '../components/navigation/CommandPalette'
 
 interface Props {
@@ -161,6 +162,9 @@ const commandPaletteItems = [
   <body>
     <slot />
     <CommandPalette client:load items={commandPaletteItems} />
+    {config.features.chat && (
+      <ChatWidget client:idle workerUrl={config.workerUrl} />
+    )}
 
     {/* Mermaid diagram rendering — only loads if diagrams exist on the page */}
     <script is:inline>

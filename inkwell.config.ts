@@ -45,6 +45,7 @@ export const config = {
     rss: true,
     search: true,
     darkModeToggle: true,
+    chat: false,
   },
 
   analytics: {
