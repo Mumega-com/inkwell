@@ -1,0 +1,537 @@
+---
+// Shipment tracking page — static page, timeline data fetched client-side.
+export function getStaticPaths() {
+  return []
+}
+
+const title = 'Shipment Tracker — Viamar Freight'
+const description = 'Track the status of your vehicle shipment with Viamar International.'
+---
+
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{title}</title>
+  <meta name="description" content={description} />
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" href="/favicon.ico" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root[data-theme="dark"] {
+      --ink-bg: #0d0d0d;
+      --ink-surface: #161616;
+      --ink-border: #2a2a2a;
+      --ink-text: #f0f0f0;
+      --ink-muted: #a0a0a0;
+      --ink-dim: #606060;
+      --ink-primary: #D4A017;
+      --ink-secondary: #06B6D4;
+      --ink-font-mono: 'Courier New', monospace;
+      --status-complete: #22c55e;
+      --status-active: #D4A017;
+      --status-pending: #3a3a3a;
+    }
+
+    body {
+      background: var(--ink-bg);
+      color: var(--ink-text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .portal-header {
+      border-bottom: 1px solid var(--ink-border);
+      padding: 1.25rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--ink-surface);
+    }
+
+    .portal-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .portal-logo-text {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--ink-text);
+    }
+
+    .portal-logo-sub {
+      font-size: 0.72rem;
+      color: var(--ink-muted);
+    }
+
+    .portal-badge {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.25rem 0.6rem;
+      border-radius: 4px;
+      background: color-mix(in srgb, var(--ink-secondary) 15%, transparent);
+      border: 1px solid color-mix(in srgb, var(--ink-secondary) 30%, transparent);
+      color: var(--ink-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .portal-main {
+      max-width: 720px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 4rem;
+      flex: 1;
+    }
+
+    /* Spinner */
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid var(--ink-border);
+      border-top-color: var(--ink-primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Loading / error states */
+    .state-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 300px;
+      gap: 1rem;
+      color: var(--ink-muted);
+      text-align: center;
+    }
+
+    .state-center h2 {
+      font-size: 1.25rem;
+      color: var(--ink-text);
+    }
+
+    /* Shipment summary card */
+    .summary-card {
+      background: var(--ink-surface);
+      border: 1px solid var(--ink-border);
+      border-radius: 10px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+    }
+
+    .summary-field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+
+    .summary-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--ink-dim);
+    }
+
+    .summary-value {
+      font-size: 0.95rem;
+      color: var(--ink-text);
+    }
+
+    .summary-value--mono {
+      font-family: var(--ink-font-mono);
+      color: var(--ink-secondary);
+      font-size: 0.88rem;
+    }
+
+    /* Timeline */
+    .timeline-header {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--ink-dim);
+      margin-bottom: 1.25rem;
+    }
+
+    .timeline {
+      position: relative;
+      padding-left: 2.5rem;
+    }
+
+    /* Vertical line */
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 13px;
+      top: 12px;
+      bottom: 12px;
+      width: 2px;
+      background: var(--ink-border);
+    }
+
+    .timeline-item {
+      position: relative;
+      padding-bottom: 2rem;
+      opacity: 1;
+    }
+
+    .timeline-item:last-child {
+      padding-bottom: 0;
+    }
+
+    /* Step dot */
+    .timeline-dot {
+      position: absolute;
+      left: -2.5rem;
+      top: 0.1rem;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid var(--ink-border);
+      background: var(--ink-bg);
+      transition: all 0.2s;
+      z-index: 1;
+    }
+
+    .timeline-dot--completed {
+      background: var(--status-complete);
+      border-color: var(--status-complete);
+    }
+
+    .timeline-dot--active {
+      background: var(--ink-bg);
+      border-color: var(--status-active);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--status-active) 20%, transparent);
+    }
+
+    .timeline-dot--pending {
+      background: var(--status-pending);
+      border-color: var(--ink-border);
+    }
+
+    /* Check icon inside dot */
+    .dot-check {
+      width: 12px;
+      height: 12px;
+      color: #fff;
+    }
+
+    /* Pulsing active dot */
+    .dot-pulse {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--status-active);
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(0.85); }
+    }
+
+    /* Step number for pending */
+    .dot-number {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--ink-dim);
+    }
+
+    .timeline-content {
+      padding-top: 0.15rem;
+    }
+
+    .timeline-label {
+      font-size: 0.97rem;
+      font-weight: 600;
+      color: var(--ink-text);
+      margin-bottom: 0.2rem;
+    }
+
+    .timeline-label--pending {
+      color: var(--ink-dim);
+      font-weight: 400;
+    }
+
+    .timeline-label--active {
+      color: var(--ink-text);
+    }
+
+    .timeline-meta {
+      font-size: 0.8rem;
+      color: var(--ink-muted);
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .timeline-date {
+      color: var(--status-complete);
+      font-weight: 500;
+    }
+
+    .timeline-date--active {
+      color: var(--status-active);
+    }
+
+    .timeline-note {
+      font-style: italic;
+      color: var(--ink-muted);
+    }
+
+    .portal-footer {
+      border-top: 1px solid var(--ink-border);
+      padding: 1.25rem 2rem;
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--ink-dim);
+    }
+
+    .refresh-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.8rem;
+      color: var(--ink-muted);
+      background: none;
+      border: 1px solid var(--ink-border);
+      padding: 0.3rem 0.75rem;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+      margin-top: 0.25rem;
+    }
+
+    .refresh-btn:hover {
+      color: var(--ink-text);
+      border-color: var(--ink-primary);
+    }
+
+    @media (max-width: 600px) {
+      .portal-header { padding: 1rem 1.25rem; }
+      .portal-badge { display: none; }
+      .summary-card { padding: 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="portal-header">
+    <div class="portal-logo">
+      <svg width="36" height="36" viewBox="0 0 36 36" fill="none" aria-hidden="true">
+        <rect width="36" height="36" rx="7" fill="#D4A017" fill-opacity="0.18"/>
+        <path d="M7 26L13 12l5.5 9 4.5-6 6 11" stroke="#D4A017" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="29" cy="26" r="1.8" fill="#D4A017"/>
+      </svg>
+      <div>
+        <div class="portal-logo-text">Viamar</div>
+        <div class="portal-logo-sub">International Auto Shipping</div>
+      </div>
+    </div>
+    <span class="portal-badge">Shipment Tracker</span>
+  </header>
+
+  <main class="portal-main" id="main-content">
+    <div class="state-center" id="state-loading">
+      <div class="spinner"></div>
+      <p>Loading your shipment...</p>
+    </div>
+    <div class="state-center" id="state-error" style="display:none">
+      <h2>Shipment Not Found</h2>
+      <p>This tracking link may be invalid. Please contact Viamar for assistance.</p>
+    </div>
+    <div id="state-tracker" style="display:none"></div>
+  </main>
+
+  <footer class="portal-footer">
+    Viamar International Shipping &nbsp;&mdash;&nbsp; CIFFA Member &nbsp;&mdash;&nbsp;
+    Questions? Contact your Viamar coordinator.
+  </footer>
+
+  <script>
+    type MilestoneStatus = 'pending' | 'active' | 'completed'
+
+    interface Milestone {
+      id: string
+      contract_id: string
+      step: number
+      label: string
+      status: MilestoneStatus
+      completed_at: string | null
+      note: string | null
+    }
+
+    interface ContractSummary {
+      reference: string
+      customer_name: string
+      vehicle_description: string | null
+      origin: string | null
+      destination: string | null
+      service_type: string | null
+      status: string
+    }
+
+    function formatDate(iso: string | null): string {
+      if (!iso) return ''
+      try {
+        return new Date(iso).toLocaleDateString('en-CA', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+        })
+      } catch {
+        return iso
+      }
+    }
+
+    const SERVICE_LABELS: Record<string, string> = {
+      shared: 'Shared Container',
+      container: 'Full Container',
+      roro: 'Roll-On/Roll-Off (RoRo)',
+    }
+
+    function renderDot(status: MilestoneStatus, step: number): string {
+      if (status === 'completed') {
+        return `<div class="timeline-dot timeline-dot--completed">
+          <svg class="dot-check" viewBox="0 0 12 12" fill="none">
+            <path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>`
+      }
+      if (status === 'active') {
+        return `<div class="timeline-dot timeline-dot--active"><div class="dot-pulse"></div></div>`
+      }
+      return `<div class="timeline-dot timeline-dot--pending"><span class="dot-number">${step}</span></div>`
+    }
+
+    function renderTimeline(milestones: Milestone[]): string {
+      return milestones.map((m) => {
+        const labelClass = m.status === 'pending'
+          ? 'timeline-label timeline-label--pending'
+          : m.status === 'active'
+            ? 'timeline-label timeline-label--active'
+            : 'timeline-label'
+
+        const dateHtml = m.completed_at
+          ? `<span class="timeline-date">${formatDate(m.completed_at)}</span>`
+          : m.status === 'active'
+            ? `<span class="timeline-date timeline-date--active">In progress</span>`
+            : `<span style="color:var(--ink-dim);font-size:0.78rem;">Pending</span>`
+
+        const noteHtml = m.note
+          ? `<span class="timeline-note">${m.note}</span>`
+          : ''
+
+        return `
+          <div class="timeline-item">
+            ${renderDot(m.status, m.step)}
+            <div class="timeline-content">
+              <div class="${labelClass}">${m.label}</div>
+              <div class="timeline-meta">
+                ${dateHtml}
+                ${noteHtml}
+              </div>
+            </div>
+          </div>`
+      }).join('')
+    }
+
+    function renderTracker(contract: ContractSummary, milestones: Milestone[]): string {
+      const serviceLabel = contract.service_type ? (SERVICE_LABELS[contract.service_type] ?? contract.service_type) : 'N/A'
+
+      const summaryFields = [
+        { label: 'Reference', value: contract.reference, mono: true },
+        { label: 'Customer', value: contract.customer_name, mono: false },
+        contract.vehicle_description ? { label: 'Vehicle', value: contract.vehicle_description, mono: false } : null,
+        contract.origin ? { label: 'From', value: contract.origin, mono: false } : null,
+        contract.destination ? { label: 'To', value: contract.destination, mono: false } : null,
+        { label: 'Service', value: serviceLabel, mono: false },
+      ].filter(Boolean) as Array<{ label: string; value: string; mono: boolean }>
+
+      const summaryHtml = summaryFields.map((f) =>
+        `<div class="summary-field">
+          <span class="summary-label">${f.label}</span>
+          <span class="summary-value${f.mono ? ' summary-value--mono' : ''}">${f.value}</span>
+        </div>`
+      ).join('')
+
+      const completed = milestones.filter((m) => m.status === 'completed').length
+      const total = milestones.length
+
+      return `
+        <div class="summary-card">${summaryHtml}</div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:0.5rem;">
+          <div class="timeline-header" style="margin-bottom:0;">
+            Shipment Progress &mdash; ${completed} of ${total} steps completed
+          </div>
+          <button class="refresh-btn" onclick="loadTracker()">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+              <path d="M11 6.5A4.5 4.5 0 1 1 6.5 2M6.5 2L9 4.5M6.5 2L4 4.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Refresh
+          </button>
+        </div>
+
+        <div class="timeline">${renderTimeline(milestones)}</div>
+      `
+    }
+
+    async function loadTracker() {
+      const parts = window.location.pathname.split('/')
+      const reference = parts[parts.length - 1]
+
+      if (!reference || reference === 'track') {
+        document.getElementById('state-loading')!.style.display = 'none'
+        document.getElementById('state-error')!.style.display = 'flex'
+        return
+      }
+
+      try {
+        const [contractRes, timelineRes] = await Promise.all([
+          fetch(`/api/contracts/${reference}`),
+          fetch(`/api/contracts/${reference}/timeline`),
+        ])
+
+        if (!contractRes.ok || !timelineRes.ok) {
+          document.getElementById('state-loading')!.style.display = 'none'
+          document.getElementById('state-error')!.style.display = 'flex'
+          return
+        }
+
+        const contractData = await contractRes.json() as { contract: ContractSummary }
+        const timelineData = await timelineRes.json() as { milestones: Milestone[] }
+
+        const trackerEl = document.getElementById('state-tracker')!
+        trackerEl.innerHTML = renderTracker(contractData.contract, timelineData.milestones)
+
+        document.getElementById('state-loading')!.style.display = 'none'
+        trackerEl.style.display = 'block'
+      } catch {
+        document.getElementById('state-loading')!.style.display = 'none'
+        document.getElementById('state-error')!.style.display = 'flex'
+      }
+    }
+
+    loadTracker()
+  </script>
+
+</body>
+</html>

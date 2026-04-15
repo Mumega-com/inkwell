@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { authRoutes } from './routes/auth'
+import { contractRoutes } from './routes/contracts'
 import { mcpRoutes } from './routes/mcp'
 import { paymentRoutes } from './routes/payments'
 import { telegramRoutes } from './routes/telegram'
@@ -93,6 +94,7 @@ function parsePublishPayload(body: unknown):
 app.get('/health', (c) => c.json({ status: 'ok', ts: Date.now() }))
 
 app.route('/api/auth', authRoutes)
+app.route('/api/contracts', contractRoutes)
 app.route('/api/payments', paymentRoutes)
 app.route('/api/telegram', telegramRoutes)
 app.route('/mcp', mcpRoutes)

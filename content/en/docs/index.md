@@ -33,12 +33,13 @@ Inkwell is a **headless content engine** that treats the filesystem as the sourc
 
 - [[architecture/system-design|System Design]] — How the pieces fit together.
 - [[config/site-config|Configuration]] — Tuning your site from a single file.
-- [[config/schema-reference|Schema Reference]] — Understanding the data structures.
+- [[getting-started|Getting Started]] — Quick setup and first post.
 - [[publishing/agent-workflow|Agent Workflow]] — How to automate your content engine.
 - [[publishing/deployment|Deployment & Scaling]] — Going live on Cloudflare.
 - [[features/interactive-components|Interactive Features]] — Charts, Graphs, and Reactions.
 - [[features/seo-discovery|SEO & Discovery]] — Dominating the search landscape.
 - [[features/backlinks-graph|Backlinks & The Graph]] — Navigating the network.
+- [[config/api-reference|API Reference]] — REST and MCP endpoints.
 
 ::callout[tip]
 Use `npm run flywheel` to automatically discover trending topics and generate content briefs like this one!
@@ -47,4 +48,8 @@ Use `npm run flywheel` to automatically discover trending topics and generate co
 ## Feedback
 Was this helpful? 
 ::metric{label="Helpfulness" value="98%" trend="up"}
+::
+this helpful? 
+::metric{label="Helpfulness" value="98%" trend="up"}
+::
 ::
