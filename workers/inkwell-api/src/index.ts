@@ -7,6 +7,7 @@ import { contentRoutes } from './routes/content'
 import { contractRoutes } from './routes/contracts'
 import { courseRoutes } from './routes/courses'
 import { dashboardRoutes } from './routes/dashboard'
+import { diagnosticsRoutes } from './routes/diagnostics'
 import { discoveryRoutes } from './routes/discovery'
 import { glassRoutes } from './routes/glass'
 import { mcpRoutes } from './routes/mcp'
@@ -55,6 +56,9 @@ app.route('/api/courses', courseRoutes)
 
 app.use('/api/dashboard/*', routeGate('dashboard'))
 app.route('/api/dashboard', dashboardRoutes)
+
+app.use('/api/diagnostics/*', routeGate('diagnostics'))
+app.route('/api/diagnostics', diagnosticsRoutes)
 
 app.use('/api/discovery/*', routeGate('discovery'))
 app.route('/api/discovery', discoveryRoutes)
