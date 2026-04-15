@@ -2,14 +2,34 @@
 
 All notable changes to Inkwell. Format: [Keep a Changelog](https://keepachangelog.com/).
 
+## [5.0.0-alpha.1] — 2026-04-15
+### Added
+- **Route gate middleware** — `ENABLED_ROUTES` env var controls which route groups are active. Analytics + content always enabled, all others gated.
+- **Content route module** — extracted publish, posts, drafts handlers from index.ts
+- **Analytics route module** — extracted view, reaction, subscribe, feedback, stats handlers from index.ts
+- **Vitest test suite** — health, content, analytics, route-gate tests with @cloudflare/vitest-pool-workers
+- **Documentation** — FORK-GUIDE.md, CONFIG-REFERENCE.md, API-REFERENCE.md
+- **Git tags** — historical releases tagged (v3.0.0, v3.1.0, v3.2.0, v4.0.0)
+- **6 new env vars** — BUSINESS_NAME, BUSINESS_PHONE, BUSINESS_EMAIL, CHAT_SYSTEM_PROMPT, SOS_REPORT_RECIPIENT, ENABLED_ROUTES
+
+### Changed
+- **index.ts refactored** — 401 lines → 76 lines. Clean router with imports, CORS, health check, 14 route mounts, and export.
+- **Fork-hostile references removed** — zero Viamar/Mumega/Kasra hardcodes remain in worker code. All business-specific values now configurable via env vars.
+- **wrangler.toml** — SITE_URL changed from hardcoded domain to example.com placeholder
+- **Version bumped** to 5.0.0-alpha.1 (was 0.1.0)
+
+### Architecture
+- 14 route groups in separate files under workers/inkwell-api/src/routes/
+- Route gate middleware at workers/inkwell-api/src/middleware/route-gate.ts
+- Feature flags via ENABLED_ROUTES env var (default: all enabled)
+
 ## [Unreleased] — Gemini's WIP (on v4 branch)
 ### Added
 - CONTRIBUTING.md — contributor guide for humans + agents
 - ROADMAP.md — full feature checklist across P1-P4
 - Troubleshooting FAQ page
 - Docs collection wired into Command Palette (Cmd+K)
-- 1 new dependency in package.json
-- Digital publishing commerce architecture doc — Shabrang CMS as content truth, Inkwell as auth/billing/access/reader portal for v4.1
+- Digital publishing commerce architecture doc
 
 ### Changed
 - Refactored `graph.ts` to use `content-directory` module, simplified node/edge types
@@ -18,7 +38,6 @@ All notable changes to Inkwell. Format: [Keep a Changelog](https://keepachangelo
 - Rewrote `deployment.md` — actual wrangler commands, D1 migration steps, KV caching
 - Updated `system-design.md` — evolutionary blueprint timeline (P1→P4)
 - Fixed course lessons 3, 7, 8
-- Rebuilt knowledge graph (+1,313 lines in graph.json)
 
 ### Removed
 - Team profile pages (moved to mumega-site — Inkwell is forkable)

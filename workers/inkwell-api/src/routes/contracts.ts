@@ -163,7 +163,8 @@ contractRoutes.post('/create', async (c) => {
   const phone = isNonEmptyString(p.customer_phone) ? p.customer_phone : null
   if (phone && c.env.TWILIO_ACCOUNT_SID && c.env.TWILIO_AUTH_TOKEN && c.env.TWILIO_FROM_NUMBER) {
     const customerName = (p.customer_name as string).split(' ')[0]
-    const smsBody = `Hi ${customerName}, your shipping contract from Viamar is ready. Review and sign here: ${portalUrl}`
+    const businessName = c.env.BUSINESS_NAME || 'Your Business'
+    const smsBody = `Hi ${customerName}, your shipping contract from ${businessName} is ready. Review and sign here: ${portalUrl}`
     try {
       await fetch(
         `https://api.twilio.com/2010-04-01/Accounts/${c.env.TWILIO_ACCOUNT_SID}/Messages.json`,
@@ -187,7 +188,7 @@ contractRoutes.post('/create', async (c) => {
   const email = isNonEmptyString(p.customer_email) ? p.customer_email : null
   if (email && c.env.RESEND_API_KEY) {
     const customerName = (p.customer_name as string).split(' ')[0]
-    const fromEmail = c.env.RESEND_FROM_EMAIL || 'Viamar <onboarding@resend.dev>'
+    const fromEmail = c.env.RESEND_FROM_EMAIL || `${c.env.BUSINESS_NAME || 'Inkwell'} <onboarding@resend.dev>`
     const dest = isNonEmptyString(p.destination) ? p.destination : 'your destination'
     const vehicle = isNonEmptyString(p.vehicle_description) ? p.vehicle_description : 'your vehicle'
     try {
@@ -200,7 +201,7 @@ contractRoutes.post('/create', async (c) => {
         body: JSON.stringify({
           from: fromEmail,
           to: email,
-          subject: `Your Viamar Shipping Contract — ${dest}`,
+          subject: `Your ${c.env.BUSINESS_NAME || 'Shipping'} Contract — ${dest}`,
           html: `
             <div style="font-family:system-ui,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
               <h2 style="color:#1a1a1a;">Your Shipping Contract is Ready</h2>
@@ -214,10 +215,8 @@ contractRoutes.post('/create', async (c) => {
               <p style="color:#666;font-size:14px;">This quote is valid for 30 days.</p>
               <hr style="border:none;border-top:1px solid #eee;margin:24px 0;">
               <p style="color:#999;font-size:12px;">
-                Viamar Scilla Transport International Inc.<br>
-                4000 Steeles Ave West, Unit 9, Vaughan, ON L4L 4V9<br>
-                1-800-277-7570 | info@viamar.ca<br>
-                CIFFA Member | Est. 1982
+                ${c.env.BUSINESS_NAME || 'Your Business'}<br>
+                ${c.env.BUSINESS_PHONE ? c.env.BUSINESS_PHONE + ' | ' : ''}${c.env.BUSINESS_EMAIL || ''}
               </p>
             </div>`,
         }),

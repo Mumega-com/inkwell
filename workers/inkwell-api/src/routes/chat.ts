@@ -173,9 +173,11 @@ chatRoutes.post('/', async (c) => {
         }
       }
 
+      const defaultPrompt = c.env.CHAT_SYSTEM_PROMPT || 'You are a helpful assistant for this website.'
+
       const systemContext = contextLines.length > 0
-        ? `You are Viamar Assistant, a helpful shipping assistant. Context:\n${contextLines.join('\n')}`
-        : 'You are Viamar Assistant, a helpful vehicle shipping assistant for Viamar Canada.'
+        ? `${defaultPrompt} Context:\n${contextLines.join('\n')}`
+        : defaultPrompt
 
       const busRes = await fetch(`${c.env.SOS_BUS_URL}/chat`, {
         method: 'POST',

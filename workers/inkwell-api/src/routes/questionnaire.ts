@@ -43,7 +43,7 @@ const QUESTION_BANK: string[] = [
   'What technology or tool is wasting your time right now?',
   'What\'s the most common reason a quote doesn\'t convert to a booking?',
   'Name one thing customers have praised you for recently.',
-  'What would you do differently if you were starting Viamar today?',
+  'What would you do differently if you were starting your business today?',
   'How is your cash flow this month — healthy, tight, or uncertain?',
   'What\'s one partnership or referral source you haven\'t tapped yet?',
 ]
@@ -123,7 +123,7 @@ async function pushToMirror(env: AppBindings['Bindings'], question: string, answ
       },
       body: JSON.stringify({
         content: `Business owner answered daily questionnaire.\nQ: ${question}\nA: ${answer}`,
-        tags: ['questionnaire', 'business-intelligence', 'viamar'],
+        tags: ['questionnaire', 'business-intelligence'],
         source: 'inkwell-questionnaire',
       }),
     })
@@ -154,13 +154,14 @@ questionnaireRoutes.post('/send', async (c) => {
     : 'sms'
 
   const phoneOverride = typeof body.phone === 'string' ? body.phone : null
-  const smsMessage = `Viamar Daily Check-In:\n\n${questionText}\n\nReply to this message with your answer.`
+  const businessName = c.env.BUSINESS_NAME || 'Business'
+  const smsMessage = `${businessName} Daily Check-In:\n\n${questionText}\n\nReply to this message with your answer.`
 
   // Send via chosen channel
   if (channel === 'telegram') {
     await sendTelegram(
       c.env,
-      `*Viamar Daily Check-In* 📊\n\n_${questionText}_\n\nReply with your answer.`
+      `*${businessName} Daily Check-In*\n\n_${questionText}_\n\nReply with your answer.`
     )
   } else {
     const toNumber = phoneOverride ?? c.env.TWILIO_FROM_NUMBER // fallback for manual sends

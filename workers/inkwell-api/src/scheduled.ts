@@ -46,7 +46,8 @@ async function ingestGSC(env: Env): Promise<NormalizedMetric[]> {
     const end = new Date(Date.now() - 3 * 86400000).toISOString().split('T')[0]
     const start = new Date(Date.now() - 10 * 86400000).toISOString().split('T')[0]
 
-    const siteUrl = env.GSC_SITE_URL || 'https://www.viamar.ca/'
+    const siteUrl = env.GSC_SITE_URL
+    if (!siteUrl) return []
 
     const resp = await fetch(
       `https://searchconsole.googleapis.com/webmasters/v3/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`,
@@ -252,9 +253,10 @@ export async function scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionC
     ).bind(`run-${Date.now()}`, stored).run()
   } catch { /* ignore */ }
 
-  // Report to Kasra via SOS bus
+  // Report to SOS bus
   if (env.SOS_BUS_URL) {
     try {
+      const recipient = env.SOS_REPORT_RECIPIENT || 'owner'
       await fetch(env.SOS_BUS_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -263,13 +265,64 @@ export async function scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionC
           params: {
             name: 'send',
             arguments: {
-              to: 'kasra',
+              to: recipient,
               text: `[Flywheel Daily Report]\n${score}\nGA4: ${ga4Metrics.find(m => m.metric === 'sessions')?.value || '?'} sessions\nStored: ${stored} snapshots`,
             },
           },
         }),
       })
     } catch { /* non-critical */ }
+  }
+
+  // ── Glass: publish daily snapshot to KV ──────────────────────────────
+  try {
+    const today = new Date().toISOString().split('T')[0]
+
+    // Build snapshot data
+    const gscSummary = gscMetrics.find(m => m.metric === 'total_clicks')
+    const ga4Sessions = ga4Metrics.find(m => m.metric === 'sessions')
+    const ga4Users = ga4Metrics.find(m => m.metric === 'total_users')
+    const ga4Conversions = ga4Metrics.find(m => m.metric === 'conversions')
+    const ga4Bounce = ga4Metrics.find(m => m.metric === 'bounce_rate')
+
+    // Get top queries from this run
+    const topQueries = gscMetrics
+      .filter(m => m.metric === 'query')
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 10)
+      .map(m => {
+        const dims = JSON.parse(m.dimensions)
+        return { query: dims.query, clicks: m.value, impressions: dims.impressions, ctr: dims.ctr, position: dims.position }
+      })
+
+    // Get recent connector runs
+    const recentRuns = await env.DB_MARKETING.prepare(
+      `SELECT connector, status, rows_synced, finished_at FROM connector_runs ORDER BY finished_at DESC LIMIT 5`
+    ).all()
+
+    const glassPage = {
+      date: today,
+      generated_at: new Date().toISOString(),
+      kpis: {
+        organic_clicks: gscSummary?.value ?? 0,
+        sessions: ga4Sessions?.value ?? 0,
+        users: ga4Users?.value ?? 0,
+        conversions: ga4Conversions?.value ?? 0,
+        bounce_rate: ga4Bounce?.value ?? 0,
+      },
+      score,
+      top_queries: topQueries,
+      connector_runs: recentRuns.results ?? [],
+      metrics_ingested: allMetrics.length,
+      snapshots_stored: stored,
+    }
+
+    // Write to KV — accessible at /api/glass/daily and /api/glass/:date
+    await env.CONTENT.put(`glass:daily`, JSON.stringify(glassPage), { expirationTtl: 86400 * 7 })
+    await env.CONTENT.put(`glass:${today}`, JSON.stringify(glassPage))
+    console.log(`[glass] Daily snapshot published to KV: glass:${today}`)
+  } catch (e) {
+    console.error('[glass] Failed to publish snapshot:', e)
   }
 
   console.log(`[flywheel] Completed. ${allMetrics.length} metrics ingested, ${stored} stored.`)

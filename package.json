@@ -1,7 +1,7 @@
 {
   "name": "inkwell",
   "type": "module",
-  "version": "0.1.0",
+  "version": "5.0.0-alpha.1",
   "private": true,
   "scripts": {
     "dev": "astro dev",
@@ -14,7 +14,8 @@
     "flywheel": "tsx scripts/flywheel.ts",
     "upload": "tsx scripts/upload-media.ts",
     "cache": "tsx scripts/cache-to-kv.ts",
-    "publish": "bash scripts/publish.sh"
+    "publish": "bash scripts/publish.sh",
+    "test": "cd workers/inkwell-api && npm test"
   },
   "dependencies": {
     "@astrojs/mdx": "^5.0.3",
