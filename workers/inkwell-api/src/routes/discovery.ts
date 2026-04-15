@@ -450,6 +450,81 @@ function generateId(): string {
   return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')
 }
 
+// ── Grant Eligibility (lightweight rules from GAF) ─────────────────────────
+
+interface GrantEligibility {
+  slug: string
+  name: string
+  maxAmount: number
+  reason: string
+  applyUrl: string
+}
+
+function evaluateGrantEligibility(answers: DiscoveryAnswers): GrantEligibility[] {
+  const grants: GrantEligibility[] = []
+  const industry = answers.industry?.toLowerCase() ?? ''
+  const revenue = answers.monthly_revenue ?? ''
+  const teamSize = answers.team_size ?? ''
+  const province = 'ON' // default for now, add to quiz later
+
+  // DMAP — any SMB under 500 employees
+  if (teamSize !== '20+' || true) { // most qualify
+    grants.push({
+      slug: 'dmap',
+      name: 'DMAP Digital Adoption Plan',
+      maxAmount: 15000,
+      reason: 'SMBs with under 500 employees qualify for up to $15,000 toward a digital adoption plan.',
+      applyUrl: 'https://digid.ca/services',
+    })
+  }
+
+  // SR&ED — any company doing R&D, software dev, engineering
+  if (['technology', 'manufacturing', 'other'].includes(industry)) {
+    grants.push({
+      slug: 'sred',
+      name: 'SR&ED Tax Credit',
+      maxAmount: 500000,
+      reason: 'Your industry likely involves experimental development or technical problem-solving that qualifies.',
+      applyUrl: 'https://grantandfunding.com',
+    })
+  }
+
+  // AMIC — Ontario manufacturers
+  if (industry === 'manufacturing') {
+    grants.push({
+      slug: 'amic',
+      name: 'AMIC Ontario',
+      maxAmount: 1500000,
+      reason: 'Ontario manufacturers can access up to $1.5M for equipment, automation, and process improvement.',
+      applyUrl: 'https://grantandfunding.com',
+    })
+  }
+
+  // CanExport — any business with international activity
+  if (industry === 'freight/logistics' || revenue === '$50K-200K' || revenue === '$200K+') {
+    grants.push({
+      slug: 'canexport',
+      name: 'CanExport',
+      maxAmount: 75000,
+      reason: 'Businesses exploring international markets can get up to $75K for export development.',
+      applyUrl: 'https://grantandfunding.com',
+    })
+  }
+
+  // NRC IRAP — innovative SMEs
+  if (['technology', 'manufacturing'].includes(industry) && teamSize !== 'Just me') {
+    grants.push({
+      slug: 'irap',
+      name: 'NRC IRAP',
+      maxAmount: 500000,
+      reason: 'Innovative SMEs can access up to $500K for R&D projects through the Industrial Research Assistance Program.',
+      applyUrl: 'https://grantandfunding.com',
+    })
+  }
+
+  return grants
+}
+
 // ── POST /api/discovery/submit ───────────────────────────────────────────────
 
 discoveryRoutes.post('/submit', async (c) => {
@@ -487,8 +562,23 @@ discoveryRoutes.post('/submit', async (c) => {
     (dimensions.market_position * 0.15)
   )
 
+  // Grant eligibility scan (lightweight rules, inspired by GAF's 27-program engine)
+  const grants = evaluateGrantEligibility(answers)
+
   // Select and order modules
   const rawModules = selectModules(dimensions, answers)
+
+  // Inject grant-related steps if eligible
+  if (grants.length > 0) {
+    rawModules.push({
+      slug: 'apply-grants',
+      title: `Apply for ${grants.length} grant program${grants.length > 1 ? 's' : ''} — up to $${grants.reduce((sum, g) => sum + g.maxAmount, 0).toLocaleString()}`,
+      description: `You're eligible for: ${grants.map(g => g.name).join(', ')}. We help you apply.`,
+      category: 'FOUNDATION',
+      week: 2,
+    })
+  }
+
   const orderedModules = assignWeeks(rawModules)
 
   // Persist business profile
@@ -543,6 +633,8 @@ discoveryRoutes.post('/submit', async (c) => {
     readinessScore,
     dimensions,
     steps,
+    grants,
+    totalGrantValue: grants.reduce((sum, g) => sum + g.maxAmount, 0),
     businessName: answers.business_name.trim(),
   })
 })
