@@ -159,6 +159,30 @@ contractRoutes.post('/create', async (c) => {
   const siteUrl = c.env.SITE_URL ?? ''
   const portalUrl = `${siteUrl}/portal/contract/${reference}`
 
+  // Send SMS to customer if phone number provided
+  const phone = isNonEmptyString(p.customer_phone) ? p.customer_phone : null
+  if (phone && c.env.TWILIO_ACCOUNT_SID && c.env.TWILIO_AUTH_TOKEN && c.env.TWILIO_FROM_NUMBER) {
+    const customerName = (p.customer_name as string).split(' ')[0]
+    const smsBody = `Hi ${customerName}, your shipping contract from Viamar is ready. Review and sign here: ${portalUrl}`
+    try {
+      await fetch(
+        `https://api.twilio.com/2010-04-01/Accounts/${c.env.TWILIO_ACCOUNT_SID}/Messages.json`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Basic ${btoa(c.env.TWILIO_ACCOUNT_SID + ':' + c.env.TWILIO_AUTH_TOKEN)}`,
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({
+            From: c.env.TWILIO_FROM_NUMBER,
+            To: phone,
+            Body: smsBody,
+          }),
+        }
+      )
+    } catch { /* SMS is non-critical — don't fail the contract creation */ }
+  }
+
   return c.json({ id, reference, portalUrl }, 201)
 })
 

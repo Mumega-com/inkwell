@@ -27,6 +27,10 @@ export interface Env {
   GA4_CREDENTIALS?: string    // JSON: {client_id, client_secret, refresh_token}
   GA4_PROPERTY_ID?: string    // e.g. "370995758"
   CONTRACT_AUTH_TOKEN?: string // Bearer token for milestone update endpoint
+  // Twilio SMS
+  TWILIO_ACCOUNT_SID?: string
+  TWILIO_AUTH_TOKEN?: string
+  TWILIO_FROM_NUMBER?: string
 }
 
 export interface AuthSession {
