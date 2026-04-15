@@ -68,6 +68,55 @@ async function isRateLimited(env: AppBindings['Bindings'], chatId: number): Prom
 // ── Command handlers ─────────────────────────────────────────────────────────
 
 async function handleStatus(env: AppBindings['Bindings']): Promise<string> {
+  // Total views in last 7 days
+  const viewsRow = await env.DB_ANALYTICS.prepare(
+    `SELECT COALESCE(SUM(page_views), 0) AS total_views
+     FROM analytics_snapshots
+     WHERE date >= date('now', '-7 days')`
+  ).first<{ total_views: number }>()
+
+  const totalViews = viewsRow?.total_views ?? 0
+
+  // Top 3 posts by views
+  const topPosts = await env.DB_ANALYTICS.prepare(
+    `SELECT path, SUM(page_views) AS views
+     FROM analytics_snapshots
+     WHERE date >= date('now', '-7 days') AND path IS NOT NULL
+     GROUP BY path
+     ORDER BY views DESC
+     LIMIT 3`
+  ).all<{ path: string; views: number }>()
+
+  // Subscriber count from core DB
+  let subscriberCount = 0
+  try {
+    const subRow = await env.DB_CORE.prepare(
+      `SELECT COUNT(*) AS count FROM subscribers WHERE status = 'active'`
+    ).first<{ count: number }>()
+    subscriberCount = subRow?.count ?? 0
+  } catch {
+    // subscribers table may not exist yet
+  }
+
+  const lines = [
+    '*📊 Site Stats — Last 7 Days*',
+    '',
+    `👁 Total views: *${totalViews.toLocaleString()}*`,
+    `📬 Subscribers: *${subscriberCount.toLocaleString()}*`,
+  ]
+
+  if (topPosts.results.length > 0) {
+    lines.push('')
+    lines.push('*Top posts:*')
+    for (const p of topPosts.results) {
+      lines.push(`  • ${p.path} — *${p.views}* views`)
+    }
+  }
+
+  return lines.join('\n')
+}
+
+async function handleKpi(env: AppBindings['Bindings']): Promise<string> {
   const row = await env.DB_MARKETING.prepare(
     `SELECT
        SUM(clicks) AS total_clicks,
@@ -125,20 +174,116 @@ async function handleReport(env: AppBindings['Bindings']): Promise<string> {
   return lines.join('\n')
 }
 
-async function handleApprove(env: AppBindings['Bindings'], draftId: string): Promise<string> {
-  if (!draftId || !/^[\w-]{1,64}$/.test(draftId)) {
-    return '⚠️ Invalid draft ID. Usage: `/approve {id}`'
+async function handleDrafts(env: AppBindings['Bindings']): Promise<string> {
+  const listed = await env.CONTENT.list({ prefix: 'draft:' })
+
+  if (listed.keys.length === 0) {
+    return 'No pending drafts.'
   }
 
-  const result = await env.DB_CORE.prepare(
-    `UPDATE content_drafts SET status = 'approved', approved_at = datetime('now') WHERE id = ? AND status = 'pending'`
-  ).bind(draftId).run()
+  const lines: string[] = ['*📝 Pending Drafts*', '']
+  let idx = 1
 
-  if (result.meta.changes === 0) {
-    return `⚠️ Draft \`${draftId}\` not found or already approved.`
+  for (const key of listed.keys) {
+    const slug = key.name.replace('draft:', '')
+    const metaRaw = await env.CONTENT.get(`meta:draft:${slug}`)
+    let title = slug
+    let author = 'unknown'
+    let date = ''
+
+    if (metaRaw) {
+      try {
+        const meta = JSON.parse(metaRaw) as { title?: string; author?: string; date?: string }
+        title = meta.title ?? slug
+        author = meta.author ?? 'unknown'
+        date = meta.date ? ` — ${meta.date}` : ''
+      } catch {
+        // metadata parse failed, use defaults
+      }
+    }
+
+    lines.push(`${idx}. *${title}* by ${author}${date}`)
+    lines.push(`   \`/approve ${slug}\` · \`/reject ${slug}\``)
+    idx++
   }
 
-  return `✅ Draft \`${draftId}\` approved.`
+  return lines.join('\n')
+}
+
+async function handleApprove(env: AppBindings['Bindings'], slug: string): Promise<string> {
+  if (!slug || !/^[\w-]{1,128}$/.test(slug)) {
+    return '⚠️ Invalid slug. Usage: `/approve {slug}`'
+  }
+
+  // Fetch draft content from KV
+  const content = await env.CONTENT.get(`draft:${slug}`)
+  if (!content) {
+    return `⚠️ Draft \`${slug}\` not found.`
+  }
+
+  const metaRaw = await env.CONTENT.get(`meta:draft:${slug}`)
+  let title = slug
+  let meta: Record<string, unknown> = {}
+
+  if (metaRaw) {
+    try {
+      meta = JSON.parse(metaRaw) as Record<string, unknown>
+      title = (meta.title as string) ?? slug
+    } catch {
+      // metadata parse failed
+    }
+  }
+
+  // Move content: draft → published post
+  await env.CONTENT.put(`post:${slug}`, content)
+  await env.CONTENT.put(`meta:post:${slug}`, JSON.stringify({
+    ...meta,
+    status: 'published',
+    published_at: new Date().toISOString(),
+  }))
+
+  // Update content_index in D1 if row exists
+  try {
+    await env.DB_CORE.prepare(
+      `UPDATE content_index SET status = 'published', published_at = datetime('now') WHERE slug = ?`
+    ).bind(slug).run()
+  } catch {
+    // D1 update is best-effort — KV is source of truth
+  }
+
+  // Remove draft keys
+  await env.CONTENT.delete(`draft:${slug}`)
+  await env.CONTENT.delete(`meta:draft:${slug}`)
+
+  // Trigger CF Pages deploy hook if configured
+  if (env.CF_PAGES_DEPLOY_HOOK) {
+    try {
+      await fetch(env.CF_PAGES_DEPLOY_HOOK, { method: 'POST' })
+    } catch {
+      // deploy hook is best-effort
+    }
+  }
+
+  const siteUrl = env.SITE_URL?.replace(/\/$/, '') ?? ''
+  const url = siteUrl ? `${siteUrl}/blog/${slug}` : slug
+
+  return `✅ Published: *${title}* — ${url}`
+}
+
+async function handleReject(env: AppBindings['Bindings'], slug: string): Promise<string> {
+  if (!slug || !/^[\w-]{1,128}$/.test(slug)) {
+    return '⚠️ Invalid slug. Usage: `/reject {slug}`'
+  }
+
+  const content = await env.CONTENT.get(`draft:${slug}`)
+  if (!content) {
+    return `⚠️ Draft \`${slug}\` not found.`
+  }
+
+  await env.CONTENT.delete(`draft:${slug}`)
+  await env.CONTENT.delete(`meta:draft:${slug}`)
+
+  return `🗑 Rejected: \`${slug}\``
 }
 
 async function handleLeads(env: AppBindings['Bindings']): Promise<string> {
@@ -166,10 +311,17 @@ function handleHelp(): string {
   return [
     '*🤖 Inkwell Bot — Commands*',
     '',
-    '`/status` — KPI summary (clicks, leads, spend)',
-    '`/report` — Weekly report (last 7 days)',
-    '`/approve {id}` — Approve a content draft',
+    '*Content:*',
+    '`/drafts` — List pending drafts',
+    '`/approve {slug}` — Publish a draft',
+    '`/reject {slug}` — Reject a draft',
+    '',
+    '*Analytics:*',
+    '`/status` — Site stats (views, top posts, subscribers)',
+    '`/kpi` — Marketing KPIs (clicks, leads, spend)',
+    '`/report` — Weekly marketing report',
     '`/leads` — Recent leads',
+    '',
     '`/help` — This message',
     '',
     '_Any other message is forwarded to the AI team._',
@@ -249,14 +401,23 @@ telegramRoutes.post('/webhook', async (c) => {
     const args = commandMatch[2]?.trim() ?? ''
 
     switch (cmd) {
-      case 'status':
-        reply = await handleStatus(c.env)
-        break
-      case 'report':
-        reply = await handleReport(c.env)
+      case 'drafts':
+        reply = await handleDrafts(c.env)
         break
       case 'approve':
         reply = await handleApprove(c.env, args)
+        break
+      case 'reject':
+        reply = await handleReject(c.env, args)
+        break
+      case 'status':
+        reply = await handleStatus(c.env)
+        break
+      case 'kpi':
+        reply = await handleKpi(c.env)
+        break
+      case 'report':
+        reply = await handleReport(c.env)
         break
       case 'leads':
         reply = await handleLeads(c.env)
