@@ -42,6 +42,7 @@ export interface Env {
   CHAT_SYSTEM_PROMPT?: string  // Custom system prompt for chat assistant
   SOS_REPORT_RECIPIENT?: string // Agent bus recipient for flywheel reports (default: "owner")
   ENABLED_ROUTES?: string      // Comma-separated list of enabled route groups
+  SOS_SAAS_URL?: string        // Origin SaaS service URL for tenant resolution (e.g. "https://saas.mumega.com")
 }
 
 export interface AuthSession {
@@ -63,5 +64,6 @@ export type AppBindings = {
     authSession: AuthSession | null
     authSessionToken: string | null
     tenant_slug: string | null
+    tenant_config: Record<string, unknown> | null
   }
 }
