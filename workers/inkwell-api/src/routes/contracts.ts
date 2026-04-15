@@ -183,6 +183,48 @@ contractRoutes.post('/create', async (c) => {
     } catch { /* SMS is non-critical — don't fail the contract creation */ }
   }
 
+  // Send email to customer if email provided
+  const email = isNonEmptyString(p.customer_email) ? p.customer_email : null
+  if (email && c.env.RESEND_API_KEY) {
+    const customerName = (p.customer_name as string).split(' ')[0]
+    const fromEmail = c.env.RESEND_FROM_EMAIL || 'Viamar <onboarding@resend.dev>'
+    const dest = isNonEmptyString(p.destination) ? p.destination : 'your destination'
+    const vehicle = isNonEmptyString(p.vehicle_description) ? p.vehicle_description : 'your vehicle'
+    try {
+      await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${c.env.RESEND_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: fromEmail,
+          to: email,
+          subject: `Your Viamar Shipping Contract — ${dest}`,
+          html: `
+            <div style="font-family:system-ui,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
+              <h2 style="color:#1a1a1a;">Your Shipping Contract is Ready</h2>
+              <p>Hi ${customerName},</p>
+              <p>Your contract for shipping <strong>${vehicle}</strong> to <strong>${dest}</strong> is ready for review.</p>
+              <p style="margin:24px 0;">
+                <a href="${portalUrl}" style="background:#D4A017;color:#000;padding:14px 28px;text-decoration:none;border-radius:8px;font-weight:bold;display:inline-block;">
+                  Review & Sign Contract
+                </a>
+              </p>
+              <p style="color:#666;font-size:14px;">This quote is valid for 30 days.</p>
+              <hr style="border:none;border-top:1px solid #eee;margin:24px 0;">
+              <p style="color:#999;font-size:12px;">
+                Viamar Scilla Transport International Inc.<br>
+                4000 Steeles Ave West, Unit 9, Vaughan, ON L4L 4V9<br>
+                1-800-277-7570 | info@viamar.ca<br>
+                CIFFA Member | Est. 1982
+              </p>
+            </div>`,
+        }),
+      })
+    } catch { /* Email is non-critical */ }
+  }
+
   return c.json({ id, reference, portalUrl }, 201)
 })
 

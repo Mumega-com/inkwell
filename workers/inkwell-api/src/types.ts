@@ -31,6 +31,8 @@ export interface Env {
   TWILIO_ACCOUNT_SID?: string
   TWILIO_AUTH_TOKEN?: string
   TWILIO_FROM_NUMBER?: string
+  RESEND_API_KEY?: string
+  RESEND_FROM_EMAIL?: string  // e.g. "Viamar <contracts@viamar.ca>" — needs verified domain
 }
 
 export interface AuthSession {
