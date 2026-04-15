@@ -62,5 +62,6 @@ export type AppBindings = {
   Variables: {
     authSession: AuthSession | null
     authSessionToken: string | null
+    tenant_slug: string | null
   }
 }
