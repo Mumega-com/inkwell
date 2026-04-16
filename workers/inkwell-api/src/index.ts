@@ -81,6 +81,90 @@ app.route('/api/telegram', telegramRoutes)
 app.use('/mcp', routeGate('mcp'))
 app.route('/mcp', mcpRoutes)
 
+// Static page serving for tenant subdomains
+// Catches all non-API requests and serves pre-rendered HTML from KV
+app.get('*', async (c) => {
+  const tenantSlug = c.get('tenant_slug')
+
+  // No tenant = not a subdomain request, return the default page or 404
+  if (!tenantSlug) {
+    return c.json({ error: 'not_found', message: 'No tenant resolved for this hostname' }, 404)
+  }
+
+  // Build the KV key from the request path
+  let path = new URL(c.req.url).pathname
+
+  // Normalize: / → index.html, /about → about/index.html or about.html
+  if (path === '/') {
+    path = 'index.html'
+  } else {
+    // Remove trailing slash
+    path = path.replace(/\/$/, '')
+    // Remove leading slash
+    path = path.replace(/^\//, '')
+  }
+
+  // Try multiple key patterns (Astro generates various file structures)
+  const keysToTry = [
+    `${tenantSlug}:page:${path}`,
+    `${tenantSlug}:page:${path}/index.html`,
+    `${tenantSlug}:page:${path}.html`,
+  ]
+
+  for (const key of keysToTry) {
+    const content = await c.env.CONTENT.get(key)
+    if (content) {
+      // Determine content type from the key/path
+      const contentType = getContentType(key)
+      return new Response(content, {
+        headers: {
+          'Content-Type': contentType,
+          'Cache-Control': 'public, max-age=300', // 5 min cache
+          'X-Tenant': tenantSlug,
+        },
+      })
+    }
+  }
+
+  // Try serving a custom 404 page
+  const custom404 = await c.env.CONTENT.get(`${tenantSlug}:page:404.html`)
+  if (custom404) {
+    return new Response(custom404, {
+      status: 404,
+      headers: { 'Content-Type': 'text/html; charset=utf-8' },
+    })
+  }
+
+  return c.html(
+    `<!DOCTYPE html>
+<html><head><title>Coming Soon</title>
+<style>body{font-family:system-ui;background:#0A0A10;color:#EDEDF0;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0}
+.c{text-align:center;max-width:400px;padding:2rem}h1{color:#D4A017}a{color:#06B6D4}</style>
+</head><body><div class="c">
+<h1>${tenantSlug}</h1>
+<p>This site is being set up. Check back soon.</p>
+<p><a href="https://mumega.com">Powered by Mumega</a></p>
+</div></body></html>`,
+    200,
+  )
+})
+
+function getContentType(path: string): string {
+  if (path.endsWith('.html')) return 'text/html; charset=utf-8'
+  if (path.endsWith('.css')) return 'text/css'
+  if (path.endsWith('.js')) return 'application/javascript'
+  if (path.endsWith('.json')) return 'application/json'
+  if (path.endsWith('.svg')) return 'image/svg+xml'
+  if (path.endsWith('.png')) return 'image/png'
+  if (path.endsWith('.jpg') || path.endsWith('.jpeg')) return 'image/jpeg'
+  if (path.endsWith('.ico')) return 'image/x-icon'
+  if (path.endsWith('.xml')) return 'application/xml'
+  if (path.endsWith('.txt')) return 'text/plain'
+  if (path.endsWith('.woff2')) return 'font/woff2'
+  if (path.endsWith('.woff')) return 'font/woff'
+  return 'text/html; charset=utf-8' // Default to HTML
+}
+
 export default {
   fetch: app.fetch,
   scheduled,
