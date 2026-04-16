@@ -36,3 +36,8 @@ id = "512331050ea04a35b23843b28af75c2c"
 # Daily flywheel — ingest GSC/GA4, store snapshots, score WoW
 [triggers]
 crons = ["0 6 * * *"]
+
+# Wildcard subdomain routing for tenant sites
+[[routes]]
+pattern = "*.mumega.com/*"
+zone_name = "mumega.com"
