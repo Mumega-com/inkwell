@@ -80,7 +80,9 @@ glassRoutes.get('/history', async (c) => {
 glassRoutes.post('/transactions', async (c) => {
   const body = await c.req.json<TransactionBody>()
 
-  if (!body.tenant_id || typeof body.tenant_id !== 'string') {
+  // Prefer tenant from middleware (multi-tenant mode); fall back to body for direct API calls
+  const tenantId = c.get('tenant_slug') ?? body.tenant_id
+  if (!tenantId || typeof tenantId !== 'string') {
     return c.json({ error: 'tenant_id is required' }, 400)
   }
   if (!body.amount_cents || typeof body.amount_cents !== 'number' || body.amount_cents <= 0) {
@@ -102,7 +104,7 @@ glassRoutes.post('/transactions', async (c) => {
       `INSERT INTO glass_transactions (id, tenant_id, stripe_tx_id, amount_cents, currency, tx_type, status, description)
        VALUES (?, ?, ?, ?, 'usd', ?, 'pending', ?)`
     )
-    .bind(txId, body.tenant_id, body.stripe_tx_id ?? null, body.amount_cents, body.tx_type, body.description ?? null)
+    .bind(txId, tenantId, body.stripe_tx_id ?? null, body.amount_cents, body.tx_type, body.description ?? null)
     .run()
 
   // Create platform royalty (5%)
@@ -122,7 +124,7 @@ glassRoutes.post('/transactions', async (c) => {
       `INSERT INTO glass_royalties (id, transaction_id, recipient_type, recipient_id, amount_cents)
        VALUES (?, ?, 'tenant', ?, ?)`
     )
-    .bind(tenantRoyaltyId, txId, body.tenant_id, tenantAmountCents)
+    .bind(tenantRoyaltyId, txId, tenantId, tenantAmountCents)
     .run()
 
   return c.json(
@@ -137,7 +139,7 @@ glassRoutes.post('/transactions', async (c) => {
 
 // GET /api/glass/transactions — list transactions for a tenant
 glassRoutes.get('/transactions', async (c) => {
-  const tenantId = c.req.query('tenant_id')
+  const tenantId = c.get('tenant_slug') ?? c.req.query('tenant_id')
   if (!tenantId) {
     return c.json({ error: 'tenant_id query param is required' }, 400)
   }
@@ -164,7 +166,7 @@ glassRoutes.get('/transactions', async (c) => {
 
 // GET /api/glass/revenue — revenue summary for a tenant
 glassRoutes.get('/revenue', async (c) => {
-  const tenantId = c.req.query('tenant_id')
+  const tenantId = c.get('tenant_slug') ?? c.req.query('tenant_id')
   if (!tenantId) {
     return c.json({ error: 'tenant_id query param is required' }, 400)
   }
@@ -229,7 +231,9 @@ glassRoutes.get('/revenue', async (c) => {
 glassRoutes.post('/metering', async (c) => {
   const body = await c.req.json<MeteringBody>()
 
-  if (!body.tenant_id || typeof body.tenant_id !== 'string') {
+  // Prefer tenant from middleware (multi-tenant mode); fall back to body for direct API calls
+  const tenantId = c.get('tenant_slug') ?? body.tenant_id
+  if (!tenantId || typeof tenantId !== 'string') {
     return c.json({ error: 'tenant_id is required' }, 400)
   }
   if (!body.resource_type || typeof body.resource_type !== 'string') {
@@ -248,7 +252,7 @@ glassRoutes.post('/metering', async (c) => {
       `INSERT INTO glass_metering (id, tenant_id, resource_type, quantity, billing_cycle_start)
        VALUES (?, ?, ?, ?, ?)`
     )
-    .bind(id, body.tenant_id, body.resource_type, body.quantity, billingCycleStart)
+    .bind(id, tenantId, body.resource_type, body.quantity, billingCycleStart)
     .run()
 
   return c.json({ id, billing_cycle_start: billingCycleStart }, 201)
@@ -256,7 +260,7 @@ glassRoutes.post('/metering', async (c) => {
 
 // GET /api/glass/metering — usage metering for a tenant
 glassRoutes.get('/metering', async (c) => {
-  const tenantId = c.req.query('tenant_id')
+  const tenantId = c.get('tenant_slug') ?? c.req.query('tenant_id')
   if (!tenantId) {
     return c.json({ error: 'tenant_id query param is required' }, 400)
   }

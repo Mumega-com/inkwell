@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import type { AppBindings } from '../types'
+import { getContent, getContentMeta, putContent, tenantFilter } from '../lib/tenant-content'
 
 const contentRoutes = new Hono<AppBindings>()
 
@@ -106,14 +107,16 @@ contentRoutes.post('/publish', async (c) => {
     return c.json({ error: 'invalid_slug' }, 400)
   }
 
+  const tenantSlug = c.get('tenant_slug')
   const now = new Date()
   const date = now.toISOString().slice(0, 10)
 
   // Slug uniqueness check
   if (!overwrite) {
+    const tf = tenantFilter(tenantSlug)
     const [existingMeta, existingIndex] = await Promise.all([
-      c.env.CONTENT.get(`meta:${slug}`),
-      c.env.DB_ANALYTICS.prepare('SELECT slug FROM content_index WHERE slug = ? LIMIT 1').bind(slug).first<{ slug: string }>(),
+      getContentMeta(c.env.CONTENT, tenantSlug, slug),
+      c.env.DB_ANALYTICS.prepare(`SELECT slug FROM content_index WHERE slug = ?${tf.clause} LIMIT 1`).bind(slug, ...tf.bind).first<{ slug: string }>(),
     ])
     if (existingMeta || existingIndex) {
       return c.json({ error: 'slug_exists', slug, hint: 'Use overwrite:true to replace, or choose a different slug' }, 409)
@@ -132,9 +135,8 @@ contentRoutes.post('/publish', async (c) => {
 
   const markdown = `---\n${frontmatter}\n---\n\n${content}`
 
-  // Store in KV
-  await c.env.CONTENT.put(`post:${slug}`, markdown)
-  await c.env.CONTENT.put(`meta:${slug}`, JSON.stringify({
+  // Store in KV (tenant-scoped)
+  await putContent(c.env.CONTENT, tenantSlug, slug, markdown, {
     title,
     slug,
     author,
@@ -142,12 +144,19 @@ contentRoutes.post('/publish', async (c) => {
     description,
     date,
     status,
-  }))
+  })
 
-  // Index in D1
-  await c.env.DB_ANALYTICS.prepare(
-    'INSERT OR REPLACE INTO content_index (slug, title, type, lang, author, tags, description, published_at, updated_at, word_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-  ).bind(slug, title, 'blog', 'en', author, JSON.stringify(tags), description, date, date, content.split(/\s+/).length).run()
+  // Index in D1 (tenant-scoped)
+  const tf = tenantFilter(tenantSlug)
+  if (tf.clause) {
+    await c.env.DB_ANALYTICS.prepare(
+      'INSERT OR REPLACE INTO content_index (slug, title, type, lang, author, tags, description, published_at, updated_at, word_count, tenant_slug) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+    ).bind(slug, title, 'blog', 'en', author, JSON.stringify(tags), description, date, date, content.split(/\s+/).length, tenantSlug).run()
+  } else {
+    await c.env.DB_ANALYTICS.prepare(
+      'INSERT OR REPLACE INTO content_index (slug, title, type, lang, author, tags, description, published_at, updated_at, word_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+    ).bind(slug, title, 'blog', 'en', author, JSON.stringify(tags), description, date, date, content.split(/\s+/).length).run()
+  }
 
   // Trigger CF Pages deploy hook if configured
   let deployState = 'manual'
@@ -171,14 +180,16 @@ contentRoutes.post('/publish', async (c) => {
 
 // List published content (public)
 contentRoutes.get('/posts', async (c) => {
+  const tenantSlug = c.get('tenant_slug')
+  const tf = tenantFilter(tenantSlug)
   const posts = await c.env.DB_ANALYTICS.prepare(
-    "SELECT slug, title, author, tags, description, published_at FROM content_index WHERE type = 'blog' ORDER BY published_at DESC LIMIT 50"
-  ).all()
+    `SELECT slug, title, author, tags, description, published_at FROM content_index WHERE type = 'blog'${tf.clause} ORDER BY published_at DESC LIMIT 50`
+  ).bind(...tf.bind).all()
 
   // Filter out drafts from public listing
   const published = []
   for (const post of posts.results) {
-    const meta = await c.env.CONTENT.get(`meta:${post.slug}`, 'json') as Record<string, unknown> | null
+    const meta = await getContentMeta(c.env.CONTENT, tenantSlug, post.slug as string)
     if (!meta || meta.status !== 'draft') published.push(post)
   }
 
@@ -195,13 +206,15 @@ contentRoutes.get('/drafts', async (c) => {
     }
   }
 
+  const tenantSlug = c.get('tenant_slug')
+  const tf = tenantFilter(tenantSlug)
   const all = await c.env.DB_ANALYTICS.prepare(
-    "SELECT slug, title, author, tags, description, published_at FROM content_index WHERE type = 'blog' ORDER BY published_at DESC LIMIT 50"
-  ).all()
+    `SELECT slug, title, author, tags, description, published_at FROM content_index WHERE type = 'blog'${tf.clause} ORDER BY published_at DESC LIMIT 50`
+  ).bind(...tf.bind).all()
 
   const drafts = []
   for (const post of all.results) {
-    const meta = await c.env.CONTENT.get(`meta:${post.slug}`, 'json') as Record<string, unknown> | null
+    const meta = await getContentMeta(c.env.CONTENT, tenantSlug, post.slug as string)
     if (meta && meta.status === 'draft') drafts.push(post)
   }
 
@@ -211,9 +224,10 @@ contentRoutes.get('/drafts', async (c) => {
 // Get single post from KV
 contentRoutes.get('/posts/:slug', async (c) => {
   const slug = c.req.param('slug')
-  const content = await c.env.CONTENT.get(`post:${slug}`)
+  const tenantSlug = c.get('tenant_slug')
+  const content = await getContent(c.env.CONTENT, tenantSlug, slug)
   if (!content) return c.json({ error: 'not found' }, 404)
-  const meta = await c.env.CONTENT.get(`meta:${slug}`, 'json')
+  const meta = await getContentMeta(c.env.CONTENT, tenantSlug, slug)
   return c.json({ slug, meta, markdown: content })
 })
 
