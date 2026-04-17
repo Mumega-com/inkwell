@@ -124,8 +124,12 @@ export const config = {
 
   // Plugins — which plugin manifests are active in this fork.
   // The Worker registers these at startup via the plugin loader.
-  // Sprint 2+: as features are extracted, add their plugin names here.
-  plugins: ['dashboard', 'commerce', 'content', 'mcp'],
+  // config.plugins[] controls which are active per fork.
+  plugins: [
+    'dashboard', 'commerce', 'content', 'mcp',
+    'contracts', 'telegram', 'chat',
+    'diagnostics', 'discovery', 'payments',
+  ],
 } as const
 
 export type InkwellConfig = typeof config

@@ -1,7 +1,31 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { registerPlugin } from '../../../kernel/plugin-loader'
+
+// Plugin manifests
 import dashboardManifest from '../../../plugins/dashboard/manifest'
+import commerceManifest from '../../../plugins/commerce/manifest'
+import contentManifest from '../../../plugins/content/manifest'
+import mcpManifest from '../../../plugins/mcp/manifest'
+import contractsManifest from '../../../plugins/contracts/manifest'
+import telegramManifest from '../../../plugins/telegram/manifest'
+import chatManifest from '../../../plugins/chat/manifest'
+import diagnosticsManifest from '../../../plugins/diagnostics/manifest'
+import discoveryManifest from '../../../plugins/discovery/manifest'
+import paymentsManifest from '../../../plugins/payments/manifest'
+
+// Register all available plugins
+registerPlugin(dashboardManifest)
+registerPlugin(commerceManifest)
+registerPlugin(contentManifest)
+registerPlugin(mcpManifest)
+registerPlugin(contractsManifest)
+registerPlugin(telegramManifest)
+registerPlugin(chatManifest)
+registerPlugin(diagnosticsManifest)
+registerPlugin(discoveryManifest)
+registerPlugin(paymentsManifest)
+
 import { analyticsRoutes } from './routes/analytics'
 import { authRoutes } from './routes/auth'
 import { chatRoutes } from './routes/chat'
@@ -26,17 +50,11 @@ import type { AppBindings } from './types'
 const app = new Hono<AppBindings>()
 
 // ── Plugin System ──────────────────────────────────────────────────
-// Plugins are registered here and mounted via config.plugins array.
-// As features are extracted into plugins (Sprint 2), their static
-// route imports below will be replaced with plugin manifests above.
-//
-// Current: dashboard (plugin) + everything else (static imports)
-// Target:  all features as plugins, mounted via mountPluginRoutes()
+// All features are registered as plugins above.
+// config.plugins[] in inkwell.config.ts controls which are active.
+// Route mounting still uses static imports (Sprint 3 will migrate
+// to plugin.mountRoutes() once route files move into plugin dirs).
 // ───────────────────────────────────────────────────────────────────
-registerPlugin(dashboardManifest)
-// registerPlugin(commerceManifest)   // Sprint 2
-// registerPlugin(contentManifest)    // Sprint 2
-// registerPlugin(mcpManifest)        // Sprint 2
 
 // ---------------------------------------------------------------------------
 // CF Access JWT middleware
