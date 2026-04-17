@@ -1,0 +1,8 @@
+---
+import Dashboard from '../../layouts/Dashboard.astro'
+import { SettingsForm } from '../../../plugins/dashboard/components/SettingsForm'
+---
+
+<Dashboard title="Settings" active="settings">
+  <SettingsForm client:load />
+</Dashboard>

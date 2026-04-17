@@ -1,0 +1,320 @@
+---
+// Auth.js redirects here when the user is not authenticated.
+// No layout wrapper — standalone page with its own shell.
+// TODO: switch to auth-astro SignIn components when Cloudflare adapter works
+// import { SignIn } from 'auth-astro/components'
+import { generateCssVars } from '../../lib/theme'
+
+const cssVars = generateCssVars()
+---
+
+<html lang="en" dir="ltr" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style set:html={cssVars}></style>
+    <title>Log In — Mumega</title>
+    <meta name="robots" content="noindex" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      body {
+        background: var(--ink-bg);
+        color: var(--ink-text);
+        font-family: system-ui, -apple-system, sans-serif;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+      }
+
+      .login-card {
+        background: var(--ink-surface);
+        border: 1px solid var(--ink-border);
+        border-radius: 12px;
+        padding: 2.5rem 2rem;
+        width: 100%;
+        max-width: 400px;
+      }
+
+      .login-logo {
+        text-align: center;
+        font-size: 2.5rem;
+        color: var(--ink-primary);
+        line-height: 1;
+        margin-bottom: 0.5rem;
+      }
+
+      .login-heading {
+        text-align: center;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--ink-text);
+        margin-bottom: 2rem;
+      }
+
+      .oauth-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.625rem;
+        width: 100%;
+        padding: 0.625rem 1rem;
+        border: 1px solid var(--ink-border);
+        border-radius: 8px;
+        background: transparent;
+        color: var(--ink-text);
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background 0.15s, border-color 0.15s;
+        margin-bottom: 0.625rem;
+      }
+
+      .oauth-btn:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: var(--ink-muted);
+      }
+
+      .oauth-icon {
+        font-size: 1rem;
+        width: 1.25rem;
+        text-align: center;
+        flex-shrink: 0;
+      }
+
+      .divider {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin: 1.25rem 0;
+        color: var(--ink-dim);
+        font-size: 0.8rem;
+      }
+
+      .divider::before,
+      .divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: var(--ink-border);
+      }
+
+      .form-group {
+        margin-bottom: 1rem;
+      }
+
+      .form-label {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: var(--ink-muted);
+        margin-bottom: 0.375rem;
+      }
+
+      .form-input {
+        width: 100%;
+        padding: 0.625rem 0.875rem;
+        background: var(--ink-bg);
+        border: 1px solid var(--ink-border);
+        border-radius: 8px;
+        color: var(--ink-text);
+        font-size: 0.9rem;
+        font-family: inherit;
+        transition: border-color 0.15s;
+        outline: none;
+      }
+
+      .form-input:focus {
+        border-color: var(--ink-primary);
+      }
+
+      .form-input::placeholder {
+        color: var(--ink-dim);
+      }
+
+      .submit-btn {
+        width: 100%;
+        padding: 0.75rem;
+        background: var(--ink-primary);
+        color: #0A0A10;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: opacity 0.15s;
+        margin-top: 0.5rem;
+        font-family: inherit;
+      }
+
+      .submit-btn:hover {
+        opacity: 0.88;
+      }
+
+      .forgot-link {
+        display: block;
+        text-align: right;
+        font-size: 0.78rem;
+        color: var(--ink-muted);
+        text-decoration: none;
+        margin-top: 0.5rem;
+      }
+
+      .forgot-link:hover {
+        color: var(--ink-primary);
+      }
+
+      .signup-prompt {
+        text-align: center;
+        font-size: 0.82rem;
+        color: var(--ink-muted);
+        margin-top: 1.5rem;
+      }
+
+      .signup-prompt a {
+        color: var(--ink-primary);
+        text-decoration: none;
+        font-weight: 500;
+      }
+
+      .signup-prompt a:hover {
+        text-decoration: underline;
+      }
+
+      .error-msg {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #f87171;
+        border-radius: 8px;
+        padding: 0.625rem 0.875rem;
+        font-size: 0.82rem;
+        margin-bottom: 1rem;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="login-card">
+      <div class="login-logo">◎</div>
+      <h1 class="login-heading">Welcome to Mumega</h1>
+
+      <!-- OAuth buttons via Auth.js -->
+      <button type="button" class="oauth-btn" onclick="alert('Google login coming soon')">
+        <span class="oauth-icon">G</span>
+        Continue with Google
+      </button>
+
+      <button type="button" class="oauth-btn" onclick="alert('Facebook login coming soon')">
+        <span class="oauth-icon">f</span>
+        Continue with Facebook
+      </button>
+
+      <button type="button" class="oauth-btn" onclick="alert('Apple login coming soon')">
+        <span class="oauth-icon"></span>
+        Continue with Apple
+      </button>
+
+      <div class="divider">or</div>
+
+      <!-- Email + password form -->
+      <div id="error-msg" class="error-msg"></div>
+
+      <form id="login-form" novalidate>
+        <div class="form-group">
+          <label class="form-label" for="email">Email</label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            class="form-input"
+            placeholder="you@example.com"
+            autocomplete="email"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            class="form-input"
+            placeholder="••••••••"
+            autocomplete="current-password"
+            required
+          />
+          <a href="/dashboard/forgot-password" class="forgot-link">Forgot password?</a>
+        </div>
+
+        <button type="submit" class="submit-btn">Log In</button>
+      </form>
+
+      <p class="signup-prompt">
+        Don't have an account?
+        <a href="https://mumega.com/connect">Sign up</a>
+      </p>
+    </div>
+
+    <script is:inline>
+      const form = document.getElementById('login-form')
+      const errorMsg = document.getElementById('error-msg')
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault()
+        errorMsg.style.display = 'none'
+
+        const email = form.email.value.trim()
+        const password = form.password.value
+
+        if (!email || !password) {
+          errorMsg.textContent = 'Please enter your email and password.'
+          errorMsg.style.display = 'block'
+          return
+        }
+
+        try {
+          const resp = await fetch('https://api.mumega.com/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password }),
+          })
+
+          if (!resp.ok) {
+            errorMsg.textContent = 'Invalid email or password. Please try again.'
+            errorMsg.style.display = 'block'
+            return
+          }
+
+          const data = await resp.json()
+          const user = data.user
+
+          // Store tenant info so dashboard islands can read it
+          if (user?.tenant) localStorage.setItem('mumega_tenant_slug', user.tenant)
+
+          // Fetch bus token for this tenant
+          try {
+            const tenantResp = await fetch(
+              `https://api.mumega.com/auth/tenant?email=${encodeURIComponent(email)}`
+            )
+            if (tenantResp.ok) {
+              const tenantData = await tenantResp.json()
+              if (tenantData.bus_token) {
+                localStorage.setItem('mumega_auth_token', tenantData.bus_token)
+              }
+            }
+          } catch (_) {}
+
+          window.location.href = '/dashboard'
+        } catch (err) {
+          errorMsg.textContent = 'Something went wrong. Please try again.'
+          errorMsg.style.display = 'block'
+        }
+      })
+    </script>
+  </body>
+</html>

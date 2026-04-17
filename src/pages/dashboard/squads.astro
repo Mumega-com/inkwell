@@ -1,0 +1,8 @@
+---
+import Dashboard from '../../layouts/Dashboard.astro'
+import { SquadPanel } from '../../../plugins/dashboard/components/SquadPanel'
+---
+
+<Dashboard title="Squads" active="squads">
+  <SquadPanel client:load />
+</Dashboard>
