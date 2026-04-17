@@ -79,6 +79,53 @@ export const config = {
     api: true,
     mcp: true,
   },
+
+  // Brand — customer-facing language and identity
+  // Every fork customizes this. Components read from it.
+  brand: {
+    voice: 'professional, warm, no jargon',
+    logo: '/logo.svg',
+    favicon: '/favicon.svg',
+    ogImage: '/og-default.png',
+
+    // Squad IDs → customer-facing team names
+    teamNames: {
+      seo: 'Marketing Team',
+      content: 'Content Writers',
+      ops: 'Tech Support',
+      dev: 'Development Team',
+      outreach: 'Outreach Team',
+      testing: 'Quality Assurance',
+    } as Record<string, string>,
+
+    // Task status → customer-facing labels
+    statusLabels: {
+      backlog: 'Coming up',
+      claimed: 'In progress',
+      in_progress: 'In progress',
+      done: 'Completed',
+      failed: 'Needs attention',
+    } as Record<string, string>,
+
+    // Priority → customer-facing labels
+    priorityLabels: {
+      critical: 'Urgent',
+      high: 'Important',
+      medium: 'Normal',
+      low: 'Whenever',
+    } as Record<string, string>,
+
+    // Transaction counterparties → customer-facing names
+    counterpartyNames: {
+      glass_commerce: 'Online Sales',
+      system: 'Platform',
+    } as Record<string, string>,
+  },
+
+  // Plugins — which plugin manifests are active in this fork.
+  // The Worker registers these at startup via the plugin loader.
+  // Sprint 2+: as features are extracted, add their plugin names here.
+  plugins: ['dashboard', 'commerce', 'content', 'mcp'],
 } as const
 
 export type InkwellConfig = typeof config
