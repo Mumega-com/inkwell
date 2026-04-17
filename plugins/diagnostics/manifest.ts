@@ -4,6 +4,8 @@ const diagnosticsPlugin: PluginManifest = {
   name: 'diagnostics',
   version: '1.0.0',
   description: 'Squad health narratives and alerts',
+  requiredRole: 'admin',
+
   configDefaults: {
     diagnostics: {
       enabled: true,

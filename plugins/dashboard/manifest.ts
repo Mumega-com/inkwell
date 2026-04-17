@@ -15,6 +15,8 @@ const dashboardPlugin: PluginManifest = {
     'SettingsForm',
   ],
 
+  requiredRole: 'viewer',
+
   configDefaults: {
     dashboard: {
       enabled: true,

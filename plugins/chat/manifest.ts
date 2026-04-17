@@ -4,6 +4,8 @@ const chatPlugin: PluginManifest = {
   name: 'chat',
   version: '1.0.0',
   description: 'AI chat assistant',
+  requiredRole: 'member',
+
   configDefaults: {
     chat: {
       enabled: true,

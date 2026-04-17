@@ -4,6 +4,8 @@ const telegramPlugin: PluginManifest = {
   name: 'telegram',
   version: '1.0.0',
   description: 'Telegram bot webhook handler',
+  requiredRole: 'admin',
+
   configDefaults: {
     telegram: {
       enabled: true,

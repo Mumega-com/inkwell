@@ -4,6 +4,8 @@ const commercePlugin: PluginManifest = {
   name: 'commerce',
   version: '1.0.0',
   description: 'Glass Commerce — transactions, royalties, metering with 5% platform fee',
+  requiredRole: 'manager',
+
   configDefaults: {
     commerce: {
       enabled: true,

@@ -43,6 +43,8 @@ export interface Env {
   SOS_REPORT_RECIPIENT?: string // Agent bus recipient for flywheel reports (default: "owner")
   ENABLED_ROUTES?: string      // Comma-separated list of enabled route groups
   SOS_SAAS_URL?: string        // Origin SaaS service URL for tenant resolution (e.g. "https://saas.mumega.com")
+  MUMEGA_API_URL?: string      // Mumega SaaS API URL for network tools (default: "https://api.mumega.com")
+  MUMEGA_TOKEN?: string        // Bearer token for authenticating with Mumega SaaS API
 }
 
 export interface AuthSession {
@@ -65,5 +67,8 @@ export type AppBindings = {
     authSessionToken: string | null
     tenant_slug: string | null
     tenant_config: Record<string, unknown> | null
+    cf_access_email: string | null
+    cf_access_tenant: string | null
+    cf_access_role: string | null
   }
 }

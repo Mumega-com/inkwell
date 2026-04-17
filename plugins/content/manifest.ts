@@ -4,6 +4,8 @@ const contentPlugin: PluginManifest = {
   name: 'content',
   version: '1.0.0',
   description: 'Content publishing — KV storage, D1 indexing, deploy hooks',
+  requiredRole: 'member',
+
   configDefaults: {
     content: {
       enabled: true,
