@@ -128,7 +128,7 @@ export const config = {
   plugins: [
     'dashboard', 'commerce', 'content', 'mcp',
     'contracts', 'telegram', 'chat',
-    'diagnostics', 'discovery', 'payments',
+    'diagnostics', 'discovery', 'payments', 'onboarding',
   ],
 } as const
 

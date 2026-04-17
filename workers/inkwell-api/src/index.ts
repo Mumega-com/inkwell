@@ -13,6 +13,7 @@ import chatManifest from '../../../plugins/chat/manifest'
 import diagnosticsManifest from '../../../plugins/diagnostics/manifest'
 import discoveryManifest from '../../../plugins/discovery/manifest'
 import paymentsManifest from '../../../plugins/payments/manifest'
+import onboardingManifest from '../../../plugins/onboarding/manifest'
 
 // Register all available plugins
 registerPlugin(dashboardManifest)
@@ -25,6 +26,7 @@ registerPlugin(chatManifest)
 registerPlugin(diagnosticsManifest)
 registerPlugin(discoveryManifest)
 registerPlugin(paymentsManifest)
+registerPlugin(onboardingManifest)
 
 import { analyticsRoutes } from './routes/analytics'
 import { authRoutes } from './routes/auth'

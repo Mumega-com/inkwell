@@ -272,5 +272,11 @@ const navItems = [
         })
       })()
     </script>
+
+    <script is:inline>
+      if (!localStorage.getItem('mumega_onboarded') && !window.location.pathname.includes('/onboarding')) {
+        window.location.href = '/dashboard/onboarding'
+      }
+    </script>
   </body>
 </html>
