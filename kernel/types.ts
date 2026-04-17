@@ -53,6 +53,9 @@ export interface PluginManifest {
 
   /** D1 migration file paths relative to the plugin directory */
   migrations?: string[]
+
+  /** Minimum role required to access this plugin's pages and routes. Default: 'viewer' */
+  requiredRole?: InkwellRole
 }
 
 /**
@@ -100,7 +103,7 @@ export interface AuthPort {
 export interface AuthUser {
   email: string
   tenant_slug?: string
-  role?: 'owner' | 'manager' | 'member' | 'viewer'
+  role?: 'owner' | 'admin' | 'manager' | 'member' | 'viewer'
 }
 
 /**
@@ -133,4 +136,23 @@ export interface SearchPort {
   index(id: string, content: string, metadata?: Record<string, unknown>): Promise<void>
   /** Search, returning ranked results with scores */
   search(query: string, limit?: number): Promise<Array<{ id: string; score: number }>>
+}
+
+// ── RBAC ──────────────────────────────────────────────────────────────────────
+
+/** Standard roles — every Inkwell instance ships with these. */
+export type InkwellRole = 'owner' | 'admin' | 'manager' | 'member' | 'viewer'
+
+/** Role hierarchy — higher number = more access */
+export const ROLE_HIERARCHY: Record<InkwellRole, number> = {
+  viewer: 1,
+  member: 2,
+  manager: 3,
+  admin: 4,
+  owner: 5,
+}
+
+/** Permission check: does userRole have at least requiredRole's level? */
+export function hasRole(userRole: InkwellRole, requiredRole: InkwellRole): boolean {
+  return (ROLE_HIERARCHY[userRole] ?? 0) >= (ROLE_HIERARCHY[requiredRole] ?? 0)
 }
