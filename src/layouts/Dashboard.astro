@@ -221,7 +221,10 @@ const navItems = [
       <div class="dash-main-wrap">
         <header class="dash-header">
           <span class="dash-header-title">{title}</span>
-          <span class="dash-header-meta" id="dash-last-updated">Loading…</span>
+          <div style="display:flex;align-items:center;gap:0.75rem;">
+            <div id="notification-bell-mount"></div>
+            <span class="dash-header-meta" id="dash-last-updated">Loading…</span>
+          </div>
         </header>
 
         <main class="dash-content">
@@ -276,6 +279,16 @@ const navItems = [
     <script is:inline>
       if (!localStorage.getItem('mumega_onboarded') && !window.location.pathname.includes('/onboarding')) {
         window.location.href = '/dashboard/onboarding'
+      }
+    </script>
+
+    <script>
+      import { NotificationBell } from '../../plugins/notifications/components/NotificationBell'
+      import { createElement } from 'react'
+      import { createRoot } from 'react-dom/client'
+      const mount = document.getElementById('notification-bell-mount')
+      if (mount) {
+        createRoot(mount).render(createElement(NotificationBell))
       }
     </script>
   </body>

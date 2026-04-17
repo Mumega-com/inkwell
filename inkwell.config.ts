@@ -129,6 +129,7 @@ export const config = {
     'dashboard', 'commerce', 'content', 'mcp',
     'contracts', 'telegram', 'chat',
     'diagnostics', 'discovery', 'payments', 'onboarding',
+    'notifications',
   ],
 } as const
 

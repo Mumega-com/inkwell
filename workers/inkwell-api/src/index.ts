@@ -14,6 +14,7 @@ import diagnosticsManifest from '../../../plugins/diagnostics/manifest'
 import discoveryManifest from '../../../plugins/discovery/manifest'
 import paymentsManifest from '../../../plugins/payments/manifest'
 import onboardingManifest from '../../../plugins/onboarding/manifest'
+import notificationsManifest from '../../../plugins/notifications/manifest'
 
 // Register all available plugins
 registerPlugin(dashboardManifest)
@@ -27,6 +28,7 @@ registerPlugin(diagnosticsManifest)
 registerPlugin(discoveryManifest)
 registerPlugin(paymentsManifest)
 registerPlugin(onboardingManifest)
+registerPlugin(notificationsManifest)
 
 import { analyticsRoutes } from './routes/analytics'
 import { authRoutes } from './routes/auth'
