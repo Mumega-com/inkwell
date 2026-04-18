@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import type { AppBindings } from '../types'
 import { getContent, getContentMeta, putContent, tenantFilter } from '../lib'
+import { compileMdx } from '../../kernel/processors/mdx-compiler'
 
 const contentRoutes = new Hono<AppBindings>()
 
@@ -158,6 +159,61 @@ contentRoutes.post('/publish', async (c) => {
       'INSERT OR REPLACE INTO content_index (slug, title, type, lang, author, tags, description, published_at, updated_at, word_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [slug, title, 'blog', 'en', author, JSON.stringify(tags), description, date, date, content.split(/\s+/).length]
     )
+  }
+
+  // Graph ingestion — extract wikilinks and build graph edges
+  try {
+    const compiled = compileMdx(content, { basePath: '/', tenant: tenantSlug ?? undefined })
+
+    // Upsert the content node
+    await c.get('graph').upsertNode({
+      slug,
+      title,
+      type: 'blog',
+      tags,
+      tenant: tenantSlug ?? undefined,
+      visibility: status === 'draft' ? 'private' : 'public',
+      author,
+      date,
+      url: `/${slug}`,
+    })
+
+    // Create wikilink edges
+    for (const target of compiled.wikilinks) {
+      await c.get('graph').upsertEdge({
+        source: slug,
+        target,
+        type: 'wikilink',
+        tenant: tenantSlug ?? undefined,
+      })
+      // Create backlink edge
+      await c.get('graph').upsertEdge({
+        source: target,
+        target: slug,
+        type: 'backlink',
+        tenant: tenantSlug ?? undefined,
+      })
+    }
+
+    // Create tag edges between this content and others sharing 2+ tags
+    if (tags.length >= 2) {
+      const tagNodes = await c.get('graph').queryNodes({ tenant: tenantSlug ?? undefined })
+      for (const other of tagNodes) {
+        if (other.slug === slug) continue
+        const shared = tags.filter((t) => other.tags.includes(t))
+        if (shared.length >= 2) {
+          await c.get('graph').upsertEdge({
+            source: slug,
+            target: other.slug,
+            type: 'tag',
+            tenant: tenantSlug ?? undefined,
+            weight: shared.length,
+          })
+        }
+      }
+    }
+  } catch {
+    // Graph ingestion is non-blocking — don't fail the publish
   }
 
   // Trigger CF Pages deploy hook if configured

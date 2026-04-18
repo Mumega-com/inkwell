@@ -196,3 +196,46 @@ export const ROLE_HIERARCHY: Record<InkwellRole, number> = {
 export function hasRole(userRole: InkwellRole, requiredRole: InkwellRole): boolean {
   return (ROLE_HIERARCHY[userRole] ?? 0) >= (ROLE_HIERARCHY[requiredRole] ?? 0)
 }
+
+// ─── Graph Port ────────────────────────────────────────────────────────────
+export interface GraphNode {
+  slug: string
+  title: string
+  type: string           // 'blog' | 'topic' | 'concept' | 'lab' | etc.
+  tags: string[]
+  tenant?: string        // Multi-tenant: which organism owns this
+  visibility: 'public' | 'private'
+  author?: string
+  date?: string
+  url?: string
+}
+
+export interface GraphEdge {
+  source: string         // source node slug
+  target: string         // target node slug
+  type: 'wikilink' | 'tag' | 'series' | 'backlink' | 'cross-tenant'
+  tenant?: string        // Which tenant created this edge
+  weight?: number        // Edge strength (shared tag count, etc.)
+}
+
+export interface GraphData {
+  nodes: GraphNode[]
+  edges: GraphEdge[]
+}
+
+export interface GraphPort {
+  /** Upsert a node (insert or update by slug+tenant) */
+  upsertNode(node: GraphNode): Promise<void>
+  /** Upsert an edge */
+  upsertEdge(edge: GraphEdge): Promise<void>
+  /** Batch upsert nodes and edges (from a content ingest) */
+  ingest(data: GraphData): Promise<void>
+  /** Get all edges pointing TO this slug */
+  getBacklinks(slug: string, tenant?: string): Promise<GraphEdge[]>
+  /** Get nodes and edges within N hops of a slug */
+  getNeighbors(slug: string, depth?: number, tenant?: string): Promise<GraphData>
+  /** Query nodes by filter */
+  queryNodes(filter: { tag?: string; type?: string; tenant?: string; visibility?: 'public' | 'private' }): Promise<GraphNode[]>
+  /** Get a single node by slug */
+  getNode(slug: string, tenant?: string): Promise<GraphNode | null>
+}

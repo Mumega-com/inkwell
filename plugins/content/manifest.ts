@@ -1,6 +1,7 @@
 import type { PluginManifest, HonoApp } from '../../kernel/types'
 import { contentRoutes } from './routes-content'
 import { publishingRoutes } from './routes-publishing'
+import { graphRoutes } from './routes-graph'
 import { contentMcpTools } from './mcp-tools'
 
 const contentPlugin: PluginManifest = {
@@ -13,6 +14,7 @@ const contentPlugin: PluginManifest = {
   mountRoutes: (app: HonoApp) => {
     app.route('/api', contentRoutes)
     app.route('/api/publishing', publishingRoutes)
+    app.route('/api', graphRoutes)
   },
 
   configDefaults: {

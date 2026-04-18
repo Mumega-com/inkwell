@@ -1,4 +1,4 @@
-import type { DatabasePort, AuthPort, CRMPort, SearchPort, SessionPort, ContentPort, StoragePort } from './types'
+import type { DatabasePort, AuthPort, CRMPort, SearchPort, SessionPort, ContentPort, StoragePort, GraphPort } from './types'
 
 /** All available port types. */
 export interface PortMap {
@@ -9,6 +9,7 @@ export interface PortMap {
   session: SessionPort
   content: ContentPort
   storage: StoragePort
+  graph: GraphPort
 }
 
 type PortName = keyof PortMap

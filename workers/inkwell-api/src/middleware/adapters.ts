@@ -17,6 +17,7 @@ import { D1DatabaseAdapter } from '../../../../kernel/adapters/d1'
 import { KVSessionAdapter } from '../../../../kernel/adapters/kv-session'
 import { KVContentAdapter } from '../../../../kernel/adapters/kv-content'
 import { R2StorageAdapter } from '../../../../kernel/adapters/r2-storage'
+import { D1GraphAdapter } from '../../../../kernel/adapters/d1-graph'
 import type { AppBindings } from '../types'
 
 export const adapterMiddleware: MiddlewareHandler<AppBindings> = async (c, next) => {
@@ -36,6 +37,9 @@ export const adapterMiddleware: MiddlewareHandler<AppBindings> = async (c, next)
   if (r2) {
     c.set('storage', new R2StorageAdapter(r2 as never))
   }
+
+  // Graph port (knowledge graph backed by D1)
+  c.set('graph', new D1GraphAdapter(c.get('db_core')))
 
   return next()
 }
