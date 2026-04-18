@@ -2,6 +2,35 @@
 
 All notable changes to Inkwell. Format: [Keep a Changelog](https://keepachangelog.com/).
 
+## [6.0.0] — 2026-04-18
+
+### Added
+- **MDX Knowledge Engine** — content becomes a self-building knowledge graph
+- **kernel/processors/** — 3 pure AST processors extracted from shabrang-cms:
+  - `remark-wikilinks` — `[[target]]` → linked HTML + link extraction (configurable basePath, no global state)
+  - `remark-blocks` — 14 custom block types (tldr, callout, chart, timeline, metric, mermaid, etc.)
+  - `mdx-compiler` — lightweight runtime compiler for Workers (frontmatter + wikilinks + blocks → HTML)
+- **GraphPort** — 8th hexagonal port interface:
+  - `upsertNode()`, `upsertEdge()`, `ingest()` — write graph data
+  - `getBacklinks()`, `getNeighbors()` (BFS traversal), `queryNodes()`, `getNode()` — query graph
+  - `GraphNode` type with tenant + visibility fields for multi-tenant organisms
+  - `GraphEdge` types: wikilink, tag, series, backlink, cross-tenant
+- **D1GraphAdapter** — GraphPort implementation using DatabasePort
+- **D1 migration 0009** — `graph_nodes` (slug+tenant PK) + `graph_edges` (source+target+type+tenant PK) with 5 indexes
+- **Content plugin graph endpoints**:
+  - `POST /api/ingest` — raw MDX → compile → store HTML + raw in KV → upsert graph
+  - `GET /api/graph` — tenant graph (public nodes, filterable by tag/type)
+  - `GET /api/graph/node/:slug` — single node + BFS neighbors (depth 1-3)
+  - `GET /api/graph/backlinks/:slug` — backlinks with enriched source nodes
+- **Publish → graph pipeline** — `POST /publish` now auto-feeds graph (node + wikilink + tag edges)
+- **33 new tests** — mdx-compiler (16), d1-graph (17) — total 90 tests
+
+### Architecture
+- 8 port interfaces: Database, Auth, CRM, Search, Session, Content, Storage, **Graph**
+- Content is the graph: wiki-links ARE edges, documents ARE nodes
+- Agents document businesses via `/api/ingest`, graph builds itself
+- Bundle: 353 KiB / 84 KiB gzip (within 1MB Worker limit)
+
 ## [5.4.0] — 2026-04-18
 
 ### Added

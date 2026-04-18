@@ -4,7 +4,7 @@
 Forkable SaaS microkernel on Astro 6 + Cloudflare Workers. Config-driven, agent-first. Works standalone (Cloudflare only) or integrates with SOS (Sovereign Operating System). Designed to be forked per customer — one config file, zero code changes.
 
 ## Version
-v5.4.0 — Full port isolation (7 ports, cloud-portable plugin layer)
+v6.0.0 — MDX Knowledge Engine (8 ports, wiki-link graph, content ingest API)
 
 ## Architecture: Microkernel
 
@@ -76,6 +76,7 @@ SearchPort     // index(), search() — wraps D1 full-text or SOS Mirror vectors
 SessionPort    // get(), set(ttl?), delete() — wraps KV, Redis, or any session store
 ContentPort    // getPage(), putPage(), listPages() — wraps KV, S3, or any content store
 StoragePort    // get(), put(), delete(), list() — wraps R2, S3, GCS, or any blob store
+GraphPort      // upsertNode(), upsertEdge(), getBacklinks(), getNeighbors(), queryNodes()
 ```
 
 ### Adapter Usage
@@ -162,12 +163,35 @@ All from config → CSS vars: `--ink-primary`, `--ink-secondary`, `--ink-bg`, `-
 
 ## Testing
 ```bash
-npm test              # Kernel tests (57 tests, 7 files)
+npm test              # Kernel tests (90 tests, 9 files)
 npm run test:worker   # Worker integration tests (Cloudflare pool)
 bash scripts/fork-smoke.sh  # Fork smoke test (build with config-only changes)
 ```
 
-## Known Gaps (v6.0 sprint)
+## MDX Knowledge Engine (v6.0)
+
+### Processors (kernel/processors/)
+- `remark-wikilinks` — `[[target]]` and `[[target|display]]` → linked HTML + link extraction
+- `remark-blocks` — 14 block types: tldr, callout, pullquote, figure, stats, faq, embed, chart, mermaid, comparison, timeline, metric, cta, before-after
+- `mdx-compiler` — runtime compiler: frontmatter + wikilinks + blocks → `{ html, wikilinks, frontmatter }`
+
+### Graph API
+- `POST /api/ingest` — raw MDX → compile → store in KV → upsert graph nodes/edges
+- `GET /api/graph` — tenant graph (public nodes, filter by tag/type)
+- `GET /api/graph/node/:slug` — node + neighbors (BFS, depth 1-3)
+- `GET /api/graph/backlinks/:slug` — backlinks with enriched source nodes
+- Publishing (`POST /publish`) also feeds the graph automatically
+
+### How the graph builds itself
+1. Agent writes MDX with `[[wiki-links]]` and posts to `/api/ingest`
+2. Compiler extracts frontmatter, links, and block syntax
+3. HTML stored in ContentPort, raw MDX preserved for re-compilation
+4. Graph node upserted, wikilink + backlink edges created
+5. Tag-based edges auto-created between nodes sharing 2+ tags
+6. Knowledge graph grows with every published page
+
+## Known Gaps (v7.0)
 - SOS integration ports (Bus, Memory, Economy) defined in roadmap but not implemented
 - No GC/AWS adapter implementations yet (ports are ready, adapters are CF-only)
+- Cross-tenant graph discovery (organisms finding each other) not yet implemented
 - See docs/ROADMAP.md for full version plan
