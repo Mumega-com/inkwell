@@ -39,6 +39,15 @@ id = "YOUR_KV_NAMESPACE_ID"
 binding = "SESSIONS"
 id = "YOUR_KV_NAMESPACE_ID"
 
+# R2 bucket for media uploads (images, videos, files)
+[[r2_buckets]]
+binding = "MEDIA"
+bucket_name = "YOUR_R2_BUCKET_NAME"
+
+# Workers AI — vision, transcription, image generation
+[ai]
+binding = "AI"
+
 # Daily flywheel — ingest GSC/GA4, store snapshots, score WoW
 [triggers]
 crons = ["0 6 * * *"]

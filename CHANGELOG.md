@@ -2,6 +2,26 @@
 
 All notable changes to Inkwell. Format: [Keep a Changelog](https://keepachangelog.com/).
 
+## [7.1.0] — 2026-04-18
+
+### Added
+- **MediaPort** — 14th hexagonal port: upload(), get(), describe(), transcribe(), transform(), search(), list(), delete(), generateImage()
+- **CfMediaAdapter** — R2 + D1 + Workers AI (llama-3.2-vision, whisper-large-v3-turbo, flux-1-schnell)
+- **Media plugin** — 19th plugin, 8 routes at /api/media/* (upload, describe, transcribe, transform, generate, search, list, delete)
+- **4 MCP tools** — upload_media, describe_image, generate_image, search_media (16 total)
+- **ContentSourcePort** — 13th hexagonal port with 4 adapters (Obsidian, GitHub, Notion, Google Drive)
+- **Sync plugin** — 18th plugin, pulls from configured content sources, compiles MDX, stores in KV, upserts graph
+- **D1 migration 0012** — media_assets table with tenant/content_type/graph_slug/source_type indexes
+- **Workers AI binding** — wrangler.toml AI binding for vision, transcription, image generation
+- **11 media port tests + 12 content source tests** — 123 total kernel tests
+
+### Architecture
+- 14 port interfaces, 19 plugins, 16 MCP tools
+- Media assets auto-upserted as knowledge graph nodes on upload/generate
+- Content sources configured via inkwell.config.ts contentSources[] array
+- AI analysis optional — adapter degrades gracefully without Workers AI binding
+- Framework purification: instance-specific components (ChatWidget, ContractForm, ContractPortal, MovingQuoteForm) moved to instances/
+
 ## [7.0.0] — 2026-04-18
 
 ### Added
