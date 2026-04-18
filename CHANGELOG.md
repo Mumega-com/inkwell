@@ -2,6 +2,16 @@
 
 All notable changes to Inkwell. Format: [Keep a Changelog](https://keepachangelog.com/).
 
+## [7.2.0] — 2026-04-18
+
+### Added
+- **MediaImage component** — Astro component for responsive images from MediaPort (`<MediaImage id="..." />`)
+- **MediaVideo component** — Astro component for video embeds with chapters and captions
+- **MediaLibrary dashboard** — React island: grid view, search, upload, AI image generation, asset details modal
+- **Dashboard media page** — `/dashboard/media` with nav link
+- **ThumbHash generation** — CSS gradient placeholders extracted from Workers AI vision analysis on upload
+- **Dashboard nav** — added Media tab between Work and Chat
+
 ## [7.1.0] — 2026-04-18
 
 ### Added

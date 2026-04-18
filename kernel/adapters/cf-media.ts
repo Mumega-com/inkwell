@@ -64,6 +64,20 @@ const VARIANT_PRESETS: Record<string, string> = {
   og: 'width=1200,height=630,fit=cover,format=auto,quality=85',
 }
 
+/** Extract dominant color hex codes from an AI image description. */
+function extractDominantColors(description: string): string {
+  const hexPattern = /#[0-9a-fA-F]{6}\b/g
+  const matches = description.match(hexPattern)
+  if (matches && matches.length >= 2) {
+    return `linear-gradient(135deg, ${matches[0]}, ${matches[1]})`
+  }
+  if (matches && matches.length === 1) {
+    return `linear-gradient(135deg, ${matches[0]}, ${matches[0]}88)`
+  }
+  // Fallback: neutral dark gradient
+  return 'linear-gradient(135deg, #1a1a2e, #16213e)'
+}
+
 function slugFromFilename(filename: string): string {
   return filename
     .replace(/\.[^.]+$/, '')
@@ -132,6 +146,7 @@ export class CfMediaAdapter implements MediaPort {
     let description: string | undefined
     let tags: string[] = []
     let nsfwScore: number | undefined
+    let thumbhash: string | undefined
 
     if (this.ai && contentType.startsWith('image/')) {
       try {
@@ -140,6 +155,7 @@ export class CfMediaAdapter implements MediaPort {
         description = described.description
         tags = described.tags
         nsfwScore = described.nsfwScore
+        thumbhash = described.thumbhash || undefined
       } catch {
         // AI description is best-effort — don't block upload
       }
@@ -147,10 +163,10 @@ export class CfMediaAdapter implements MediaPort {
 
     await this.db.execute(
       `INSERT INTO media_assets (id, tenant, filename, content_type, r2_key, size_bytes,
-        alt_text, description, tags, nsfw_score, graph_slug, source_type, variants, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        alt_text, description, tags, thumbhash, nsfw_score, graph_slug, source_type, variants, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [id, tenantKey, filename, contentType, r2Key, file.byteLength,
-        altText ?? null, description ?? null, JSON.stringify(tags), nsfwScore ?? null,
+        altText ?? null, description ?? null, JSON.stringify(tags), thumbhash ?? null, nsfwScore ?? null,
         graphSlug, 'upload', JSON.stringify({}), now, now]
     )
 
@@ -164,6 +180,7 @@ export class CfMediaAdapter implements MediaPort {
       altText,
       description,
       tags,
+      thumbhash,
       nsfwScore,
       variants: {},
       graphSlug,
@@ -199,9 +216,9 @@ export class CfMediaAdapter implements MediaPort {
 
     const now = new Date().toISOString()
     await this.db.execute(
-      `UPDATE media_assets SET alt_text = ?, description = ?, tags = ?, nsfw_score = ?, updated_at = ?
+      `UPDATE media_assets SET alt_text = ?, description = ?, tags = ?, thumbhash = ?, nsfw_score = ?, updated_at = ?
        WHERE id = ?`,
-      [result.altText, result.description, JSON.stringify(result.tags), result.nsfwScore, now, id]
+      [result.altText, result.description, JSON.stringify(result.tags), result.thumbhash || null, result.nsfwScore, now, id]
     )
 
     return result
@@ -346,14 +363,14 @@ export class CfMediaAdapter implements MediaPort {
 
   // ── Private helpers ──────────────────────────────────────────────────────
 
-  private async describeBuffer(buffer: ArrayBuffer): Promise<{ altText: string; description: string; tags: string[]; nsfwScore: number }> {
+  private async describeBuffer(buffer: ArrayBuffer): Promise<{ altText: string; description: string; tags: string[]; nsfwScore: number; thumbhash: string }> {
     if (!this.ai) {
-      return { altText: '', description: '', tags: [], nsfwScore: 0 }
+      return { altText: '', description: '', tags: [], nsfwScore: 0, thumbhash: '' }
     }
 
     const result = await this.ai.run('@cf/meta/llama-3.2-11b-vision-instruct', {
       image: Array.from(new Uint8Array(buffer)),
-      prompt: 'Describe this image in detail. Provide: 1) A short alt text (one sentence). 2) A longer description (2-3 sentences). 3) Relevant tags as a comma-separated list. 4) An NSFW score from 0 to 1 (0=safe, 1=explicit). Format your response as JSON with keys: altText, description, tags, nsfwScore',
+      prompt: 'Describe this image in detail. Provide: 1) A short alt text (one sentence). 2) A longer description (2-3 sentences). 3) Relevant tags as a comma-separated list. 4) An NSFW score from 0 to 1 (0=safe, 1=explicit). 5) The 2-3 dominant colors as hex codes (e.g. #ff5733). Format your response as JSON with keys: altText, description, tags, nsfwScore, dominantColors',
     }) as { response?: string } | string
 
     const responseText = typeof result === 'string' ? result : (result.response ?? '')
@@ -367,17 +384,26 @@ export class CfMediaAdapter implements MediaPort {
           description?: string
           tags?: string | string[]
           nsfwScore?: number
+          dominantColors?: string[]
         }
         const tags = Array.isArray(parsed.tags)
           ? parsed.tags
           : typeof parsed.tags === 'string'
             ? parsed.tags.split(',').map((t: string) => t.trim()).filter(Boolean)
             : []
+
+        // Build thumbhash gradient from dominant colors or full response text
+        const colorsSource = Array.isArray(parsed.dominantColors)
+          ? parsed.dominantColors.join(' ')
+          : jsonMatch[0]
+        const thumbhash = extractDominantColors(colorsSource)
+
         return {
           altText: parsed.altText ?? '',
           description: parsed.description ?? '',
           tags,
           nsfwScore: typeof parsed.nsfwScore === 'number' ? parsed.nsfwScore : 0,
+          thumbhash,
         }
       }
     } catch {
@@ -390,6 +416,7 @@ export class CfMediaAdapter implements MediaPort {
       description: responseText,
       tags: [],
       nsfwScore: 0,
+      thumbhash: extractDominantColors(responseText),
     }
   }
 

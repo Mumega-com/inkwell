@@ -7,7 +7,7 @@ import { config } from '../lib/config'
 
 interface Props {
   title: string
-  active: 'dashboard' | 'seo' | 'leads' | 'campaigns' | 'calendar' | 'tasks' | 'wallet' | 'chat' | 'squads' | 'settings'
+  active: 'dashboard' | 'seo' | 'leads' | 'campaigns' | 'calendar' | 'tasks' | 'wallet' | 'chat' | 'squads' | 'media' | 'settings'
 }
 
 const { title, active } = Astro.props
@@ -23,6 +23,7 @@ const navItems = [
   { key: 'tasks',     label: 'Work',       href: '/dashboard/tasks',      icon: '☐', requiredRole: 'member'  },
   { key: 'squads',    label: 'Team',       href: '/dashboard/squads',     icon: '◎', requiredRole: 'manager' },
   { key: 'wallet',    label: 'Money',      href: '/dashboard/wallet',     icon: '◈', requiredRole: 'owner'   },
+  { key: 'media',     label: 'Media',      href: '/dashboard/media',      icon: '◻', requiredRole: 'member'  },
   { key: 'chat',      label: 'Chat',       href: '/dashboard/chat',       icon: '◉', requiredRole: 'member'  },
   { key: 'settings',  label: 'Settings',   href: '/dashboard/settings',   icon: '⚙', requiredRole: 'owner'   },
 ]

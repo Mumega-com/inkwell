@@ -1,0 +1,102 @@
+---
+import type { MediaAsset } from '../../kernel/types'
+
+interface Props {
+  id: string
+  asset?: MediaAsset
+  variant?: string
+  caption?: string
+  class?: string
+}
+
+const { id, asset, variant = 'hero', caption, class: className } = Astro.props
+
+// If asset is provided, derive the transform URL from variants
+const transformUrl = asset?.variants?.[variant] || asset?.r2Key || ''
+const altText = asset?.altText || asset?.filename || ''
+const description = asset?.description || ''
+const width = asset?.width
+const height = asset?.height
+const thumbhash = asset?.thumbhash
+---
+
+<figure
+  class:list={['media-image', className]}
+  data-media-id={id}
+  data-variant={variant}
+>
+  {thumbhash && (
+    <div
+      class="media-image__placeholder"
+      data-thumbhash={thumbhash}
+      aria-hidden="true"
+    />
+  )}
+
+  {asset ? (
+    <img
+      src={transformUrl}
+      alt={altText}
+      width={width}
+      height={height}
+      loading="lazy"
+      decoding="async"
+      class="media-image__img"
+    />
+  ) : (
+    <img
+      data-media-id={id}
+      data-variant={variant}
+      alt=""
+      loading="lazy"
+      decoding="async"
+      class="media-image__img"
+    />
+  )}
+
+  {(caption || description) && (
+    <figcaption class="media-image__caption">
+      {caption || description}
+    </figcaption>
+  )}
+</figure>
+
+<style>
+  .media-image {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--ink-radius);
+    margin: 2rem 0;
+  }
+
+  .media-image__placeholder {
+    position: absolute;
+    inset: 0;
+    background: var(--ink-surface);
+    filter: blur(20px);
+    transform: scale(1.1);
+    transition: opacity 0.4s ease;
+    z-index: 1;
+  }
+
+  .media-image__img {
+    display: block;
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    position: relative;
+    z-index: 2;
+  }
+
+  .media-image__img[src] ~ .media-image__placeholder {
+    /* Placeholder fades out once image starts loading */
+  }
+
+  .media-image__caption {
+    margin-top: 0.625rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--ink-muted);
+    text-align: center;
+  }
+</style>
