@@ -140,6 +140,44 @@ export interface SearchPort {
   search(query: string, limit?: number): Promise<Array<{ id: string; score: number }>>
 }
 
+/**
+ * Session port — key-value session storage (KV, Redis, DynamoDB, Firestore).
+ */
+export interface SessionPort {
+  /** Get a session value by key, or null if not found / expired. */
+  get(key: string): Promise<string | null>
+  /** Set a session value with optional TTL in seconds. */
+  set(key: string, value: string, ttlSeconds?: number): Promise<void>
+  /** Delete a session by key. */
+  delete(key: string): Promise<void>
+}
+
+/**
+ * Content port — serves pre-rendered pages (KV, S3, GCS, Firestore).
+ */
+export interface ContentPort {
+  /** Get a page by key, or null if not found. */
+  getPage(key: string): Promise<string | null>
+  /** Store a page by key. */
+  putPage(key: string, html: string): Promise<void>
+  /** List page keys matching a prefix. */
+  listPages(prefix: string): Promise<string[]>
+}
+
+/**
+ * Storage port — blob/file storage (R2, S3, GCS).
+ */
+export interface StoragePort {
+  /** Get a file as a ReadableStream, or null if not found. */
+  get(key: string): Promise<{ body: ReadableStream; contentType: string } | null>
+  /** Upload a file. */
+  put(key: string, data: ReadableStream | ArrayBuffer | string, contentType?: string): Promise<void>
+  /** Delete a file by key. */
+  delete(key: string): Promise<void>
+  /** List file keys matching an optional prefix. */
+  list(prefix?: string): Promise<string[]>
+}
+
 // ── RBAC ──────────────────────────────────────────────────────────────────────
 
 /** Standard roles — every Inkwell instance ships with these. */

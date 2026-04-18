@@ -1,5 +1,5 @@
 import type { D1Database, KVNamespace } from '@cloudflare/workers-types'
-import type { DatabasePort } from '../../../kernel/types'
+import type { DatabasePort, SessionPort, ContentPort, StoragePort } from '../../../kernel/types'
 
 export interface Env {
   DB_ANALYTICS: D1Database
@@ -72,9 +72,12 @@ export type AppBindings = {
     cf_access_email: string | null
     cf_access_tenant: string | null
     cf_access_role: string | null
-    // Database adapters — plugins use these instead of c.env.DB_*
+    // Adapters — plugins use these instead of c.env.*
     db_core: DatabasePort
     db_analytics: DatabasePort
     db_marketing: DatabasePort
+    sessions: SessionPort
+    content: ContentPort
+    storage: StoragePort
   }
 }

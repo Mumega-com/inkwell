@@ -1,4 +1,4 @@
-import type { KVNamespace } from '@cloudflare/workers-types'
+import type { ContentPort } from '../../../../kernel/types'
 
 /**
  * Get a content key scoped to a tenant.
@@ -11,40 +11,46 @@ export function contentKey(tenantSlug: string | null, key: string): string {
 }
 
 /**
- * Get content from KV, scoped to tenant.
+ * Get content from ContentPort, scoped to tenant.
  */
 export async function getContent(
-  kv: KVNamespace,
+  content: ContentPort,
   tenantSlug: string | null,
   slug: string,
 ): Promise<string | null> {
-  return kv.get(contentKey(tenantSlug, `post:${slug}`))
+  return content.getPage(contentKey(tenantSlug, `post:${slug}`))
 }
 
 /**
- * Get content metadata from KV, scoped to tenant.
+ * Get content metadata from ContentPort, scoped to tenant.
  */
 export async function getContentMeta(
-  kv: KVNamespace,
+  content: ContentPort,
   tenantSlug: string | null,
   slug: string,
 ): Promise<Record<string, unknown> | null> {
-  return kv.get(contentKey(tenantSlug, `meta:${slug}`), 'json')
+  const raw = await content.getPage(contentKey(tenantSlug, `meta:${slug}`))
+  if (!raw) return null
+  try {
+    return JSON.parse(raw) as Record<string, unknown>
+  } catch {
+    return null
+  }
 }
 
 /**
- * Store content in KV, scoped to tenant.
+ * Store content in ContentPort, scoped to tenant.
  */
 export async function putContent(
-  kv: KVNamespace,
+  content: ContentPort,
   tenantSlug: string | null,
   slug: string,
   markdown: string,
   meta: Record<string, unknown>,
 ): Promise<void> {
   const prefix = tenantSlug ? `${tenantSlug}:` : ''
-  await kv.put(`${prefix}post:${slug}`, markdown)
-  await kv.put(`${prefix}meta:${slug}`, JSON.stringify(meta))
+  await content.putPage(`${prefix}post:${slug}`, markdown)
+  await content.putPage(`${prefix}meta:${slug}`, JSON.stringify(meta))
 }
 
 /**

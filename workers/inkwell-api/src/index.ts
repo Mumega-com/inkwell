@@ -124,14 +124,14 @@ app.use('*', cors({
   allowHeaders: ['Content-Type', 'Authorization'],
 }))
 
+// Adapters — plugins use c.get('db_core'), c.get('sessions'), c.get('content') instead of c.env.*
+app.use('*', adapterMiddleware)
+
 // Tenant resolution (non-breaking: null = single-site mode)
 app.use('*', tenantResolver())
 
 // API usage tracking per tenant per day (fire-and-forget, non-blocking)
 app.use('*', usageTracker())
-
-// Database adapters — plugins use c.get('db_core') instead of c.env.DB_CORE
-app.use('*', adapterMiddleware)
 
 // Session resolution (non-blocking: null = unauthenticated)
 app.use('*', authSessionMiddleware)
@@ -187,7 +187,7 @@ app.get('*', async (c) => {
   ]
 
   for (const key of keysToTry) {
-    let content = await c.env.CONTENT.get(key)
+    let content = await c.get('content').getPage(key)
     if (content) {
       // Determine content type from the key/path
       const contentType = getContentType(key)
@@ -261,7 +261,7 @@ app.get('*', async (c) => {
   }
 
   // Try serving a custom 404 page
-  const custom404 = await c.env.CONTENT.get(`${tenantSlug}:page:404.html`)
+  const custom404 = await c.get('content').getPage(`${tenantSlug}:page:404.html`)
   if (custom404) {
     return new Response(custom404, {
       status: 404,

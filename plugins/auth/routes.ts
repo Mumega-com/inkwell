@@ -389,7 +389,8 @@ authRoutes.post('/request-code', async (c) => {
     ],
   )
 
-  await c.env.SESSIONS.put(
+  const sessions = c.get('sessions')
+  await sessions.set(
     `login-code:${codeId}`,
     JSON.stringify({
       identityId: identity.id,
@@ -399,7 +400,7 @@ authRoutes.post('/request-code', async (c) => {
       codeHash,
       expiresAt,
     }),
-    { expirationTtl: codeTtlSeconds },
+    codeTtlSeconds,
   )
 
   let delivery: 'webhook' | 'noop'
@@ -528,9 +529,7 @@ authRoutes.post('/verify-code', async (c) => {
     expiresAt,
   }
 
-  await c.env.SESSIONS.put(`session:${sessionToken}`, JSON.stringify(session), {
-    expirationTtl: sessionTtlSeconds,
-  })
+  await c.get('sessions').set(`session:${sessionToken}`, JSON.stringify(session), sessionTtlSeconds)
 
   c.header('Set-Cookie', buildSessionCookie(sessionToken, sessionTtlSeconds, getAuthCookieName(c)))
   return c.json({
@@ -569,7 +568,7 @@ authRoutes.get('/session', authSessionMiddleware, async (c) => {
 authRoutes.post('/logout', authSessionMiddleware, async (c) => {
   const token = c.get('authSessionToken')
   if (token) {
-    await c.env.SESSIONS.delete(`session:${token}`)
+    await c.get('sessions').delete(`session:${token}`)
   }
 
   c.header('Set-Cookie', buildExpiredSessionCookie(getAuthCookieName(c)))

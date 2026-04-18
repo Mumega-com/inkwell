@@ -51,7 +51,7 @@ export function getSessionTokenFromCookieHeader(cookieHeader: string | undefined
 }
 
 export async function readSessionFromRequest(
-  c: { req: { header(name: string): string | undefined }; env: AppBindings['Bindings'] },
+  c: { req: { header(name: string): string | undefined }; env: AppBindings['Bindings']; get: (key: 'sessions') => import('../../../../kernel/types').SessionPort },
 ): Promise<{ token: string | null; session: AuthSession | null }> {
   const cookieName = getAuthCookieName(c)
   const token = getSessionTokenFromCookieHeader(c.req.header('Cookie'), cookieName)
@@ -59,7 +59,8 @@ export async function readSessionFromRequest(
     return { token: null, session: null }
   }
 
-  const session = await c.env.SESSIONS.get(`session:${token}`, 'json') as AuthSession | null
+  const raw = await c.get('sessions').get(`session:${token}`)
+  const session = raw ? JSON.parse(raw) as AuthSession : null
   return { token, session }
 }
 

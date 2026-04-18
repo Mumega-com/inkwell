@@ -1,4 +1,4 @@
-import type { KVNamespace } from '@cloudflare/workers-types'
+import type { SessionPort } from '../../../../kernel/types'
 
 export interface CachedTenant {
   slug: string
@@ -14,39 +14,40 @@ export interface CachedTenant {
 const CACHE_TTL_SECONDS = 300 // 5 minutes
 
 /**
- * Get tenant data from KV cache. Returns null if not cached or expired.
+ * Get tenant data from session cache. Returns null if not cached or expired.
  */
 export async function getCachedTenant(
-  kv: KVNamespace,
+  sessions: SessionPort,
   hostname: string,
 ): Promise<CachedTenant | null> {
-  const raw = await kv.get(`tenant:${hostname}`, 'json')
+  const raw = await sessions.get(`tenant:${hostname}`)
   if (!raw) return null
 
-  const tenant = raw as CachedTenant
-  const age = (Date.now() - tenant.cached_at) / 1000
-  if (age > CACHE_TTL_SECONDS) return null // expired
-
-  return tenant
+  try {
+    const tenant = JSON.parse(raw) as CachedTenant
+    const age = (Date.now() - tenant.cached_at) / 1000
+    if (age > CACHE_TTL_SECONDS) return null // expired
+    return tenant
+  } catch {
+    return null
+  }
 }
 
 /**
- * Cache tenant data in KV.
+ * Cache tenant data in session store.
  */
 export async function cacheTenant(
-  kv: KVNamespace,
+  sessions: SessionPort,
   hostname: string,
   tenant: CachedTenant,
 ): Promise<void> {
   tenant.cached_at = Date.now()
-  await kv.put(`tenant:${hostname}`, JSON.stringify(tenant), {
-    expirationTtl: CACHE_TTL_SECONDS * 2, // KV TTL as backstop
-  })
+  await sessions.set(`tenant:${hostname}`, JSON.stringify(tenant), CACHE_TTL_SECONDS * 2)
 }
 
 /**
  * Resolve tenant from origin SaaS service and cache the result.
- * Used when KV cache is empty or expired.
+ * Used when cache is empty or expired.
  */
 export async function resolveTenantFromOrigin(
   saasUrl: string,
@@ -55,10 +56,6 @@ export async function resolveTenantFromOrigin(
   try {
     const resp = await fetch(
       `${saasUrl}/resolve/${encodeURIComponent(hostname)}`,
-      {
-        headers: { Accept: 'application/json' },
-        cf: { cacheTtl: 60 }, // Cloudflare cache for 60s
-      },
     )
     if (!resp.ok) return null
     const data = (await resp.json()) as Record<string, unknown>

@@ -10,8 +10,8 @@ import {
  * Tenant resolution middleware.
  *
  * Resolution order:
- * 1. Check KV cache for full tenant data (fast path — no origin call)
- * 2. Check for custom domain mapping in KV: domain:{hostname} -> slug
+ * 1. Check session cache for full tenant data (fast path — no origin call)
+ * 2. Check for custom domain mapping: domain:{hostname} -> slug
  * 3. Check for subdomain pattern: {slug}.mumega.com -> slug
  * 4. If SOS_SAAS_URL is set, resolve from origin and cache the result
  * 5. If no tenant found, request proceeds without tenant context (single-site mode)
@@ -21,12 +21,13 @@ import {
 export function tenantResolver(): MiddlewareHandler<AppBindings> {
   return async (c, next) => {
     const host = c.req.header('host') || ''
+    const sessions = c.get('sessions')
     let tenantSlug: string | null = null
     let tenantConfig: Record<string, unknown> | null = null
 
-    // 1. Check KV cache for full tenant data (edge-cached, no origin call)
-    if (c.env.SESSIONS) {
-      const cached = await getCachedTenant(c.env.SESSIONS, host)
+    // 1. Check cache for full tenant data (edge-cached, no origin call)
+    if (sessions) {
+      const cached = await getCachedTenant(sessions, host)
       if (cached) {
         tenantSlug = cached.slug
         tenantConfig = cached.inkwell_config
@@ -37,9 +38,9 @@ export function tenantResolver(): MiddlewareHandler<AppBindings> {
       }
     }
 
-    // 2. Check KV for custom domain mapping
-    if (c.env.SESSIONS) {
-      const mapped = await c.env.SESSIONS.get(`domain:${host}`)
+    // 2. Check for custom domain mapping
+    if (sessions) {
+      const mapped = await sessions.get(`domain:${host}`)
       if (mapped) {
         tenantSlug = mapped
       }
@@ -54,13 +55,12 @@ export function tenantResolver(): MiddlewareHandler<AppBindings> {
     }
 
     // 4. If SOS_SAAS_URL is set, resolve from origin and cache
-    if (c.env.SOS_SAAS_URL && c.env.SESSIONS) {
+    if (c.env.SOS_SAAS_URL && sessions) {
       const resolved = await resolveTenantFromOrigin(c.env.SOS_SAAS_URL, host)
       if (resolved) {
         tenantSlug = resolved.slug
         tenantConfig = resolved.inkwell_config
-        // Cache for subsequent requests — avoid origin call next time
-        await cacheTenant(c.env.SESSIONS, host, resolved)
+        await cacheTenant(sessions, host, resolved)
       }
     }
 

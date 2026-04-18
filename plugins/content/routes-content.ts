@@ -115,7 +115,7 @@ contentRoutes.post('/publish', async (c) => {
   if (!overwrite) {
     const tf = tenantFilter(tenantSlug)
     const [existingMeta, existingIndex] = await Promise.all([
-      getContentMeta(c.env.CONTENT, tenantSlug, slug),
+      getContentMeta(c.get('content'), tenantSlug, slug),
       c.get('db_analytics').queryOne<{ slug: string }>(`SELECT slug FROM content_index WHERE slug = ?${tf.clause} LIMIT 1`, [slug, ...tf.bind]),
     ])
     if (existingMeta || existingIndex) {
@@ -136,7 +136,7 @@ contentRoutes.post('/publish', async (c) => {
   const markdown = `---\n${frontmatter}\n---\n\n${content}`
 
   // Store in KV (tenant-scoped)
-  await putContent(c.env.CONTENT, tenantSlug, slug, markdown, {
+  await putContent(c.get('content'), tenantSlug, slug, markdown, {
     title,
     slug,
     author,
@@ -192,7 +192,7 @@ contentRoutes.get('/posts', async (c) => {
   // Filter out drafts from public listing
   const published = []
   for (const post of posts) {
-    const meta = await getContentMeta(c.env.CONTENT, tenantSlug, post.slug as string)
+    const meta = await getContentMeta(c.get('content'), tenantSlug, post.slug as string)
     if (!meta || meta.status !== 'draft') published.push(post)
   }
 
@@ -218,7 +218,7 @@ contentRoutes.get('/drafts', async (c) => {
 
   const drafts = []
   for (const post of all) {
-    const meta = await getContentMeta(c.env.CONTENT, tenantSlug, post.slug as string)
+    const meta = await getContentMeta(c.get('content'), tenantSlug, post.slug as string)
     if (meta && meta.status === 'draft') drafts.push(post)
   }
 
@@ -229,9 +229,9 @@ contentRoutes.get('/drafts', async (c) => {
 contentRoutes.get('/posts/:slug', async (c) => {
   const slug = c.req.param('slug')
   const tenantSlug = c.get('tenant_slug')
-  const content = await getContent(c.env.CONTENT, tenantSlug, slug)
+  const content = await getContent(c.get('content'), tenantSlug, slug)
   if (!content) return c.json({ error: 'not found' }, 404)
-  const meta = await getContentMeta(c.env.CONTENT, tenantSlug, slug)
+  const meta = await getContentMeta(c.get('content'), tenantSlug, slug)
   return c.json({ slug, meta, markdown: content })
 })
 

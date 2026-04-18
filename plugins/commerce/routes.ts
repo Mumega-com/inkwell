@@ -58,7 +58,7 @@ export const glassRoutes = new Hono<AppBindings>()
 
 // GET /api/glass/daily — latest daily snapshot
 glassRoutes.get('/daily', async (c) => {
-  const data = await c.env.CONTENT.get('glass:daily')
+  const data = await c.get('content').getPage('glass:daily')
   if (!data) {
     return c.json({ error: 'No daily snapshot yet. Flywheel runs at 6am UTC.' }, 404)
   }
@@ -67,8 +67,8 @@ glassRoutes.get('/daily', async (c) => {
 
 // GET /api/glass/history — list available snapshot dates
 glassRoutes.get('/history', async (c) => {
-  const list = await c.env.CONTENT.list({ prefix: 'glass:2' })
-  const dates = list.keys.map((k) => k.name.replace('glass:', '')).sort().reverse()
+  const keys = await c.get('content').listPages('glass:2')
+  const dates = keys.map((k) => k.replace('glass:', '')).sort().reverse()
   return c.json({ dates, count: dates.length })
 })
 
@@ -289,7 +289,7 @@ glassRoutes.get('/:date', async (c) => {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     return c.json({ error: 'Date format: YYYY-MM-DD' }, 400)
   }
-  const data = await c.env.CONTENT.get(`glass:${date}`)
+  const data = await c.get('content').getPage(`glass:${date}`)
   if (!data) {
     return c.json({ error: `No snapshot for ${date}` }, 404)
   }
