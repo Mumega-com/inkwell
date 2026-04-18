@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import type { AppBindings } from '../types'
+import type { GraphNode } from '../../kernel/types'
 import { compileMdx } from '../../kernel/processors/mdx-compiler'
 
 const graphRoutes = new Hono<AppBindings>()
@@ -131,6 +132,9 @@ graphRoutes.post('/ingest', async (c) => {
     await c.get('graph').upsertEdge({ source: target, target: slug, type: 'backlink', tenant })
   }
 
+  // Cross-tenant edge resolution — find matching public nodes in other organisms
+  const crossTenantEdges = await c.get('graph').resolveCrossTenantEdges(slug, compiled.wikilinks, tenant ?? '')
+
   // Tag-based edges (connect to nodes sharing 2+ tags)
   if (tags.length >= 2) {
     const existing = await c.get('graph').queryNodes({ tenant })
@@ -157,7 +161,53 @@ graphRoutes.post('/ingest', async (c) => {
     visibility,
     graph_node: true,
     edges: compiled.wikilinks.length,
+    cross_tenant_edges: crossTenantEdges.length,
   })
+})
+
+// GET /api/graph/network — public graph across ALL tenants (the mycelium)
+graphRoutes.get('/graph/network', async (c) => {
+  const tag = c.req.query('tag') ?? undefined
+  const type = c.req.query('type') ?? undefined
+  const limit = parseInt(c.req.query('limit') ?? '200', 10) || 200
+
+  const data = await c.get('graph').queryNetwork({ tag, type, limit })
+  return c.json(data)
+})
+
+// GET /api/graph/search — search nodes by text across the network
+graphRoutes.get('/graph/search', async (c) => {
+  const q = c.req.query('q')
+  if (!q || q.trim().length < 2) return c.json({ error: 'query too short' }, 400)
+
+  const tenant = c.req.query('tenant') ?? undefined
+
+  // Search by title LIKE + tag match
+  const conditions: string[] = ["visibility = 'public'"]
+  const params: unknown[] = []
+
+  // Title search
+  conditions.push('(title LIKE ? OR tags LIKE ?)')
+  params.push(`%${q}%`, `%${q}%`)
+
+  if (tenant) {
+    conditions.push('tenant = ?')
+    params.push(tenant)
+  }
+
+  const where = `WHERE ${conditions.join(' AND ')}`
+  const rows = await c.get('db_core').query<{ slug: string; tenant: string; title: string; type: string; tags: string; visibility: string; author: string | null; date: string | null; url: string | null }>(
+    `SELECT slug, tenant, title, type, tags, visibility, author, date, url FROM graph_nodes ${where} ORDER BY date DESC LIMIT 50`,
+    params
+  )
+
+  const nodes: GraphNode[] = rows.map(r => ({
+    slug: r.slug, tenant: r.tenant, title: r.title, type: r.type,
+    tags: JSON.parse(r.tags || '[]') as string[], visibility: r.visibility as 'public' | 'private',
+    author: r.author ?? undefined, date: r.date ?? undefined, url: r.url ?? undefined,
+  }))
+
+  return c.json({ query: q, results: nodes })
 })
 
 export { graphRoutes }

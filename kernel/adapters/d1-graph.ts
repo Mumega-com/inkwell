@@ -128,4 +128,82 @@ export class D1GraphAdapter implements GraphPort {
       author: row.author ?? undefined, date: row.date ?? undefined, url: row.url ?? undefined,
     }
   }
+
+  async resolveCrossTenantEdges(slug: string, wikilinks: string[], tenant: string): Promise<GraphEdge[]> {
+    if (wikilinks.length === 0) return []
+
+    // Find public nodes from OTHER tenants that match wikilink targets
+    const placeholders = wikilinks.map(() => '?').join(',')
+    const rows = await this.db.query<{ slug: string; tenant: string }>(
+      `SELECT slug, tenant FROM graph_nodes
+       WHERE slug IN (${placeholders}) AND tenant != ? AND visibility = 'public'`,
+      [...wikilinks, tenant]
+    )
+
+    const edges: GraphEdge[] = []
+    for (const row of rows) {
+      const edge: GraphEdge = {
+        source: slug,
+        target: row.slug,
+        type: 'cross-tenant',
+        tenant, // edge owned by the linking tenant
+        weight: 1,
+      }
+      await this.upsertEdge(edge)
+      edges.push(edge)
+
+      // Also create a backlink edge on the target tenant's side
+      const backlink: GraphEdge = {
+        source: row.slug,
+        target: slug,
+        type: 'cross-tenant',
+        tenant: row.tenant, // edge owned by the target tenant
+        weight: 1,
+      }
+      await this.upsertEdge(backlink)
+      edges.push(backlink)
+    }
+
+    return edges
+  }
+
+  async queryNetwork(filter?: { tag?: string; type?: string; limit?: number }): Promise<GraphData> {
+    const conditions: string[] = ["visibility = 'public'"]
+    const params: unknown[] = []
+
+    if (filter?.tag) { conditions.push("tags LIKE ?"); params.push(`%"${filter.tag}"%`) }
+    if (filter?.type) { conditions.push('type = ?'); params.push(filter.type) }
+
+    const limit = Math.min(filter?.limit ?? 200, 500)
+
+    const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
+    const nodeRows = await this.db.query<{ slug: string; tenant: string; title: string; type: string; tags: string; visibility: string; author: string | null; date: string | null; url: string | null }>(
+      `SELECT slug, tenant, title, type, tags, visibility, author, date, url FROM graph_nodes ${where} ORDER BY date DESC LIMIT ?`,
+      [...params, limit]
+    )
+
+    const nodes: GraphNode[] = nodeRows.map(r => ({
+      slug: r.slug, tenant: r.tenant, title: r.title, type: r.type,
+      tags: JSON.parse(r.tags || '[]') as string[], visibility: r.visibility as 'public' | 'private',
+      author: r.author ?? undefined, date: r.date ?? undefined, url: r.url ?? undefined,
+    }))
+
+    // Get edges between these nodes (including cross-tenant)
+    if (nodes.length === 0) return { nodes, edges: [] }
+
+    const slugs = nodes.map(n => n.slug)
+    const edgePlaceholders = slugs.map(() => '?').join(',')
+    const edgeRows = await this.db.query<{ source: string; target: string; type: string; tenant: string; weight: number }>(
+      `SELECT DISTINCT source, target, type, tenant, weight FROM graph_edges
+       WHERE source IN (${edgePlaceholders}) AND target IN (${edgePlaceholders})`,
+      [...slugs, ...slugs]
+    )
+
+    const edges: GraphEdge[] = edgeRows.map(r => ({
+      source: r.source, target: r.target, type: r.type as GraphEdge['type'],
+      tenant: r.tenant, weight: r.weight,
+    }))
+
+    return { nodes, edges }
+  }
 }

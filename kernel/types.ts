@@ -238,4 +238,8 @@ export interface GraphPort {
   queryNodes(filter: { tag?: string; type?: string; tenant?: string; visibility?: 'public' | 'private' }): Promise<GraphNode[]>
   /** Get a single node by slug */
   getNode(slug: string, tenant?: string): Promise<GraphNode | null>
+  /** After ingesting content for a tenant, check if any wikilink targets match public nodes from OTHER tenants. Creates cross-tenant edges. */
+  resolveCrossTenantEdges(slug: string, wikilinks: string[], tenant: string): Promise<GraphEdge[]>
+  /** Query public nodes across ALL tenants (the network graph) */
+  queryNetwork(filter?: { tag?: string; type?: string; limit?: number }): Promise<GraphData>
 }
