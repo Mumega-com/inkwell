@@ -1,5 +1,6 @@
 import type { PluginManifest, HonoApp } from '../../kernel/types'
 import { paymentRoutes } from './routes'
+import { paymentsMcpTools } from './mcp-tools'
 
 const paymentsPlugin: PluginManifest = {
   name: 'payments',
@@ -10,6 +11,8 @@ const paymentsPlugin: PluginManifest = {
   mountRoutes: (app: HonoApp) => {
     app.route('/api/payments', paymentRoutes)
   },
+
+  mcpTools: paymentsMcpTools,
 
   configDefaults: {
     payments: {

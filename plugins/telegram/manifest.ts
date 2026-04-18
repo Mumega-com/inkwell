@@ -1,5 +1,6 @@
 import type { PluginManifest, HonoApp } from '../../kernel/types'
 import { telegramRoutes } from './routes'
+import { telegramMcpTools } from './mcp-tools'
 
 const telegramPlugin: PluginManifest = {
   name: 'telegram',
@@ -10,6 +11,8 @@ const telegramPlugin: PluginManifest = {
   mountRoutes: (app: HonoApp) => {
     app.route('/api/telegram', telegramRoutes)
   },
+
+  mcpTools: telegramMcpTools,
 
   configDefaults: {
     telegram: {

@@ -1,5 +1,6 @@
 import type { PluginManifest, HonoApp } from '../../kernel/types'
 import { mcpRoutes } from './routes'
+import { mcpOwnTools } from './mcp-tools'
 
 const mcpPlugin: PluginManifest = {
   name: 'mcp',
@@ -10,6 +11,8 @@ const mcpPlugin: PluginManifest = {
   mountRoutes: (app: HonoApp) => {
     app.route('/mcp', mcpRoutes)
   },
+
+  mcpTools: mcpOwnTools,
 
   configDefaults: {
     mcp: {
