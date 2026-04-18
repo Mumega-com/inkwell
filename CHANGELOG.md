@@ -2,6 +2,23 @@
 
 All notable changes to Inkwell. Format: [Keep a Changelog](https://keepachangelog.com/).
 
+## [6.1.0] — 2026-04-18
+
+### Added
+- **Cross-tenant edge resolution** — when tenant A's wikilink matches tenant B's public node, bidirectional cross-tenant edges are created automatically
+- **GraphPort.resolveCrossTenantEdges()** — finds matching public nodes from other tenants, creates edges
+- **GraphPort.queryNetwork()** — query public nodes across ALL tenants with tag/type/limit filters
+- **GET /api/graph/network** — the mycelium: public graph across all organisms
+- **GET /api/graph/search?q=** — text search across network (title + tags, public nodes only)
+- **POST /api/ingest** now auto-resolves cross-tenant edges and reports count in response
+- **SOS integration contract** — Codex reviewed and approved, 9 questions answered, port interfaces adjusted
+
+### Architecture
+- Cross-tenant edges form the mycorrhizal network — organisms discover each other through documentation
+- Privacy boundary enforced: only public nodes visible cross-tenant
+- BusPort.subscribe adjusted to return async unsubscribe handle (per Codex review)
+- EconomyPort.charge returns structured result with tx_id + remaining_balance (per Codex review)
+
 ## [6.0.0] — 2026-04-18
 
 ### Added

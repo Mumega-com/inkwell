@@ -4,7 +4,7 @@
 Forkable SaaS microkernel on Astro 6 + Cloudflare Workers. Config-driven, agent-first. Works standalone (Cloudflare only) or integrates with SOS (Sovereign Operating System). Designed to be forked per customer — one config file, zero code changes.
 
 ## Version
-v6.0.0 — MDX Knowledge Engine (8 ports, wiki-link graph, content ingest API)
+v6.1.0 — Cross-tenant graph, network API (the mycelium)
 
 ## Architecture: Microkernel
 
