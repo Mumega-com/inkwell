@@ -131,6 +131,28 @@ export const config = {
     'diagnostics', 'discovery', 'payments', 'questionnaire',
     'onboarding', 'notifications', 'organism',
   ],
+
+  // Adapters — which implementation to use for each port.
+  // Each key maps a port name to an adapter type.
+  // The adapter middleware resolves these at request time.
+  // To swap infrastructure, change the adapter type — no code changes needed.
+  //
+  // Available adapter types per port:
+  //   bus:     'standalone' | 'sos'
+  //   memory:  'standalone' | 'mirror'
+  //   economy: 'standalone' | 'sos'
+  //   agent:   'd1'
+  //   graph:   'd1'
+  //
+  // Adding a new adapter: create kernel/adapters/<name>.ts implementing the port,
+  // add it to the factory in middleware/adapters.ts, register the type here.
+  adapters: {
+    bus: 'standalone' as string,
+    memory: 'standalone' as string,
+    economy: 'standalone' as string,
+    agent: 'd1' as string,
+    graph: 'd1' as string,
+  },
 } as const
 
 export type InkwellConfig = typeof config

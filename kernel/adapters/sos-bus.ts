@@ -1,9 +1,12 @@
 import type { BusPort, BusMessage } from '../types'
 
 /**
- * SOS bus adapter — communicates via SOS MCP HTTP endpoints.
- * Uses the SOS bus API (send, broadcast, inbox) over HTTP.
+ * SOS bus adapter — communicates via the bus bridge REST API (:6380).
+ * The bridge exposes /send, /inbox, /broadcast, /peers as plain HTTP.
  * Subscribe is poll-based (SSE planned for SOS v0.8.x).
+ *
+ * NOTE: SOS_BUS_URL should point to the bus bridge (e.g. http://localhost:6380
+ * or the nginx proxy), NOT the MCP SSE server (:6070).
  */
 export class SOSBusAdapter implements BusPort {
   constructor(
@@ -13,17 +16,17 @@ export class SOSBusAdapter implements BusPort {
   ) {}
 
   async send(to: string, text: string): Promise<void> {
-    const body = { to, text: `${this.agentName} here: ${text}` }
+    // Bus bridge expects { from, to, text }
+    const body = { from: this.agentName, to, text: `${this.agentName} here: ${text}` }
     await this.post('/send', body)
   }
 
   async broadcast(text: string): Promise<void> {
-    await this.post('/broadcast', { text: `${this.agentName} here: ${text}` })
+    await this.post('/broadcast', { from: this.agentName, text: `${this.agentName} here: ${text}` })
   }
 
   async subscribe(callback: (msg: BusMessage) => Promise<void>): Promise<{ unsubscribe: () => Promise<void> }> {
     // Poll-based: SOS v0.7.x only supports inbox polling
-    // SSE streaming planned for v0.8.x
     let polling = true
     let lastTs = ''
 
@@ -40,7 +43,6 @@ export class SOSBusAdapter implements BusPort {
       }
     }
 
-    // Start polling in background (non-blocking)
     poll().catch(() => { polling = false })
 
     return {
@@ -49,7 +51,8 @@ export class SOSBusAdapter implements BusPort {
   }
 
   async inbox(limit?: number): Promise<BusMessage[]> {
-    const params = limit ? `?limit=${limit}` : ''
+    // Bus bridge expects ?agent=<name>&limit=<n>
+    const params = `?agent=${encodeURIComponent(this.agentName)}&limit=${limit ?? 10}`
     const res = await fetch(`${this.busUrl}/inbox${params}`, {
       headers: { 'Authorization': `Bearer ${this.token}` },
     })
