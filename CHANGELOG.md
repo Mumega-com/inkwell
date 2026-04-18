@@ -2,6 +2,39 @@
 
 All notable changes to Inkwell. Format: [Keep a Changelog](https://keepachangelog.com/).
 
+## [5.4.0] — 2026-04-18
+
+### Added
+- **SessionPort** — `get(key)`, `set(key, value, ttl?)`, `delete(key)` — abstracts session storage
+- **ContentPort** — `getPage(key)`, `putPage(key, html)`, `listPages(prefix)` — abstracts HTML content storage
+- **StoragePort** — `get(key)`, `put(key, data, contentType?)`, `delete(key)`, `list(prefix?)` — abstracts blob storage
+- **KVSessionAdapter** — CloudFlare KV implementation of SessionPort (with expirationTtl)
+- **KVContentAdapter** — CloudFlare KV implementation of ContentPort
+- **R2StorageAdapter** — CloudFlare R2 implementation of StoragePort
+- **Adapter middleware** — creates per-request port instances via Hono context (`c.get('sessions')`, `c.get('content')`, `c.get('storage')`)
+- **16 new tests** — kv-session (5), kv-content (4), r2-storage (7) — total 57 tests
+
+### Changed
+- All plugins migrated from `c.env.SESSIONS` / `c.env.CONTENT` to `c.get('sessions')` / `c.get('content')`
+- `tenant-cache.ts` rewritten to accept `SessionPort` instead of `KVNamespace`
+- `tenant-content.ts` rewritten to accept `ContentPort` instead of `KVNamespace`
+- Auth middleware uses `SessionPort` for session lookups (manual JSON.parse replaces KV's `get(key, 'json')`)
+- Worker index.ts: adapter middleware runs before tenant resolver (ordering fix)
+
+### Architecture
+- **Full hexagonal boundary**: 7 port interfaces (Database, Auth, CRM, Search, Session, Content, Storage)
+- Zero `c.env.DB_*`, `c.env.SESSIONS`, `c.env.CONTENT` references remain in plugins
+- Only `c.env.*` left in plugins: string config vars (STRIPE_SECRET_KEY, etc.) — universal across clouds
+- Plugin layer is now cloud-portable: same plugins run on CF, GC, or AWS with different adapters
+
+### Resolved
+- Non-DB env access (`c.env.SESSIONS`, `c.env.CONTENT`) fully ported to adapter ports
+- Per-request adapter instantiation via Hono context (no concurrent request race conditions)
+
+### Known Gaps (queued for v6.0)
+- SOS integration ports (Bus, Memory, Economy) defined in roadmap but not implemented
+- No GC/AWS adapter implementations yet (ports are ready, adapters are CF-only)
+
 ## [5.2.0] — 2026-04-18
 
 ### Added

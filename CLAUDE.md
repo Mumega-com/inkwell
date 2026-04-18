@@ -4,7 +4,7 @@
 Forkable SaaS microkernel on Astro 6 + Cloudflare Workers. Config-driven, agent-first. Works standalone (Cloudflare only) or integrates with SOS (Sovereign Operating System). Designed to be forked per customer — one config file, zero code changes.
 
 ## Version
-v5.3.0 — Microkernel + hexagonal adapters + RBAC + test suite + CI
+v5.4.0 — Full port isolation (7 ports, cloud-portable plugin layer)
 
 ## Architecture: Microkernel
 
@@ -69,21 +69,28 @@ interface PluginManifest {
 
 ### Port Interfaces (Hexagonal Architecture)
 ```typescript
-DatabasePort   // query(), execute(), batch() — wraps D1 or any relational store
+DatabasePort   // query(), queryOne(), execute(), batch() — wraps D1 or any relational store
 AuthPort       // getUser(), requireUser() — wraps CF Access, Auth.js, or SOS tokens
 CRMPort        // createContact(), updateContact(), createOpportunity()
 SearchPort     // index(), search() — wraps D1 full-text or SOS Mirror vectors
+SessionPort    // get(), set(ttl?), delete() — wraps KV, Redis, or any session store
+ContentPort    // getPage(), putPage(), listPages() — wraps KV, S3, or any content store
+StoragePort    // get(), put(), delete(), list() — wraps R2, S3, GCS, or any blob store
 ```
 
 ### Adapter Usage
 ```typescript
-// At startup (index.ts):
-setAdapter('database', new D1DatabaseAdapter(env.DB_CORE))
-setAdapter('auth', new CFAccessAuthAdapter())
+// Adapter middleware (per-request, via Hono context):
+c.set('db_core', new D1DatabaseAdapter(c.env.DB_CORE))
+c.set('sessions', new KVSessionAdapter(c.env.SESSIONS))
+c.set('content', new KVContentAdapter(c.env.CONTENT))
+c.set('storage', new R2StorageAdapter(c.env.MEDIA))
 
 // In plugin routes:
-const db = getAdapter('database')
-const results = await db.query('SELECT * FROM posts WHERE tenant = ?', [tenant])
+const db = c.get('db_core')
+const results = await db.query<Post>('SELECT * FROM posts WHERE tenant = ?', [tenant])
+const session = await c.get('sessions').get(`session:${token}`)
+const page = await c.get('content').getPage(`${tenant}:page:index.html`)
 ```
 
 ### RBAC Hierarchy
@@ -155,12 +162,12 @@ All from config → CSS vars: `--ink-primary`, `--ink-secondary`, `--ink-bg`, `-
 
 ## Testing
 ```bash
-npm test              # Kernel tests (41 tests, 4 files)
+npm test              # Kernel tests (57 tests, 7 files)
 npm run test:worker   # Worker integration tests (Cloudflare pool)
 bash scripts/fork-smoke.sh  # Fork smoke test (build with config-only changes)
 ```
 
-## Known Gaps (v5.4 sprint)
-- Non-DB env access (c.env.SESSIONS, c.env.CONTENT, Stripe, Twilio) not ported to adapters yet
+## Known Gaps (v6.0 sprint)
 - SOS integration ports (Bus, Memory, Economy) defined in roadmap but not implemented
+- No GC/AWS adapter implementations yet (ports are ready, adapters are CF-only)
 - See docs/ROADMAP.md for full version plan
