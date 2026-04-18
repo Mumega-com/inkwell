@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
-import { registerPlugin } from '../../../kernel/plugin-loader'
+import { registerPlugin, mountPluginRoutes } from '../../../kernel/plugin-loader'
+import { config } from '../../../inkwell.config'
 
 // Plugin manifests (all 16 plugins)
 import analyticsManifest from '../../../plugins/analytics/manifest'
@@ -21,40 +22,16 @@ import onboardingManifest from '../../../plugins/onboarding/manifest'
 import notificationsManifest from '../../../plugins/notifications/manifest'
 
 // Register all available plugins
-registerPlugin(analyticsManifest)
-registerPlugin(authManifest)
-registerPlugin(dashboardManifest)
-registerPlugin(commerceManifest)
-registerPlugin(contentManifest)
-registerPlugin(mcpManifest)
-registerPlugin(contractsManifest)
-registerPlugin(coursesManifest)
-registerPlugin(telegramManifest)
-registerPlugin(chatManifest)
-registerPlugin(diagnosticsManifest)
-registerPlugin(discoveryManifest)
-registerPlugin(paymentsManifest)
-registerPlugin(questionnaireManifest)
-registerPlugin(onboardingManifest)
-registerPlugin(notificationsManifest)
+const allPlugins = [
+  analyticsManifest, authManifest, dashboardManifest, commerceManifest,
+  contentManifest, mcpManifest, contractsManifest, coursesManifest,
+  telegramManifest, chatManifest, diagnosticsManifest, discoveryManifest,
+  paymentsManifest, questionnaireManifest, onboardingManifest, notificationsManifest,
+]
+for (const manifest of allPlugins) {
+  registerPlugin(manifest)
+}
 
-// Routes imported from plugins (single source of truth)
-import { analyticsRoutes } from '../../../plugins/analytics/routes'
-import { authRoutes } from '../../../plugins/auth/routes'
-import { chatRoutes } from '../../../plugins/chat/routes'
-import { contentRoutes } from '../../../plugins/content/routes-content'
-import { contractRoutes } from '../../../plugins/contracts/routes'
-import { courseRoutes } from '../../../plugins/courses/routes'
-import { dashboardRoutes } from '../../../plugins/dashboard/routes'
-import { diagnosticsRoutes } from '../../../plugins/diagnostics/routes'
-import { discoveryRoutes } from '../../../plugins/discovery/routes'
-import { glassRoutes } from '../../../plugins/commerce/routes'
-import { mcpRoutes } from '../../../plugins/mcp/routes'
-import { paymentRoutes } from '../../../plugins/payments/routes'
-import { publishingRoutes } from '../../../plugins/content/routes-publishing'
-import { questionnaireRoutes } from '../../../plugins/questionnaire/routes'
-import { telegramRoutes } from '../../../plugins/telegram/routes'
-import { routeGate } from './middleware/route-gate'
 import { tenantResolver } from './middleware/tenant'
 import { usageTracker } from './middleware/usage'
 import { scheduled } from './scheduled'
@@ -63,10 +40,9 @@ import type { AppBindings } from './types'
 const app = new Hono<AppBindings>()
 
 // ── Plugin System ──────────────────────────────────────────────────
-// All features are registered as plugins above.
-// config.plugins[] in inkwell.config.ts controls which are active.
-// Routes imported from plugins/ (single source of truth).
-// Phase 2 will migrate to plugin.mountRoutes() for dynamic loading.
+// Plugins declare mountRoutes() in their manifests.
+// config.plugins[] controls which are active — unlisted plugins
+// are registered but their routes are NOT mounted.
 // ───────────────────────────────────────────────────────────────────
 
 // ---------------------------------------------------------------------------
@@ -153,49 +129,11 @@ app.use('*', usageTracker())
 
 app.get('/health', (c) => c.json({ status: 'ok', ts: Date.now(), tenant: c.get('tenant_slug') }))
 
-// Core routes (always enabled)
-app.route('/api', analyticsRoutes)
-app.route('/api', contentRoutes)
-
-// Feature routes (gated by ENABLED_ROUTES env var)
-app.use('/api/auth/*', routeGate('auth'))
-app.route('/api/auth', authRoutes)
-
-app.use('/api/chat/*', routeGate('chat'))
-app.route('/api/chat', chatRoutes)
-
-app.use('/api/contracts/*', routeGate('contracts'))
-app.route('/api/contracts', contractRoutes)
-
-app.use('/api/courses/*', routeGate('courses'))
-app.route('/api/courses', courseRoutes)
-
-app.use('/api/dashboard/*', routeGate('dashboard'))
-app.route('/api/dashboard', dashboardRoutes)
-
-app.use('/api/diagnostics/*', routeGate('diagnostics'))
-app.route('/api/diagnostics', diagnosticsRoutes)
-
-app.use('/api/discovery/*', routeGate('discovery'))
-app.route('/api/discovery', discoveryRoutes)
-
-app.use('/api/glass/*', routeGate('glass'))
-app.route('/api/glass', glassRoutes)
-
-app.use('/api/payments/*', routeGate('payments'))
-app.route('/api/payments', paymentRoutes)
-
-app.use('/api/publishing/*', routeGate('publishing'))
-app.route('/api/publishing', publishingRoutes)
-
-app.use('/api/questionnaire/*', routeGate('questionnaire'))
-app.route('/api/questionnaire', questionnaireRoutes)
-
-app.use('/api/telegram/*', routeGate('telegram'))
-app.route('/api/telegram', telegramRoutes)
-
-app.use('/mcp', routeGate('mcp'))
-app.route('/mcp', mcpRoutes)
+// ── Plugin Routes ──────────────────────────────────────────────────
+// Kernel mounts routes for every plugin listed in config.plugins[].
+// Each plugin declares mountRoutes() in its manifest.
+// ───────────────────────────────────────────────────────────────────
+mountPluginRoutes(app, [...config.plugins])
 
 // Static page serving for tenant subdomains
 // Catches all non-API requests and serves pre-rendered HTML from KV

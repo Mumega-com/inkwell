@@ -1,10 +1,15 @@
-import type { PluginManifest } from '../../kernel/types'
+import type { PluginManifest, HonoApp } from '../../kernel/types'
+import { diagnosticsRoutes } from './routes'
 
 const diagnosticsPlugin: PluginManifest = {
   name: 'diagnostics',
   version: '1.0.0',
   description: 'Squad health narratives and alerts',
   requiredRole: 'admin',
+
+  mountRoutes: (app: HonoApp) => {
+    app.route('/api/diagnostics', diagnosticsRoutes)
+  },
 
   configDefaults: {
     diagnostics: {
