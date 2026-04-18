@@ -14,7 +14,7 @@
  */
 import type { MiddlewareHandler } from 'hono'
 import type { AppBindings } from '../types'
-import type { BusPort, MemoryPort, EconomyPort, AgentPort, GraphPort } from '../../../../kernel/types'
+import type { BusPort, MemoryPort, EconomyPort, AgentPort, GraphPort, MediaPort } from '../../../../kernel/types'
 import { config } from '../../../../inkwell.config'
 
 // ── Infrastructure adapters (always D1/KV/R2 on Cloudflare) ─────────────────
@@ -40,6 +40,9 @@ import { SOSMemoryAdapter } from '../../../../kernel/adapters/sos-memory'
 // ── Economy adapters ────────────────────────────────────────────────────────
 import { StandaloneEconomyAdapter } from '../../../../kernel/adapters/standalone-economy'
 import { SOSEconomyAdapter } from '../../../../kernel/adapters/sos-economy'
+
+// ── Media adapter ──────────────────────────────────────────────────────────
+import { CfMediaAdapter } from '../../../../kernel/adapters/cf-media'
 
 // ── Content Source adapters ─────────────────────────────────────────────────
 import type { ContentSourcePort } from '../../../../kernel/types'
@@ -183,6 +186,16 @@ export const adapterMiddleware: MiddlewareHandler<AppBindings> = async (c, next)
   c.set('bus', createBusAdapter(resolveAdapterType('bus', c.env), c.env, tenant))
   c.set('memory', createMemoryAdapter(resolveAdapterType('memory', c.env), c.env, tenant))
   c.set('economy', createEconomyAdapter(resolveAdapterType('economy', c.env), c.env))
+
+  // Media port — R2 + D1 + Workers AI
+  if (r2) {
+    c.set('media', new CfMediaAdapter({
+      r2: r2 as never,
+      db: dbCore,
+      ai: (c.env as Record<string, unknown>)['AI'] as never,
+      siteUrl: c.env.SITE_URL,
+    }))
+  }
 
   return next()
 }

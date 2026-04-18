@@ -1,5 +1,5 @@
 import type { D1Database, KVNamespace } from '@cloudflare/workers-types'
-import type { DatabasePort, SessionPort, ContentPort, StoragePort, GraphPort, AgentPort, BusPort, MemoryPort, EconomyPort } from '../../../kernel/types'
+import type { DatabasePort, SessionPort, ContentPort, StoragePort, GraphPort, AgentPort, BusPort, MemoryPort, EconomyPort, MediaPort } from '../../../kernel/types'
 
 export interface Env {
   DB_ANALYTICS: D1Database
@@ -50,6 +50,8 @@ export interface Env {
   SOS_ECONOMY_URL?: string     // SOS Economy service URL
   SOS_MIRROR_URL?: string      // SOS Mirror memory service URL
   SOS_MODE?: string            // 'sos' | 'standalone' — defaults to standalone
+  // Workers AI (v7.1)
+  AI?: { run(model: string, inputs: Record<string, unknown>): Promise<unknown> }
 }
 
 export interface AuthSession {
@@ -88,5 +90,6 @@ export type AppBindings = {
     bus: BusPort
     memory: MemoryPort
     economy: EconomyPort
+    media: MediaPort
   }
 }

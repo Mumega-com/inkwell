@@ -100,7 +100,7 @@ SOS_ECONOMY_URL = "..."  // SOS Economy endpoint
 
 Plugin declares `requiredRole: 'manager'` → only manager, admin, owner can access.
 
-## Plugins (18 active)
+## Plugins (19 active)
 | Plugin | Role | Lines | Components |
 |--------|------|-------|------------|
 | dashboard | viewer | 2630 | ArrowDashboard, TaskBoard, WalletView, SquadPanel, ConnectPanel, SettingsForm, AssistantChat |
@@ -117,11 +117,12 @@ Plugin declares `requiredRole: 'manager'` → only manager, admin, owner can acc
 | notifications | (default) | 237 | NotificationBell |
 | organism | admin | 700+ | — |
 | sync | admin | 97 | — |
+| media | member | 120 | — |
 
-## MCP Tools (12)
-`publish_content`, `get_dashboard`, `get_seo_data`, `get_leads`, `create_checkout`, `subscription_status`, `send_telegram`, `site_info`, `remember`, `recall`, `create_task`, `browse_marketplace`
+## MCP Tools (16)
+`publish_content`, `get_dashboard`, `get_seo_data`, `get_leads`, `create_checkout`, `subscription_status`, `send_telegram`, `site_info`, `remember`, `recall`, `create_task`, `browse_marketplace`, `upload_media`, `describe_image`, `generate_image`, `search_media`
 
-Last 4 are Network tools (require `NETWORK_API_URL` + `NETWORK_TOKEN` env vars). Without them, standalone Inkwell has 8 tools.
+Last 4 of the first 12 are Network tools (require `NETWORK_API_URL` + `NETWORK_TOKEN` env vars). Media tools (last 4) require R2 + Workers AI bindings.
 
 ## Commands
 ```bash
@@ -166,7 +167,7 @@ All from config → CSS vars: `--ink-primary`, `--ink-secondary`, `--ink-bg`, `-
 
 ## Testing
 ```bash
-npm test              # Kernel tests (112 tests, 11 files)
+npm test              # Kernel tests (123 tests, 12 files)
 npm run test:worker   # Worker integration tests (Cloudflare pool)
 bash scripts/fork-smoke.sh  # Fork smoke test (build with config-only changes)
 ```

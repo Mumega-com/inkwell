@@ -3,7 +3,7 @@ import { cors } from 'hono/cors'
 import { registerPlugin, getActivePlugins } from '../../../kernel/plugin-loader'
 import { config } from '../../../inkwell.config'
 
-// Plugin manifests (all 16 plugins)
+// Plugin manifests (all 19 plugins)
 import analyticsManifest from '../../../plugins/analytics/manifest'
 import authManifest from '../../../plugins/auth/manifest'
 import dashboardManifest from '../../../plugins/dashboard/manifest'
@@ -22,6 +22,7 @@ import onboardingManifest from '../../../plugins/onboarding/manifest'
 import notificationsManifest from '../../../plugins/notifications/manifest'
 import organismManifest from '../../../plugins/organism/manifest'
 import syncManifest from '../../../plugins/sync/manifest'
+import mediaManifest from '../../../plugins/media/manifest'
 
 // Register all available plugins
 const allPlugins = [
@@ -29,7 +30,7 @@ const allPlugins = [
   contentManifest, mcpManifest, contractsManifest, coursesManifest,
   telegramManifest, chatManifest, diagnosticsManifest, discoveryManifest,
   paymentsManifest, questionnaireManifest, onboardingManifest, notificationsManifest,
-  organismManifest, syncManifest,
+  organismManifest, syncManifest, mediaManifest,
 ]
 for (const manifest of allPlugins) {
   registerPlugin(manifest)

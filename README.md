@@ -52,7 +52,7 @@ inkwell.config.ts                 <-- One file drives everything
 
 ## What's Inside
 
-### 18 Plugins
+### 19 Plugins
 
 | Plugin | What it does |
 |--------|-------------|
@@ -74,8 +74,9 @@ inkwell.config.ts                 <-- One file drives everything
 | **questionnaire** | Survey builder with scoring |
 | **chat** | Live chat widget |
 | **sync** | Pull content from external sources -- Obsidian, GitHub, Notion, Google Drive |
+| **media** | AI-powered media pipeline -- upload, vision analysis, transcription, image generation |
 
-### 13 Hexagonal Ports
+### 14 Hexagonal Ports
 
 Swap infrastructure without changing plugin code:
 
@@ -86,6 +87,7 @@ Swap infrastructure without changing plugin code:
 | `SessionPort` | KV, Redis -- get, set, delete |
 | `ContentPort` | KV, S3 -- getPage, putPage, listPages |
 | `ContentSourcePort` | Obsidian, GitHub, Notion, Google Drive -- sync external content |
+| `MediaPort` | R2 + Workers AI -- upload, vision analysis, transcription, image generation |
 | `StoragePort` | R2, S3, GCS -- blob storage |
 | `GraphPort` | D1 -- knowledge graph nodes, edges, backlinks |
 | `AgentPort` | D1 -- provision, budget, usage tracking |
@@ -127,7 +129,7 @@ Each source implements `ContentSourcePort` -- list all content or sync increment
 - Mobile-responsive: sidebar on desktop, bottom tabs on mobile
 - RBAC: `owner > admin > manager > member > viewer`
 
-### MCP Server -- 12 Tools
+### MCP Server -- 16 Tools
 
 Any AI agent connects with one URL:
 
@@ -145,6 +147,10 @@ Any AI agent connects with one URL:
 | `recall` | Retrieve from agent memory |
 | `create_task` | Create a task for your team |
 | `browse_marketplace` | Discover plugins and services |
+| `upload_media` | Upload image/video, auto-analyze with AI |
+| `describe_image` | Run vision analysis on an asset |
+| `generate_image` | Generate image from text prompt |
+| `search_media` | Search media by text query |
 
 ---
 
@@ -296,7 +302,7 @@ instances/                     # Per-deployment overrides
 | `npm run publish` | Ingest + build + commit + push |
 | `npm run migrate` | Apply D1 migrations (local) |
 | `npm run migrate:prod` | Apply D1 migrations (remote) |
-| `npm test` | Kernel tests (112 tests) |
+| `npm test` | Kernel tests (123 tests) |
 | `npm run test:worker` | Worker integration tests (39 tests) |
 
 ---
@@ -325,7 +331,7 @@ instances/                     # Per-deployment overrides
 | Media | R2 |
 | Payments | Stripe Connect |
 | Auth | Passwordless OTP (built-in) |
-| AI | MCP server (12 tools) |
+| AI | MCP server (16 tools), Workers AI (vision, Whisper, Flux) |
 | Hosting | Cloudflare Pages (free tier) |
 
 ---

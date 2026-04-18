@@ -376,3 +376,55 @@ export interface ContentSourcePort {
   /** Fetch only items changed since the given ISO timestamp. If omitted, returns all. */
   sync(since?: string): Promise<ContentSourceItem[]>
 }
+
+// ─── Media Port (v7.1) ────────────────────────────────────────────────────
+
+/** A media asset stored and analyzed by Inkwell */
+export interface MediaAsset {
+  id: string
+  tenant?: string
+  filename: string
+  contentType: string
+  r2Key: string
+  width?: number
+  height?: number
+  sizeBytes: number
+  altText?: string
+  description?: string
+  tags: string[]
+  thumbhash?: string
+  nsfwScore?: number
+  transcript?: string
+  chapters?: Array<{ time: number; title: string }>
+  variants: Record<string, string>  // variant name → URL
+  graphSlug?: string
+  sourceType: 'upload' | 'generate' | 'import'
+  createdAt: string
+  updatedAt: string
+}
+
+/**
+ * Media port — AI-powered media pipeline for images and video.
+ * Handles upload, AI analysis (vision + transcription), transforms,
+ * image generation, and search. Assets become knowledge graph nodes.
+ */
+export interface MediaPort {
+  /** Upload a file, store in R2, run AI analysis, return enriched asset */
+  upload(file: ArrayBuffer, filename: string, contentType: string, tenant?: string): Promise<MediaAsset>
+  /** Get asset metadata by ID */
+  get(id: string): Promise<MediaAsset | null>
+  /** Run AI vision analysis on an image asset — returns alt text, description, tags, NSFW score */
+  describe(id: string): Promise<{ altText: string; description: string; tags: string[]; nsfwScore: number }>
+  /** Transcribe a video/audio asset — returns transcript and auto-generated chapters */
+  transcribe(id: string): Promise<{ transcript: string; chapters: Array<{ time: number; title: string }> }>
+  /** Get a transformed variant URL (e.g. 'thumbnail', 'hero', 'og') */
+  transform(id: string, variant: string): Promise<string>
+  /** Search assets by text query (matches alt text, description, tags, transcript) */
+  search(query: string, tenant?: string, limit?: number): Promise<MediaAsset[]>
+  /** List assets with cursor pagination */
+  list(tenant?: string, cursor?: string, limit?: number): Promise<{ assets: MediaAsset[]; cursor?: string }>
+  /** Delete an asset and its R2 object */
+  delete(id: string): Promise<void>
+  /** Generate an image from a text prompt using Workers AI */
+  generateImage(prompt: string, tenant?: string): Promise<MediaAsset>
+}

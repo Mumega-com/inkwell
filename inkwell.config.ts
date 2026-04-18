@@ -176,7 +176,7 @@ export const config = {
     'analytics', 'auth', 'dashboard', 'commerce', 'content', 'mcp',
     'contracts', 'courses', 'telegram', 'chat',
     'diagnostics', 'discovery', 'payments', 'questionnaire',
-    'onboarding', 'notifications', 'organism', 'sync',
+    'onboarding', 'notifications', 'organism', 'sync', 'media',
   ],
 
   // Adapters — which implementation to use for each port.
@@ -199,6 +199,7 @@ export const config = {
     economy: 'standalone' as string,
     agent: 'd1' as string,
     graph: 'd1' as string,
+    media: 'cf' as string,
   },
 } as const
 
