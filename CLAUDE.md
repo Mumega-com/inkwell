@@ -18,7 +18,7 @@ inkwell.config.ts          ← ALL configuration (one file)
     |   roles.ts           ← RBAC hierarchy + permission checks
     |   theme.ts           ← Config → CSS custom properties
         |
-    plugins/               ← 12 self-contained vertical modules
+    plugins/               ← 18 self-contained vertical modules
     |   {name}/manifest.ts ← Name, version, requiredRole, configDefaults
     |   {name}/routes.ts   ← Hono router (Worker backend)
     |   {name}/components/ ← React islands (client-side)
@@ -81,6 +81,7 @@ AgentPort      // provision(), getConfig(), updateConfig(), recordUsage(), check
 BusPort        // send(), broadcast(), subscribe(), inbox() — SOS or standalone
 MemoryPort     // remember(), recall(), search() — Mirror or standalone
 EconomyPort    // recordUsage(), getBalance(), charge(), transfer() — SOS or Stripe
+ContentSourcePort // list(), sync(since?) — Obsidian, GitHub, Notion, Google Drive (array of adapters)
 ```
 
 ### SOS Mode
@@ -99,7 +100,7 @@ SOS_ECONOMY_URL = "..."  // SOS Economy endpoint
 
 Plugin declares `requiredRole: 'manager'` → only manager, admin, owner can access.
 
-## Plugins (17 active)
+## Plugins (18 active)
 | Plugin | Role | Lines | Components |
 |--------|------|-------|------------|
 | dashboard | viewer | 2630 | ArrowDashboard, TaskBoard, WalletView, SquadPanel, ConnectPanel, SettingsForm, AssistantChat |
@@ -115,6 +116,7 @@ Plugin declares `requiredRole: 'manager'` → only manager, admin, owner can acc
 | onboarding | (default) | 542 | OnboardingWizard |
 | notifications | (default) | 237 | NotificationBell |
 | organism | admin | 700+ | — |
+| sync | admin | 97 | — |
 
 ## MCP Tools (12)
 `publish_content`, `get_dashboard`, `get_seo_data`, `get_leads`, `create_checkout`, `subscription_status`, `send_telegram`, `site_info`, `remember`, `recall`, `create_task`, `browse_marketplace`
@@ -164,7 +166,7 @@ All from config → CSS vars: `--ink-primary`, `--ink-secondary`, `--ink-bg`, `-
 
 ## Testing
 ```bash
-npm test              # Kernel tests (90 tests, 9 files)
+npm test              # Kernel tests (112 tests, 11 files)
 npm run test:worker   # Worker integration tests (Cloudflare pool)
 bash scripts/fork-smoke.sh  # Fork smoke test (build with config-only changes)
 ```

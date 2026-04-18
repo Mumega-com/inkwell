@@ -41,6 +41,52 @@ import { SOSMemoryAdapter } from '../../../../kernel/adapters/sos-memory'
 import { StandaloneEconomyAdapter } from '../../../../kernel/adapters/standalone-economy'
 import { SOSEconomyAdapter } from '../../../../kernel/adapters/sos-economy'
 
+// ── Content Source adapters ─────────────────────────────────────────────────
+import type { ContentSourcePort } from '../../../../kernel/types'
+import { GitHubContentSource } from '../../../../kernel/adapters/source-github'
+import { NotionContentSource } from '../../../../kernel/adapters/source-notion'
+import { GoogleDriveSourceAdapter } from '../../../../kernel/adapters/source-gdrive'
+
+/**
+ * Create content source adapters from config.contentSources[].
+ * Called by the sync plugin — not per-request middleware.
+ * Obsidian adapter requires a VaultFS, so it's skipped in Worker context
+ * (use CLI sync for local vaults).
+ */
+export function createContentSources(env: Env): ContentSourcePort[] {
+  const sources: ContentSourcePort[] = []
+  for (const src of config.contentSources) {
+    switch (src.type) {
+      case 'github':
+        sources.push(new GitHubContentSource({
+          owner: src.owner,
+          repo: src.repo,
+          branch: src.branch,
+          path: src.path,
+          token: (env as Record<string, string>).GITHUB_TOKEN,
+        }))
+        break
+      case 'notion':
+        sources.push(new NotionContentSource({
+          token: (env as Record<string, string>).NOTION_TOKEN ?? '',
+          databaseId: src.databaseId,
+        }))
+        break
+      case 'gdrive':
+        sources.push(new GoogleDriveSourceAdapter({
+          accessToken: (env as Record<string, string>).GDRIVE_TOKEN ?? '',
+          folderId: src.folderId,
+        }))
+        break
+      case 'obsidian':
+        // Obsidian adapter requires VaultFS — not available in Worker context.
+        // Use the CLI sync command or provide a VaultFS backed by R2/KV.
+        break
+    }
+  }
+  return sources
+}
+
 // ── Adapter Factories ───────────────────────────────────────────────────────
 // Each factory takes the env and returns the adapter instance.
 // To add a new implementation, add a case here.

@@ -52,7 +52,7 @@ inkwell.config.ts                 <-- One file drives everything
 
 ## What's Inside
 
-### 17 Plugins
+### 18 Plugins
 
 | Plugin | What it does |
 |--------|-------------|
@@ -73,8 +73,9 @@ inkwell.config.ts                 <-- One file drives everything
 | **organism** | Managed AI agent -- provision, budget, usage tracking |
 | **questionnaire** | Survey builder with scoring |
 | **chat** | Live chat widget |
+| **sync** | Pull content from external sources -- Obsidian, GitHub, Notion, Google Drive |
 
-### 12 Hexagonal Ports
+### 13 Hexagonal Ports
 
 Swap infrastructure without changing plugin code:
 
@@ -84,6 +85,7 @@ Swap infrastructure without changing plugin code:
 | `AuthPort` | CF Access, Auth.js, custom -- getUser, requireUser |
 | `SessionPort` | KV, Redis -- get, set, delete |
 | `ContentPort` | KV, S3 -- getPage, putPage, listPages |
+| `ContentSourcePort` | Obsidian, GitHub, Notion, Google Drive -- sync external content |
 | `StoragePort` | R2, S3, GCS -- blob storage |
 | `GraphPort` | D1 -- knowledge graph nodes, edges, backlinks |
 | `AgentPort` | D1 -- provision, budget, usage tracking |
@@ -92,6 +94,21 @@ Swap infrastructure without changing plugin code:
 | `BusPort` | Standalone or network -- send, broadcast, subscribe |
 | `MemoryPort` | Standalone or vector -- remember, recall |
 | `EconomyPort` | Standalone or network -- charge, transfer, balance |
+
+### Content Sources
+
+Sync content from external systems into Inkwell. Configure in `inkwell.config.ts`:
+
+```typescript
+contentSources: [
+  { type: 'obsidian', vaultPath: '/path/to/vault' },
+  { type: 'github', owner: 'org', repo: 'docs', path: 'content/' },
+  { type: 'notion', databaseId: 'abc123' },
+  { type: 'gdrive', folderId: 'xyz789' },
+]
+```
+
+Each source implements `ContentSourcePort` -- list all content or sync incrementally since a timestamp. The sync plugin (`POST /api/sync`) pulls from all configured sources, compiles MDX, stores HTML in KV, and upserts knowledge graph nodes. Credentials come from env vars (`GITHUB_TOKEN`, `NOTION_TOKEN`, `GDRIVE_TOKEN`).
 
 ### Content Engine
 
@@ -279,7 +296,7 @@ instances/                     # Per-deployment overrides
 | `npm run publish` | Ingest + build + commit + push |
 | `npm run migrate` | Apply D1 migrations (local) |
 | `npm run migrate:prod` | Apply D1 migrations (remote) |
-| `npm test` | Kernel tests (100 tests) |
+| `npm test` | Kernel tests (112 tests) |
 | `npm run test:worker` | Worker integration tests (39 tests) |
 
 ---

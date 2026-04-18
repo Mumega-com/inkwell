@@ -98,6 +98,17 @@ export const config = {
     defaultAuthor: { name: 'Inkwell', url: 'https://inkwell.dev' },
   },
 
+  // Content sources — external systems that sync content into Inkwell.
+  // Each entry creates a ContentSourcePort adapter. The sync plugin pulls from all.
+  // Credentials come from env vars (NOTION_TOKEN, GITHUB_TOKEN, GDRIVE_TOKEN).
+  // Forks enable whichever sources they use. Empty array = manual content only.
+  contentSources: [] as Array<
+    | { type: 'obsidian'; vaultPath: string; glob?: string }
+    | { type: 'github'; owner: string; repo: string; branch?: string; path?: string }
+    | { type: 'notion'; databaseId: string }
+    | { type: 'gdrive'; folderId: string }
+  >,
+
   // Network — how this instance connects to external services.
   // Forks override these. Standalone instances leave them empty.
   network: {
@@ -165,7 +176,7 @@ export const config = {
     'analytics', 'auth', 'dashboard', 'commerce', 'content', 'mcp',
     'contracts', 'courses', 'telegram', 'chat',
     'diagnostics', 'discovery', 'payments', 'questionnaire',
-    'onboarding', 'notifications', 'organism',
+    'onboarding', 'notifications', 'organism', 'sync',
   ],
 
   // Adapters — which implementation to use for each port.

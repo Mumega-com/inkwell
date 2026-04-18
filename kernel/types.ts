@@ -345,3 +345,34 @@ export interface EconomyPort {
   /** Transfer between tenants */
   transfer(from: string, to: string, amount: number, reason: string): Promise<ChargeResult>
 }
+
+// ─── Content Source Port (v7.1) ─────────────────────────────────────────────
+
+/** A single content item pulled from an external source */
+export interface ContentSourceItem {
+  /** URL-safe identifier derived from the source (filename, page id, etc.) */
+  slug: string
+  /** Human-readable title */
+  title: string
+  /** Raw markdown or MDX content */
+  content: string
+  /** ISO timestamp of last modification in the source */
+  updatedAt: string
+  /** Source-specific metadata (file path, notion page id, drive file id, etc.) */
+  metadata?: Record<string, unknown>
+}
+
+/**
+ * Content source port — pulls content from external systems into Inkwell.
+ * Each adapter implements one source type (Obsidian vault, Notion database,
+ * GitHub repo, Google Drive folder). The sync plugin calls these to feed
+ * the /api/ingest pipeline.
+ */
+export interface ContentSourcePort {
+  /** Human-readable name of this source (e.g. 'obsidian', 'notion') */
+  name: string
+  /** List all available content items from the source */
+  list(): Promise<ContentSourceItem[]>
+  /** Fetch only items changed since the given ISO timestamp. If omitted, returns all. */
+  sync(since?: string): Promise<ContentSourceItem[]>
+}
