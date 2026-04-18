@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
-import { registerPlugin, mountPluginRoutes } from '../../../kernel/plugin-loader'
+import { registerPlugin, getActivePlugins } from '../../../kernel/plugin-loader'
 import { config } from '../../../inkwell.config'
 
 // Plugin manifests (all 16 plugins)
@@ -34,6 +34,8 @@ for (const manifest of allPlugins) {
 
 import { tenantResolver } from './middleware/tenant'
 import { usageTracker } from './middleware/usage'
+import { authSessionMiddleware } from './middleware/auth'
+import { requireRole } from './middleware/rbac'
 import { scheduled } from './scheduled'
 import type { AppBindings } from './types'
 
@@ -127,13 +129,28 @@ app.use('*', tenantResolver())
 // API usage tracking per tenant per day (fire-and-forget, non-blocking)
 app.use('*', usageTracker())
 
+// Session resolution (non-blocking: null = unauthenticated)
+app.use('*', authSessionMiddleware)
+
 app.get('/health', (c) => c.json({ status: 'ok', ts: Date.now(), tenant: c.get('tenant_slug') }))
 
-// ── Plugin Routes ──────────────────────────────────────────────────
-// Kernel mounts routes for every plugin listed in config.plugins[].
-// Each plugin declares mountRoutes() in its manifest.
+// ── Plugin Routes with RBAC ────────────────────────────────────────
+// Each plugin declares mountRoutes() + requiredRole in its manifest.
+// The kernel resolves the user's role and gates access per-plugin.
+// System tokens (PUBLISH_TOKEN, INKWELL_MCP_TOKEN) bypass RBAC.
 // ───────────────────────────────────────────────────────────────────
-mountPluginRoutes(app, [...config.plugins])
+for (const plugin of getActivePlugins([...config.plugins])) {
+  if (!plugin.mountRoutes) continue
+
+  if (plugin.requiredRole && plugin.requiredRole !== 'viewer') {
+    const guarded = new Hono<AppBindings>()
+    guarded.use('*', requireRole(plugin.requiredRole))
+    plugin.mountRoutes(guarded as never)
+    app.route('/', guarded)
+  } else {
+    plugin.mountRoutes(app as never)
+  }
+}
 
 // Static page serving for tenant subdomains
 // Catches all non-API requests and serves pre-rendered HTML from KV

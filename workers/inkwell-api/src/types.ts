@@ -56,6 +56,7 @@ export interface AuthSession {
   contactValue: string
   contactNormalized: string
   fullName: string | null
+  role?: string
   createdAt: string
   expiresAt: string
 }
