@@ -2,6 +2,36 @@
 
 All notable changes to Inkwell. Format: [Keep a Changelog](https://keepachangelog.com/).
 
+## [7.0.0] — 2026-04-18
+
+### Added
+- **Organism Plugin** — managed agent provisioning, config, budget tracking per tenant
+- **AgentPort** — 9th hexagonal port: provision(), getConfig(), updateConfig(), recordUsage(), checkBudget()
+- **BusPort** — 10th hexagonal port: send(), broadcast(), subscribe(), inbox()
+- **MemoryPort** — 11th hexagonal port: remember(), recall(), search()
+- **EconomyPort** — 12th hexagonal port (was 11th): recordUsage(), getBalance(), charge(), transfer()
+- **D1AgentAdapter** — agent config + usage tracking backed by D1
+- **SOSBusAdapter** — SOS bus over HTTP (poll-based, SSE planned for v0.8.x)
+- **SOSMemoryAdapter** — Mirror vector memory with tenant prefix isolation
+- **SOSEconomyAdapter** — SOS Economy REST API
+- **StandaloneBusAdapter** — no-op for Inkwell without SOS
+- **StandaloneMemoryAdapter** — in-memory keyword search
+- **StandaloneEconomyAdapter** — unlimited balance (Stripe handles billing)
+- **Agent-to-agent transactions**: POST /api/network/quote, /quote/respond, /transact
+- **Graph-driven discovery**: GET /api/network/discover (BFS + cross-tenant grouping)
+- **Reputation scoring**: GET /api/network/reputation (nodes + inbound links × 3)
+- **Plugin marketplace**: GET /api/marketplace, POST /publish, /install, DELETE /uninstall
+- **D1 migrations 0010-0011** — agent_configs, agent_usage, tenant_plugins
+- **10 new tests** — D1AgentAdapter (7), standalone adapters (3) — total 100 tests
+
+### Architecture
+- 11 port interfaces: Database, Auth, CRM, Search, Session, Content, Storage, Graph, Agent, Bus, Memory, Economy
+- SOS_MODE env var switches between SOS and standalone adapters automatically
+- Organisms discover each other through graph proximity, transact via bus + economy
+- Plugin marketplace uses graph (type='plugin') — no separate registry needed
+- Bundle: 383 KiB / ~90 KiB gzip (within 1MB Worker limit)
+- 17 plugins active
+
 ## [6.1.0] — 2026-04-18
 
 ### Added

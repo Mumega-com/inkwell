@@ -36,50 +36,29 @@
 
 ---
 
-## Next
+### v6.1 — Cross-Tenant Graph (the mycelium) — SHIPPED 2026-04-18
+- Cross-tenant edge resolution via GraphPort.resolveCrossTenantEdges()
+- `GET /api/graph/network` — federated public graph
+- `GET /api/graph/search?q=` — text search across network
+- Privacy boundary enforced: only public nodes visible cross-tenant
 
-### v6.1 — Cross-Tenant Graph (the mycelium)
-**Goal:** Organisms discover each other through their own documentation.
+### v6.2 — Managed Agent Integration — SHIPPED 2026-04-18
+- `POST /api/organism/activate` — provisions managed agent per tenant
+- AgentPort interface + D1AgentAdapter
+- Per-tenant agent config (model, system prompt, MCP servers, tools)
+- Budget tracking: daily + monthly caps, usage accumulation
 
-- Cross-tenant edge resolution: when tenant A links to `[[flour-supplier]]` and tenant B's node is named `flour-supplier`, create a cross-tenant edge
-- Public graph federation: `GET /api/graph/network` — aggregated public nodes across tenants
-- Graph search: `GET /api/graph/search?q=organic+flour` — semantic search across the network
-- Privacy boundary: only public nodes visible cross-tenant, private stays private
-- Backlink notifications: when another organism links to you, notify via bus
-- Output: **businesses find each other by documenting themselves, not by searching**
+### v6.3 — SOS Integration Ports — SHIPPED 2026-04-18
+- BusPort + SOSBusAdapter + StandaloneBusAdapter
+- MemoryPort + SOSMemoryAdapter + StandaloneMemoryAdapter
+- EconomyPort + SOSEconomyAdapter + StandaloneEconomyAdapter
+- SOS_MODE env var switches adapters automatically
 
-### v6.2 — Managed Agent Integration
-**Goal:** Each organism gets its own agent via Anthropic Managed Agents.
-
-- `POST /api/organism/activate` — provisions a Managed Agent (model + MCP + environment)
-- Agent config stored per tenant (system prompt, tools, MCP server URL)
-- Agent connects to SOS MCP for bus, memory, tasks
-- Agent connects to Inkwell MCP for content, graph, commerce
-- Budget tracking per organism (session-hours + tokens)
-- Haiku-first metabolism: routine ops on cheap model, escalate to Sonnet for judgment
-- Output: **customer signs up, gets an AI operator that documents and runs their business**
-
-### v6.3 — SOS Integration Ports
-**Goal:** Inkwell organisms can coordinate through the nervous system.
-
-- BusPort — send(), broadcast(), subscribe() via SOS bus
-- MemoryPort — remember(), recall(), search() via Mirror
-- EconomyPort — recordUsage(), getBalance(), charge() via SOS Economy
-- SOS adapters (Redis bus, Mirror API, Economy service)
-- Standalone adapters (no-op bus, KV memory, Stripe direct)
-- Config: `mode: 'sos' | 'standalone'`
-- Output: **organisms talk to each other, remember everything, trade value**
-
-### v7.0 — The Superorganism
-**Goal:** The network runs itself.
-
-- Agent-to-agent transactions: quote → negotiate → contract → payment (no human needed for routine)
-- Graph-driven discovery: agents find suppliers/partners through cross-tenant edges
-- Economy loops: organisms earn tokens by helping the network, spend tokens on compute
-- Self-organizing supply chains: tag clusters become industry verticals automatically
-- Reputation from graph: organisms with more backlinks = more trusted (PageRank for businesses)
-- Plugin marketplace: community-built plugins installed per-tenant from the graph
-- Output: **an economy of AI-operated businesses that coordinate through shared documentation**
+### v7.0 — The Superorganism — SHIPPED 2026-04-18
+- Agent-to-agent transactions: quote → respond → transact
+- Graph-driven discovery: BFS + cross-tenant grouping
+- Reputation scoring: PageRank-style (nodes + inbound × 3)
+- Plugin marketplace: publish/install/uninstall via graph
 
 ---
 
@@ -97,14 +76,27 @@ Customer signs up
   → The network grows smarter with every page published
 ```
 
-## Metrics That Matter
+## Metrics
 
-| Metric | v6.0 (now) | v7.0 (target) |
-|--------|-----------|---------------|
-| Ports | 8 | 11 (+ Bus, Memory, Economy) |
-| Plugins | 16 | 20+ (community marketplace) |
-| Tests | 90 | 200+ |
-| Bundle | 353 KiB | < 500 KiB |
-| Organisms | 1 (Viamar) | 1,000+ |
+| Metric | v6.0 | v7.0 (shipped) |
+|--------|------|----------------|
+| Ports | 8 | 11 (+ Agent, Bus, Memory, Economy) |
+| Plugins | 16 | 17 (+ organism) |
+| Tests | 90 | 100 |
+| Bundle | 353 KiB | 383 KiB |
+| Organisms | 1 (Viamar) | ready for 1,000+ |
 | Graph edges | manual | self-organizing |
 | Agent cost/mo | n/a | ~$5 (Haiku-first) |
+
+---
+
+## Next
+
+### v7.1+ — Hardening
+- Anthropic Managed Agent API integration (actual provisioning call)
+- Mirror tenant isolation (blocked on SOS v0.8.0)
+- Bus SSE streaming (blocked on SOS v0.8.x)
+- Economy MCP tools (blocked on SOS v0.7.3)
+- GC/AWS adapter implementations
+- More tests (target 200+)
+- Plugin marketplace UI in dashboard

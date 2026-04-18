@@ -4,7 +4,7 @@
 Forkable SaaS microkernel on Astro 6 + Cloudflare Workers. Config-driven, agent-first. Works standalone (Cloudflare only) or integrates with SOS (Sovereign Operating System). Designed to be forked per customer — one config file, zero code changes.
 
 ## Version
-v6.1.0 — Cross-tenant graph, network API (the mycelium)
+v7.0.0 — The Superorganism (agents, transactions, discovery, marketplace)
 
 ## Architecture: Microkernel
 
@@ -77,21 +77,21 @@ SessionPort    // get(), set(ttl?), delete() — wraps KV, Redis, or any session
 ContentPort    // getPage(), putPage(), listPages() — wraps KV, S3, or any content store
 StoragePort    // get(), put(), delete(), list() — wraps R2, S3, GCS, or any blob store
 GraphPort      // upsertNode(), upsertEdge(), getBacklinks(), getNeighbors(), queryNodes()
+AgentPort      // provision(), getConfig(), updateConfig(), recordUsage(), checkBudget()
+BusPort        // send(), broadcast(), subscribe(), inbox() — SOS or standalone
+MemoryPort     // remember(), recall(), search() — Mirror or standalone
+EconomyPort    // recordUsage(), getBalance(), charge(), transfer() — SOS or Stripe
 ```
 
-### Adapter Usage
+### SOS Mode
 ```typescript
-// Adapter middleware (per-request, via Hono context):
-c.set('db_core', new D1DatabaseAdapter(c.env.DB_CORE))
-c.set('sessions', new KVSessionAdapter(c.env.SESSIONS))
-c.set('content', new KVContentAdapter(c.env.CONTENT))
-c.set('storage', new R2StorageAdapter(c.env.MEDIA))
+// wrangler.toml or env:
+SOS_MODE = "sos"         // activates SOS adapters (bus, memory, economy)
+SOS_BUS_URL = "..."      // SOS bus endpoint
+SOS_MIRROR_URL = "..."   // Mirror memory endpoint
+SOS_ECONOMY_URL = "..."  // SOS Economy endpoint
 
-// In plugin routes:
-const db = c.get('db_core')
-const results = await db.query<Post>('SELECT * FROM posts WHERE tenant = ?', [tenant])
-const session = await c.get('sessions').get(`session:${token}`)
-const page = await c.get('content').getPage(`${tenant}:page:index.html`)
+// Without SOS_MODE=sos, standalone adapters are used (no-op bus, in-memory, Stripe)
 ```
 
 ### RBAC Hierarchy
@@ -99,7 +99,7 @@ const page = await c.get('content').getPage(`${tenant}:page:index.html`)
 
 Plugin declares `requiredRole: 'manager'` → only manager, admin, owner can access.
 
-## Plugins (12 active)
+## Plugins (17 active)
 | Plugin | Role | Lines | Components |
 |--------|------|-------|------------|
 | dashboard | viewer | 2630 | ArrowDashboard, TaskBoard, WalletView, SquadPanel, ConnectPanel, SettingsForm, AssistantChat |
@@ -114,6 +114,7 @@ Plugin declares `requiredRole: 'manager'` → only manager, admin, owner can acc
 | payments | owner | 645 | — |
 | onboarding | (default) | 542 | OnboardingWizard |
 | notifications | (default) | 237 | NotificationBell |
+| organism | admin | 700+ | — |
 
 ## MCP Tools (12)
 `publish_content`, `get_dashboard`, `get_seo_data`, `get_leads`, `create_checkout`, `subscription_status`, `send_telegram`, `site_info`, `remember`, `recall`, `create_task`, `browse_marketplace`
@@ -190,8 +191,22 @@ bash scripts/fork-smoke.sh  # Fork smoke test (build with config-only changes)
 5. Tag-based edges auto-created between nodes sharing 2+ tags
 6. Knowledge graph grows with every published page
 
-## Known Gaps (v7.0)
-- SOS integration ports (Bus, Memory, Economy) defined in roadmap but not implemented
+## Organism API (v7.0)
+- `POST /api/organism/activate` — provision managed agent for tenant
+- `GET/PUT /api/organism/config` — agent config (model, tools, MCP servers, budget)
+- `GET /api/organism/usage` — usage history (tokens, cost, sessions)
+- `GET /api/organism/budget` — check remaining budget (daily + monthly caps)
+- `POST /api/network/quote` — request quote from another organism
+- `POST /api/network/transact` — execute inter-organism transfer
+- `GET /api/network/discover` — graph-driven organism discovery
+- `GET /api/network/reputation` — PageRank-style trust score
+- `GET /api/marketplace` — browse community plugins
+- `POST /api/marketplace/publish` — publish plugin to network graph
+- `POST /api/marketplace/install` — install per-tenant
+
+## Known Gaps (v7.1+)
 - No GC/AWS adapter implementations yet (ports are ready, adapters are CF-only)
-- Cross-tenant graph discovery (organisms finding each other) not yet implemented
-- See docs/ROADMAP.md for full version plan
+- Anthropic Managed Agent API integration (provision call is stubbed — API not yet public)
+- Mirror tenant isolation (SOS v0.8.0 — using prefix workaround)
+- Bus SSE streaming (SOS v0.8.x — poll-only for now)
+- Economy MCP tools (SOS v0.7.3 — using REST)
