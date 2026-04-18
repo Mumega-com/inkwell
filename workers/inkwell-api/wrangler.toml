@@ -42,7 +42,7 @@ id = "YOUR_KV_NAMESPACE_ID"
 # R2 bucket for media uploads (images, videos, files)
 [[r2_buckets]]
 binding = "MEDIA"
-bucket_name = "YOUR_R2_BUCKET_NAME"
+bucket_name = "inkwell-media"
 
 # Workers AI — vision, transcription, image generation
 [ai]

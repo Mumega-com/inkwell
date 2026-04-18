@@ -12,6 +12,11 @@
 
 import type { Env } from './types'
 import type { D1Database, ScheduledEvent, ExecutionContext } from '@cloudflare/workers-types'
+import { createContentSources } from './middleware/adapters'
+import { compileMdx } from '../../../kernel/processors/mdx-compiler'
+import { D1DatabaseAdapter } from '../../../kernel/adapters/d1'
+import { D1GraphAdapter } from '../../../kernel/adapters/d1-graph'
+import { KVContentAdapter } from '../../../kernel/adapters/kv-content'
 
 interface NormalizedMetric {
   source: string
@@ -221,6 +226,83 @@ async function scoreWeekOverWeek(db: D1Database): Promise<string> {
   }
 }
 
+// ── Content Sync ──────────────────────────────────────────────────────
+
+interface SyncResult {
+  source: string
+  synced: number
+  errors: string[]
+}
+
+async function syncContentSources(env: Env): Promise<SyncResult[]> {
+  const sources = createContentSources(env)
+  if (sources.length === 0) return []
+
+  const dbCore = new D1DatabaseAdapter(env.DB_CORE)
+  const content = new KVContentAdapter(env.CONTENT)
+  const graph = new D1GraphAdapter(dbCore)
+  const results: SyncResult[] = []
+
+  for (const source of sources) {
+    const errors: string[] = []
+    let synced = 0
+
+    try {
+      const items = await source.sync()
+
+      for (const item of items) {
+        try {
+          const compiled = compileMdx(item.content, { basePath: '/' })
+          const fm = compiled.frontmatter
+          const slug = item.slug
+          const title = typeof fm.title === 'string' ? fm.title : item.title
+          const tags = Array.isArray(fm.tags)
+            ? fm.tags.filter((t): t is string => typeof t === 'string')
+            : []
+          const contentType = typeof fm.type === 'string' ? fm.type : 'page'
+          const author = typeof fm.author === 'string' ? fm.author : 'sync'
+          const date = item.updatedAt.slice(0, 10)
+
+          // Store compiled HTML
+          const kvKey = `page:${slug}.html`
+          await content.putPage(kvKey, compiled.html)
+
+          // Upsert graph node
+          await graph.upsertNode({
+            slug,
+            title,
+            type: contentType,
+            tags,
+            visibility: 'public',
+            author,
+            date,
+          })
+
+          // Create wikilink edges
+          for (const target of compiled.wikilinks) {
+            await graph.upsertEdge({
+              source: slug,
+              target,
+              type: 'wikilink',
+              weight: 1,
+            })
+          }
+
+          synced++
+        } catch (err) {
+          errors.push(`${item.slug}: ${err instanceof Error ? err.message : 'unknown error'}`)
+        }
+      }
+    } catch (err) {
+      errors.push(`source error: ${err instanceof Error ? err.message : 'unknown error'}`)
+    }
+
+    results.push({ source: source.name, synced, errors })
+  }
+
+  return results
+}
+
 // ── Main Scheduled Handler ─────────────────────────────────────────────
 
 export async function scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext) {
@@ -244,6 +326,23 @@ export async function scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionC
   // Score week-over-week
   const score = await scoreWeekOverWeek(env.DB_MARKETING)
   console.log(`[flywheel] Score: ${score}`)
+
+  // Sync content from configured sources (GitHub, Notion, Google Drive)
+  try {
+    const syncResults = await syncContentSources(env)
+    const totalSynced = syncResults.reduce((sum, r) => sum + r.synced, 0)
+    const totalErrors = syncResults.reduce((sum, r) => sum + r.errors.length, 0)
+    if (syncResults.length > 0) {
+      console.log(`[flywheel] Content sync: ${totalSynced} items from ${syncResults.length} sources, ${totalErrors} errors`)
+      for (const r of syncResults) {
+        if (r.errors.length > 0) {
+          console.error(`[flywheel] Sync errors for ${r.source}:`, r.errors.join('; '))
+        }
+      }
+    }
+  } catch (e) {
+    console.error('[flywheel] Content sync failed:', e)
+  }
 
   // Log the run
   try {
