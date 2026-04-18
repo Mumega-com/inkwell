@@ -243,3 +243,105 @@ export interface GraphPort {
   /** Query public nodes across ALL tenants (the network graph) */
   queryNetwork(filter?: { tag?: string; type?: string; limit?: number }): Promise<GraphData>
 }
+
+// ─── Agent Port (v6.2) ──────────────────────────────────────────────────────
+
+/** Configuration for a tenant's managed agent */
+export interface AgentConfig {
+  tenantId: string
+  model: 'haiku' | 'sonnet' | 'opus'
+  systemPrompt: string
+  mcpServers: Array<{ url: string; token?: string }>
+  tools: string[]
+  budgetPerDay: number       // max spend per day in cents
+  budgetPerMonth: number     // max spend per month in cents
+  status: 'active' | 'paused' | 'provisioning' | 'error'
+  anthropicAgentId?: string  // ID returned by Anthropic API
+  createdAt: string
+  updatedAt: string
+}
+
+/** Usage record for agent budget tracking */
+export interface AgentUsage {
+  tenantId: string
+  date: string               // YYYY-MM-DD
+  sessionHours: number
+  inputTokens: number
+  outputTokens: number
+  costCents: number
+}
+
+export interface AgentPort {
+  /** Provision a new managed agent for a tenant */
+  provision(config: Omit<AgentConfig, 'status' | 'createdAt' | 'updatedAt'>): Promise<AgentConfig>
+  /** Get agent config for a tenant */
+  getConfig(tenantId: string): Promise<AgentConfig | null>
+  /** Update agent config */
+  updateConfig(tenantId: string, updates: Partial<Pick<AgentConfig, 'model' | 'systemPrompt' | 'mcpServers' | 'tools' | 'budgetPerDay' | 'budgetPerMonth' | 'status'>>): Promise<AgentConfig>
+  /** Record usage for budget tracking */
+  recordUsage(usage: AgentUsage): Promise<void>
+  /** Get usage for a tenant within a date range */
+  getUsage(tenantId: string, from: string, to: string): Promise<AgentUsage[]>
+  /** Check if a tenant has budget remaining today */
+  checkBudget(tenantId: string): Promise<{ allowed: boolean; remainingCents: number; reason?: string }>
+}
+
+// ─── Bus Port (v6.3) ────────────────────────────────────────────────────────
+
+export interface BusMessage {
+  from: string
+  to?: string
+  text: string
+  ts: string
+  kind?: string
+}
+
+export interface BusPort {
+  /** Send a message to a specific agent */
+  send(to: string, text: string): Promise<void>
+  /** Broadcast a message to all agents */
+  broadcast(text: string): Promise<void>
+  /** Subscribe to incoming messages (returns async unsubscribe handle) */
+  subscribe(callback: (msg: BusMessage) => Promise<void>): Promise<{ unsubscribe: () => Promise<void> }>
+  /** Read recent inbox messages */
+  inbox(limit?: number): Promise<BusMessage[]>
+}
+
+// ─── Memory Port (v6.3) ─────────────────────────────────────────────────────
+
+export interface MemoryResult {
+  id: string
+  content: string
+  metadata?: Record<string, unknown>
+  score?: number
+  createdAt: string
+}
+
+export interface MemoryPort {
+  /** Store a memory with optional metadata, returns memory ID */
+  remember(content: string, metadata?: Record<string, unknown>): Promise<string>
+  /** Recall memories by semantic query */
+  recall(query: string, limit?: number): Promise<MemoryResult[]>
+  /** Search memories with filters */
+  search(query: string, filters?: Record<string, unknown>): Promise<MemoryResult[]>
+}
+
+// ─── Economy Port (v6.3) ────────────────────────────────────────────────────
+
+export interface ChargeResult {
+  charged: boolean
+  tx_id: string
+  remaining_balance: number
+  reason?: string
+}
+
+export interface EconomyPort {
+  /** Record usage for a tenant */
+  recordUsage(tenantId: string, type: string, amount: number): Promise<void>
+  /** Get balance for a tenant */
+  getBalance(tenantId: string): Promise<{ balance: number; currency: string }>
+  /** Charge a tenant */
+  charge(tenantId: string, amount: number, reason: string): Promise<ChargeResult>
+  /** Transfer between tenants */
+  transfer(from: string, to: string, amount: number, reason: string): Promise<ChargeResult>
+}

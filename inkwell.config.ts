@@ -129,7 +129,7 @@ export const config = {
     'analytics', 'auth', 'dashboard', 'commerce', 'content', 'mcp',
     'contracts', 'courses', 'telegram', 'chat',
     'diagnostics', 'discovery', 'payments', 'questionnaire',
-    'onboarding', 'notifications',
+    'onboarding', 'notifications', 'organism',
   ],
 } as const
 

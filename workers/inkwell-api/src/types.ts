@@ -1,5 +1,5 @@
 import type { D1Database, KVNamespace } from '@cloudflare/workers-types'
-import type { DatabasePort, SessionPort, ContentPort, StoragePort, GraphPort } from '../../../kernel/types'
+import type { DatabasePort, SessionPort, ContentPort, StoragePort, GraphPort, AgentPort, BusPort, MemoryPort, EconomyPort } from '../../../kernel/types'
 
 export interface Env {
   DB_ANALYTICS: D1Database
@@ -46,6 +46,10 @@ export interface Env {
   SOS_SAAS_URL?: string        // Origin SaaS service URL for tenant resolution (e.g. "https://saas.mumega.com")
   MUMEGA_API_URL?: string      // Mumega SaaS API URL for network tools (default: "https://api.mumega.com")
   MUMEGA_TOKEN?: string        // Bearer token for authenticating with Mumega SaaS API
+  // SOS integration (v6.3)
+  SOS_ECONOMY_URL?: string     // SOS Economy service URL
+  SOS_MIRROR_URL?: string      // SOS Mirror memory service URL
+  SOS_MODE?: string            // 'sos' | 'standalone' — defaults to standalone
 }
 
 export interface AuthSession {
@@ -80,5 +84,9 @@ export type AppBindings = {
     content: ContentPort
     storage: StoragePort
     graph: GraphPort
+    agent: AgentPort
+    bus: BusPort
+    memory: MemoryPort
+    economy: EconomyPort
   }
 }
