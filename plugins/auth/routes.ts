@@ -6,7 +6,7 @@ import {
   buildExpiredSessionCookie,
   buildSessionCookie,
   getAuthCookieName,
-} from '../middleware/auth'
+} from '../middleware'
 import type { AppBindings, AuthSession } from '../types'
 
 type AuthChannel = 'email' | 'phone'

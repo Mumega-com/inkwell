@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { requireAuth } from '../middleware/auth'
+import { requireAuth } from '../middleware'
 import type { AppBindings } from '../types'
 
 type Plan = 'seo' | 'seo-ads' | 'full'

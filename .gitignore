@@ -22,3 +22,4 @@ Thumbs.db
 # Graphify cache (local build artifacts)
 graphify-out/cache/
 .code-review-graph/
+.wrangler/

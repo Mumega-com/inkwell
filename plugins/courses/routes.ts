@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { requireAuth, authSessionMiddleware } from '../middleware/auth'
+import { requireAuth, authSessionMiddleware } from '../middleware'
 import type { AppBindings } from '../types'
 
 // ── Course config ─────────────────────────────────────────────────────────────

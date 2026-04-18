@@ -2,49 +2,58 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { registerPlugin } from '../../../kernel/plugin-loader'
 
-// Plugin manifests
+// Plugin manifests (all 16 plugins)
+import analyticsManifest from '../../../plugins/analytics/manifest'
+import authManifest from '../../../plugins/auth/manifest'
 import dashboardManifest from '../../../plugins/dashboard/manifest'
 import commerceManifest from '../../../plugins/commerce/manifest'
 import contentManifest from '../../../plugins/content/manifest'
 import mcpManifest from '../../../plugins/mcp/manifest'
 import contractsManifest from '../../../plugins/contracts/manifest'
+import coursesManifest from '../../../plugins/courses/manifest'
 import telegramManifest from '../../../plugins/telegram/manifest'
 import chatManifest from '../../../plugins/chat/manifest'
 import diagnosticsManifest from '../../../plugins/diagnostics/manifest'
 import discoveryManifest from '../../../plugins/discovery/manifest'
 import paymentsManifest from '../../../plugins/payments/manifest'
+import questionnaireManifest from '../../../plugins/questionnaire/manifest'
 import onboardingManifest from '../../../plugins/onboarding/manifest'
 import notificationsManifest from '../../../plugins/notifications/manifest'
 
 // Register all available plugins
+registerPlugin(analyticsManifest)
+registerPlugin(authManifest)
 registerPlugin(dashboardManifest)
 registerPlugin(commerceManifest)
 registerPlugin(contentManifest)
 registerPlugin(mcpManifest)
 registerPlugin(contractsManifest)
+registerPlugin(coursesManifest)
 registerPlugin(telegramManifest)
 registerPlugin(chatManifest)
 registerPlugin(diagnosticsManifest)
 registerPlugin(discoveryManifest)
 registerPlugin(paymentsManifest)
+registerPlugin(questionnaireManifest)
 registerPlugin(onboardingManifest)
 registerPlugin(notificationsManifest)
 
-import { analyticsRoutes } from './routes/analytics'
-import { authRoutes } from './routes/auth'
-import { chatRoutes } from './routes/chat'
-import { contentRoutes } from './routes/content'
-import { contractRoutes } from './routes/contracts'
-import { courseRoutes } from './routes/courses'
-import { dashboardRoutes } from './routes/dashboard'
-import { diagnosticsRoutes } from './routes/diagnostics'
-import { discoveryRoutes } from './routes/discovery'
-import { glassRoutes } from './routes/glass'
-import { mcpRoutes } from './routes/mcp'
-import { paymentRoutes } from './routes/payments'
-import { publishingRoutes } from './routes/publishing'
-import { questionnaireRoutes } from './routes/questionnaire'
-import { telegramRoutes } from './routes/telegram'
+// Routes imported from plugins (single source of truth)
+import { analyticsRoutes } from '../../../plugins/analytics/routes'
+import { authRoutes } from '../../../plugins/auth/routes'
+import { chatRoutes } from '../../../plugins/chat/routes'
+import { contentRoutes } from '../../../plugins/content/routes-content'
+import { contractRoutes } from '../../../plugins/contracts/routes'
+import { courseRoutes } from '../../../plugins/courses/routes'
+import { dashboardRoutes } from '../../../plugins/dashboard/routes'
+import { diagnosticsRoutes } from '../../../plugins/diagnostics/routes'
+import { discoveryRoutes } from '../../../plugins/discovery/routes'
+import { glassRoutes } from '../../../plugins/commerce/routes'
+import { mcpRoutes } from '../../../plugins/mcp/routes'
+import { paymentRoutes } from '../../../plugins/payments/routes'
+import { publishingRoutes } from '../../../plugins/content/routes-publishing'
+import { questionnaireRoutes } from '../../../plugins/questionnaire/routes'
+import { telegramRoutes } from '../../../plugins/telegram/routes'
 import { routeGate } from './middleware/route-gate'
 import { tenantResolver } from './middleware/tenant'
 import { usageTracker } from './middleware/usage'
@@ -56,8 +65,8 @@ const app = new Hono<AppBindings>()
 // ── Plugin System ──────────────────────────────────────────────────
 // All features are registered as plugins above.
 // config.plugins[] in inkwell.config.ts controls which are active.
-// Route mounting still uses static imports (Sprint 3 will migrate
-// to plugin.mountRoutes() once route files move into plugin dirs).
+// Routes imported from plugins/ (single source of truth).
+// Phase 2 will migrate to plugin.mountRoutes() for dynamic loading.
 // ───────────────────────────────────────────────────────────────────
 
 // ---------------------------------------------------------------------------

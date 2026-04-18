@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import type { AppBindings } from '../types'
-import { getContent, getContentMeta, putContent, tenantFilter } from '../lib/tenant-content'
+import { getContent, getContentMeta, putContent, tenantFilter } from '../lib'
 
 const contentRoutes = new Hono<AppBindings>()
 

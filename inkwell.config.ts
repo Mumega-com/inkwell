@@ -126,10 +126,10 @@ export const config = {
   // The Worker registers these at startup via the plugin loader.
   // config.plugins[] controls which are active per fork.
   plugins: [
-    'dashboard', 'commerce', 'content', 'mcp',
-    'contracts', 'telegram', 'chat',
-    'diagnostics', 'discovery', 'payments', 'onboarding',
-    'notifications',
+    'analytics', 'auth', 'dashboard', 'commerce', 'content', 'mcp',
+    'contracts', 'courses', 'telegram', 'chat',
+    'diagnostics', 'discovery', 'payments', 'questionnaire',
+    'onboarding', 'notifications',
   ],
 } as const
 

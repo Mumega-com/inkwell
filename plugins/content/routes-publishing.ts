@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { readSessionFromRequest, requireAuth } from '../middleware/auth'
+import { readSessionFromRequest, requireAuth } from '../middleware'
 import type { AppBindings } from '../types'
 
 type PublishingResourceRow = {
