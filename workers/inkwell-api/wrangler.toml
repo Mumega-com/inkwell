@@ -1,37 +1,41 @@
+# ⚠️ Replace all YOUR_* values with your own Cloudflare resources
+# See FORK-GUIDE.md for setup instructions
 name = "inkwell-api"
 main = "src/index.ts"
 compatibility_date = "2024-12-01"
-account_id = "e39eaf94f33092c4efd029d94ae1e9dd"
+account_id = "YOUR_ACCOUNT_ID"
 
 [vars]
 # Set to your domain
 SITE_URL = "https://example.com"
+# SaaS origin for tenant resolution (subdomains → tenant config)
+SOS_SAAS_URL = ""
 
 [[d1_databases]]
 binding = "DB_ANALYTICS"
 database_name = "inkwell-analytics"
-database_id = "40e442df-13d1-4ce5-a081-491962fe8e59"
+database_id = "YOUR_D1_DATABASE_ID"
 migrations_dir = "migrations/analytics"
 
 [[d1_databases]]
 binding = "DB_CORE"
 database_name = "inkwell-core"
-database_id = "abd1fc3e-2bd8-411a-bec8-2686ea9a51f5"
+database_id = "YOUR_D1_DATABASE_ID"
 migrations_dir = "migrations/core"
 
 [[d1_databases]]
 binding = "DB_MARKETING"
 database_name = "inkwell-marketing"
-database_id = "e4010c8f-5f61-4c04-aa14-cf42d1afc481"
+database_id = "YOUR_D1_DATABASE_ID"
 migrations_dir = "migrations/marketing"
 
 [[kv_namespaces]]
 binding = "CONTENT"
-id = "c303003bd718427c97f978773fce4f3a"
+id = "YOUR_KV_NAMESPACE_ID"
 
 [[kv_namespaces]]
 binding = "SESSIONS"
-id = "512331050ea04a35b23843b28af75c2c"
+id = "YOUR_KV_NAMESPACE_ID"
 
 # Daily flywheel — ingest GSC/GA4, store snapshots, score WoW
 [triggers]
@@ -39,5 +43,5 @@ crons = ["0 6 * * *"]
 
 # Wildcard subdomain routing for tenant sites
 [[routes]]
-pattern = "*.mumega.com/*"
-zone_name = "mumega.com"
+pattern = "*.YOUR_DOMAIN/*"
+zone_name = "YOUR_DOMAIN"

@@ -31,21 +31,32 @@ Inkwell is a **headless content engine** that treats the filesystem as the sourc
 
 ## Navigation
 
+### 1. Concepts
+- [[concepts/glossary|Glossary]] — Core terminology and FRC variables.
+- [[concepts/glass-dashboard|The Glass Dashboard]] — Deterministic observability.
+- [[strategy/market-positioning|Market Positioning]] — Inkwell vs. The Unicorns.
+
+### 2. Features
+- [[features/glass-commerce|Glass Commerce Engine]] — Native digital products and Stripe Connect.
+- [[features/transparent-diagnostics|Transparent Diagnostics]] — Understanding squad health (DIAG-UI).
+- [[features/adaptive-pages|Adaptive Pages]] — Autonomous A/B testing at the edge.
+- [[features/seo-discovery|SEO & Discovery]] — Dominating the search landscape.
+- [[features/interactive-components|Interactive Features]] — Charts, Graphs, and Reactions.
+- [[features/backlinks-graph|The Knowledge Graph]] — Navigating the network.
+
+### 3. Architecture & Config
 - [[architecture/system-design|System Design]] — How the pieces fit together.
 - [[config/site-config|Configuration]] — Tuning your site from a single file.
 - [[getting-started|Getting Started]] — Quick setup and first post.
-- [[publishing/agent-workflow|Agent Workflow]] — How to automate your content engine.
+- [[publishing/agent-workflow|Agent Workflow]] — Automation and publishing.
 - [[publishing/deployment|Deployment & Scaling]] — Going live on Cloudflare.
-- [[features/interactive-components|Interactive Features]] — Charts, Graphs, and Reactions.
-- [[features/seo-discovery|SEO & Discovery]] — Dominating the search landscape.
-- [[features/backlinks-graph|Backlinks & The Graph]] — Navigating the network.
+- [[config/schema-reference|Schema Reference]] — Zod and D1 table definitions.
 - [[config/api-reference|API Reference]] — REST and MCP endpoints.
-- [[strategy/market-positioning|Market Positioning]] — Inkwell vs. The Unicorns.
 - [[strategy/roadmap|Project Roadmap]] — Evolutionary path and planned features.
 - [[strategy/content-strategy|Content Strategy]] — Voice, tone, and editorial pillars.
-- [[concepts/glossary|Glossary & Concepts]] — FRC physics and terminology.
 - [[reference/internal-abstractions|Internal Abstractions]] — Blueprints of the core logic.
 - [[reference/troubleshooting|Troubleshooting & FAQ]] — Common issues and resolutions.
+
 
 ::callout[tip]
 Use `npm run flywheel` to automatically discover trending topics and generate content briefs like this one!

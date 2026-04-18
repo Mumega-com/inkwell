@@ -49,14 +49,22 @@
 
 ## P4 — Organism (the system that improves itself)
 
-- [ ] **Adaptive pages** — Weekly cron reads analytics, Gemma suggests improvements
-- [ ] **A/B testing** — KV variant configs, serve different versions
+- [x] **Adaptive pages** — A/B variants on Cloudflare edge (KV), significance testing, agent optimization loop.
+- [x] **A/B testing** — KV variant configs, serve different versions with deterministic chi-squared logic.
 - [ ] **Video generation** — Remotion renders posts as animated video
 - [ ] **Schema predator** — Read competitor SERPs, generate richer structured data
 - [ ] **Content as context** — Vectorize all posts, derive opinions from body of work
 - [ ] **Programmatic generation** — Template × Variable matrix for scale SEO
 - [ ] **Content pruning** — Archive underperformers monthly
 - [ ] **Referral program** — Subscribers recruit subscribers
+
+## P5 — Autonomous Business Engine (v4.1 / v5)
+
+- [x] **FMAAP Gate** — Systemic safety layer checking Flow, Metabolism, Alignment, Autonomy, and Physics.
+- [x] **Glass Commerce Engine** — Deterministic D1 ledger (transactions, royalties, metering), Stripe Connect integration for native digital product sales.
+- [x] **Transparent Diagnostics Engine** — Translates `dG/dt` physics into human-readable, template-based health narratives on the dashboard.
+- [x] **Mirror Memory** — Cross-tenant learning pushed to global memory so all Inkwell instances optimize together.
+- [ ] **B2B Interoperability** — Squads negotiate and execute cross-tenant transactions autonomously.
 
 ## Done
 

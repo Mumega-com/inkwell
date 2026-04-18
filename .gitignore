@@ -8,6 +8,7 @@ dist/
 # Cloudflare
 workers/**/node_modules/
 wrangler.toml
+wrangler.production.toml
 
 # OS
 .DS_Store

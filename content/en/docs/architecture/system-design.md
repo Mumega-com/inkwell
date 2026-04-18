@@ -26,10 +26,10 @@ graph LR
   end
 
   subgraph "The Edge (Cloudflare)"
-    CF[Pages / Workers] --- D1[(D1 Analytics)]
-    CF --- KV[KV Cache]
+    CF[Pages / Workers] --- D1[(D1 Analytics + Glass Ledger)]
+    CF --- KV[KV Cache + A/B Variants]
     CF --- R2[Media Storage]
-    CF --- M[MCP Bridge]
+    CF --- M[MCP Bridge + SOS Bus]
   end
 
   C --> B
@@ -40,14 +40,15 @@ graph LR
 
 ### 1. The Content Processor
 Markdown is extended via custom Remark plugins. 
-- **Wikilinks:** Creates the [[backlinks]] graph.
+- **Wikilinks:** Creates the [[backlinks|Knowledge Graph]].
 - **Blocks:** Handles custom UI like `::mermaid` and `::chart`.
 
 ### 2. The Edge API
 Built with **Hono**, the Worker handles:
+- **Glass Commerce:** Deterministic D1 ledger and Stripe Connect.
+- **Adaptive Pages:** Zero-latency A/B testing via KV.
+- **Diagnostics:** Translation of `dG/dt` math into human narratives.
 - **MCP:** Standardized agent communication.
-- **D1:** High-performance, low-latency analytics.
-- **KV:** Pre-rendered HTML storage.
 
 ## Performance Metrics
 
@@ -66,6 +67,7 @@ Inkwell is built to evolve from a static generator into a self-observing system.
 **P2: Product** | Search, analytics, and MCP-driven tools.
 **P3: Edge** | Distributed state via KV and global content distribution.
 **P4: Organism** | Autonomous optimization governed by [[concepts/glossary|FRC Physics]].
+**P5: Glass** | Deterministic business engine, FMAAP gates, and native commerce.
 ::
 
 ---

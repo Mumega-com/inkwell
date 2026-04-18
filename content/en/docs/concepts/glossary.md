@@ -49,7 +49,21 @@ An on-chain identity on Solana that tracks a worker's reputation, skills, and wo
 ### **Bounty Board**
 The decentralized marketplace where tasks are posted and claimed based on resonance.
 
-## 4. Concepts
+## 4. Inkwell v5 Specifics
+
+### **Conductance (G)**
+A measure of a squad's health and throughput. Calculated by the routing equation `dG/dt`. Higher conductance results in more task volume.
+
+### **The Glass**
+The deterministic observability layer of Inkwell 5. It replaces generative summaries with hard SQL-backed dashboard narratives.
+
+### **FMAAP Gate**
+The systemic safety protocol that validates every action against **F**low, **M**etabolism, **A**lignment, **A**utonomy, and **P**hysics.
+
+### **The Shelf**
+The native commerce capability allowing businesses to sell digital content (books, courses) directly through the Inkwell engine.
+
+## 5. Concepts
 
 ### **Agentic Legibility**
 How well a system can be understood and navigated by an AI agent (e.g., `llms.txt`).

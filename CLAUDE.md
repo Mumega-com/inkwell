@@ -1,7 +1,10 @@
 # Inkwell
 
 ## What This Is
-Full business operating system built on Astro 6 + Cloudflare Workers. Config-driven, agent-first, designed to be forked per customer. v3 = content engine. v4 adds dashboard, contracts, payments, chat, Telegram steering, MCP server, and daily flywheel.
+Full business operating system built on Astro 6 + Cloudflare Workers. Config-driven, agent-first, designed to be forked per customer. v5 = everything. Content engine, Arrow Dashboard (Shadcn UI), auth (Auth.js), MCP server (12 tools), Glass Commerce, daily flywheel, chat (Assistant UI).
+
+## Version
+v5.2 — Arrow Dashboard + Auth.js + Shadcn UI + business-language frontend
 
 ## Commands
 ```bash
