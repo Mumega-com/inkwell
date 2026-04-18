@@ -474,7 +474,7 @@ function evaluateGrantEligibility(answers: DiscoveryAnswers): GrantEligibility[]
       name: 'DMAP Digital Adoption Plan',
       maxAmount: 15000,
       reason: 'SMBs with under 500 employees qualify for up to $15,000 toward a digital adoption plan.',
-      applyUrl: 'https://digid.ca/services',
+      applyUrl: 'https://example.com/apply',
     })
   }
 
@@ -485,7 +485,7 @@ function evaluateGrantEligibility(answers: DiscoveryAnswers): GrantEligibility[]
       name: 'SR&ED Tax Credit',
       maxAmount: 500000,
       reason: 'Your industry likely involves experimental development or technical problem-solving that qualifies.',
-      applyUrl: 'https://grantandfunding.com',
+      applyUrl: 'https://example.com/apply',
     })
   }
 
@@ -496,7 +496,7 @@ function evaluateGrantEligibility(answers: DiscoveryAnswers): GrantEligibility[]
       name: 'AMIC Ontario',
       maxAmount: 1500000,
       reason: 'Ontario manufacturers can access up to $1.5M for equipment, automation, and process improvement.',
-      applyUrl: 'https://grantandfunding.com',
+      applyUrl: 'https://example.com/apply',
     })
   }
 
@@ -507,7 +507,7 @@ function evaluateGrantEligibility(answers: DiscoveryAnswers): GrantEligibility[]
       name: 'CanExport',
       maxAmount: 75000,
       reason: 'Businesses exploring international markets can get up to $75K for export development.',
-      applyUrl: 'https://grantandfunding.com',
+      applyUrl: 'https://example.com/apply',
     })
   }
 
@@ -518,7 +518,7 @@ function evaluateGrantEligibility(answers: DiscoveryAnswers): GrantEligibility[]
       name: 'NRC IRAP',
       maxAmount: 500000,
       reason: 'Innovative SMEs can access up to $500K for R&D projects through the Industrial Research Assistance Program.',
-      applyUrl: 'https://grantandfunding.com',
+      applyUrl: 'https://example.com/apply',
     })
   }
 

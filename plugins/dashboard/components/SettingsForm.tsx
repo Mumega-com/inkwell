@@ -10,12 +10,7 @@ import { cn } from '../../../src/lib/utils'
 // ---------------------------------------------------------------------------
 // Storage keys
 // ---------------------------------------------------------------------------
-const STORAGE_KEYS = {
-  apiUrl: 'mumega_api_url',
-  authToken: 'mumega_auth_token',
-  tenantSlug: 'mumega_tenant_slug',
-  teamMembers: 'mumega_team_members',
-} as const
+import { STORAGE_KEYS } from '../../lib/storage-keys'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -123,7 +118,7 @@ function BusinessProfileTab({
               ? d.business_name
               : dev.tenantSlug || 'Your Business',
           domain:
-            typeof d.domain === 'string' ? d.domain : `${dev.tenantSlug}.mumega.com`,
+            typeof d.domain === 'string' ? d.domain : `${dev.tenantSlug}.example.com`,
           industry: typeof d.industry === 'string' ? d.industry : '—',
           logoUrl: typeof d.logo_url === 'string' ? d.logo_url : '',
           plan: typeof d.plan === 'string' ? d.plan : 'Growth Plan',
@@ -637,7 +632,7 @@ function DeveloperTab({
                 type="url"
                 value={draft.apiUrl}
                 onChange={(e) => handleChange('apiUrl', e.target.value)}
-                placeholder="https://api.mumega.com"
+                placeholder="https://api.example.com"
                 spellCheck={false}
                 autoComplete="off"
               />

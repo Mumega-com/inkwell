@@ -13,7 +13,7 @@ const cssVars = generateCssVars()
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style set:html={cssVars}></style>
-    <title>Log In — Mumega</title>
+    <title>Log In</title>
     <meta name="robots" content="noindex" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <style>
@@ -195,12 +195,23 @@ const cssVars = generateCssVars()
         margin-bottom: 1rem;
         display: none;
       }
+
+      .success-msg {
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        color: #34d399;
+        border-radius: 8px;
+        padding: 0.625rem 0.875rem;
+        font-size: 0.82rem;
+        margin-bottom: 1rem;
+        display: none;
+      }
     </style>
   </head>
   <body>
     <div class="login-card">
       <div class="login-logo">◎</div>
-      <h1 class="login-heading">Welcome to Mumega</h1>
+      <h1 class="login-heading">Welcome back</h1>
 
       <!-- OAuth buttons via Auth.js -->
       <button type="button" class="oauth-btn" onclick="alert('Google login coming soon')">
@@ -220,16 +231,18 @@ const cssVars = generateCssVars()
 
       <div class="divider">or</div>
 
-      <!-- Email + password form -->
+      <!-- OTP login form -->
       <div id="error-msg" class="error-msg"></div>
+      <div id="success-msg" class="success-msg"></div>
 
-      <form id="login-form" novalidate>
+      <!-- Step 1: Request code -->
+      <form id="request-code-form" novalidate>
         <div class="form-group">
-          <label class="form-label" for="email">Email</label>
+          <label class="form-label" for="contact">Email or phone</label>
           <input
-            id="email"
-            name="email"
-            type="email"
+            id="contact"
+            name="contact"
+            type="text"
             class="form-input"
             placeholder="you@example.com"
             autocomplete="email"
@@ -237,83 +250,117 @@ const cssVars = generateCssVars()
           />
         </div>
 
+        <button type="submit" class="submit-btn">Send login code</button>
+      </form>
+
+      <!-- Step 2: Verify code (hidden initially) -->
+      <form id="verify-code-form" novalidate style="display:none">
         <div class="form-group">
-          <label class="form-label" for="password">Password</label>
+          <label class="form-label" for="code">Enter your 6-digit code</label>
           <input
-            id="password"
-            name="password"
-            type="password"
+            id="code"
+            name="code"
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]{6}"
+            maxlength="6"
             class="form-input"
-            placeholder="••••••••"
-            autocomplete="current-password"
+            placeholder="000000"
+            autocomplete="one-time-code"
             required
           />
-          <a href="/dashboard/forgot-password" class="forgot-link">Forgot password?</a>
         </div>
 
-        <button type="submit" class="submit-btn">Log In</button>
+        <button type="submit" class="submit-btn">Verify</button>
+        <button type="button" class="forgot-link" id="back-btn" style="display:block;text-align:center;margin-top:0.75rem;cursor:pointer;border:none;background:none;width:100%">Use a different email</button>
       </form>
 
       <p class="signup-prompt">
         Don't have an account?
-        <a href="https://mumega.com/connect">Sign up</a>
+        <a href="/dashboard/signup">Sign up</a>
       </p>
     </div>
 
     <script is:inline>
-      const form = document.getElementById('login-form')
-      const errorMsg = document.getElementById('error-msg')
+      var apiUrl = localStorage.getItem('inkwell_api_url') || window.location.origin
+      var tenantSlug = localStorage.getItem('inkwell_tenant_slug') || 'default'
+      var contactValue = ''
 
-      form.addEventListener('submit', async (e) => {
-        e.preventDefault()
+      var requestForm = document.getElementById('request-code-form')
+      var verifyForm = document.getElementById('verify-code-form')
+      var errorMsg = document.getElementById('error-msg')
+      var successMsg = document.getElementById('success-msg')
+      var backBtn = document.getElementById('back-btn')
+
+      function showError(msg) {
+        errorMsg.textContent = msg
+        errorMsg.style.display = 'block'
+        successMsg.style.display = 'none'
+      }
+
+      function showSuccess(msg) {
+        successMsg.textContent = msg
+        successMsg.style.display = 'block'
         errorMsg.style.display = 'none'
+      }
 
-        const email = form.email.value.trim()
-        const password = form.password.value
+      function hideMessages() {
+        errorMsg.style.display = 'none'
+        successMsg.style.display = 'none'
+      }
 
-        if (!email || !password) {
-          errorMsg.textContent = 'Please enter your email and password.'
-          errorMsg.style.display = 'block'
-          return
-        }
+      requestForm.addEventListener('submit', async function(e) {
+        e.preventDefault()
+        hideMessages()
+        contactValue = document.getElementById('contact').value.trim()
+        if (!contactValue) { showError('Please enter your email or phone.'); return }
 
         try {
-          const resp = await fetch('https://api.mumega.com/auth/login', {
+          var resp = await fetch(apiUrl + '/api/auth/request-code', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password }),
+            body: JSON.stringify({ customerSlug: tenantSlug, contact: contactValue }),
           })
+          var data = await resp.json()
+          if (!resp.ok) { showError(data.error || 'Could not send code.'); return }
 
-          if (!resp.ok) {
-            errorMsg.textContent = 'Invalid email or password. Please try again.'
-            errorMsg.style.display = 'block'
-            return
-          }
-
-          const data = await resp.json()
-          const user = data.user
-
-          // Store tenant info so dashboard islands can read it
-          if (user?.tenant) localStorage.setItem('mumega_tenant_slug', user.tenant)
-
-          // Fetch bus token for this tenant
-          try {
-            const tenantResp = await fetch(
-              `https://api.mumega.com/auth/tenant?email=${encodeURIComponent(email)}`
-            )
-            if (tenantResp.ok) {
-              const tenantData = await tenantResp.json()
-              if (tenantData.bus_token) {
-                localStorage.setItem('mumega_auth_token', tenantData.bus_token)
-              }
-            }
-          } catch (_) {}
-
-          window.location.href = '/dashboard'
-        } catch (err) {
-          errorMsg.textContent = 'Something went wrong. Please try again.'
-          errorMsg.style.display = 'block'
+          requestForm.style.display = 'none'
+          verifyForm.style.display = 'block'
+          showSuccess('Code sent! Check your ' + (data.channel === 'email' ? 'email' : 'phone') + '.')
+          if (data.testCode) showSuccess('Dev mode — your code is: ' + data.testCode)
+        } catch (_) {
+          showError('Could not reach server. Check your connection.')
         }
+      })
+
+      verifyForm.addEventListener('submit', async function(e) {
+        e.preventDefault()
+        hideMessages()
+        var code = document.getElementById('code').value.trim()
+        if (!code) { showError('Please enter the 6-digit code.'); return }
+
+        try {
+          var resp = await fetch(apiUrl + '/api/auth/verify-code', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ customerSlug: tenantSlug, contact: contactValue, code: code }),
+          })
+          var data = await resp.json()
+          if (!resp.ok) { showError(data.error === 'code_expired' ? 'Code expired. Request a new one.' : data.error === 'invalid_code' ? 'Invalid code. Try again.' : data.error || 'Verification failed.'); return }
+
+          if (data.session) {
+            localStorage.setItem('inkwell_tenant_slug', data.session.customerSlug)
+          }
+          window.location.href = '/dashboard'
+        } catch (_) {
+          showError('Could not reach server. Check your connection.')
+        }
+      })
+
+      backBtn.addEventListener('click', function() {
+        hideMessages()
+        verifyForm.style.display = 'none'
+        requestForm.style.display = 'block'
       })
     </script>
   </body>

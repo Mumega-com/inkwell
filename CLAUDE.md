@@ -119,7 +119,7 @@ Plugin declares `requiredRole: 'manager'` → only manager, admin, owner can acc
 ## MCP Tools (12)
 `publish_content`, `get_dashboard`, `get_seo_data`, `get_leads`, `create_checkout`, `subscription_status`, `send_telegram`, `site_info`, `remember`, `recall`, `create_task`, `browse_marketplace`
 
-Last 4 are Mumega Network tools (require `MUMEGA_API_URL` + `MUMEGA_TOKEN` env vars). Without them, standalone Inkwell has 8 tools.
+Last 4 are Network tools (require `NETWORK_API_URL` + `NETWORK_TOKEN` env vars). Without them, standalone Inkwell has 8 tools.
 
 ## Commands
 ```bash
@@ -145,8 +145,8 @@ npx wrangler secret put TWILIO_ACCOUNT_SID
 npx wrangler secret put TWILIO_AUTH_TOKEN
 npx wrangler secret put RESEND_API_KEY
 npx wrangler secret put TELEGRAM_BOT_TOKEN
-npx wrangler secret put MUMEGA_API_URL    # optional — SOS integration
-npx wrangler secret put MUMEGA_TOKEN      # optional — SOS integration
+npx wrangler secret put NETWORK_API_URL    # optional — network integration
+npx wrangler secret put NETWORK_TOKEN     # optional — network integration
 ```
 
 ## SOS Integration (optional)

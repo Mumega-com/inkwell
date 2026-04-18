@@ -1,0 +1,27 @@
+# Local development overrides for Inkwell API Worker
+#
+# wrangler automatically merges this file when running `npx wrangler dev`.
+# It inherits everything from wrangler.toml and overrides only what's listed here.
+#
+# Quick start:
+#   cd workers/inkwell-api
+#   npm run migrate:core:local && npm run migrate:analytics:local && npm run migrate:marketing:local
+#   npx wrangler dev
+#
+# The base wrangler.toml ships with YOUR_* placeholders. Wrangler dev mode
+# handles these fine — D1 bindings become local SQLite files, KV bindings
+# become in-memory stores, and routes/crons are ignored locally.
+#
+# If you need secrets (Stripe, Telegram, etc.) for local testing, create a
+# .dev.vars file in this directory:
+#
+#   STRIPE_SECRET_KEY=sk_test_...
+#   TELEGRAM_BOT_TOKEN=123456:ABC...
+#   PUBLISH_TOKEN=my-local-token
+#
+# .dev.vars is gitignored and loaded automatically by wrangler dev.
+
+[vars]
+SITE_URL = "http://localhost:8787"
+SOS_SAAS_URL = ""
+PUBLISH_TOKEN = "dev-local-token"

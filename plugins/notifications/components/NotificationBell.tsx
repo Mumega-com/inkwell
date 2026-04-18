@@ -25,20 +25,20 @@ function itemIcon(type: string): string {
   return type === 'task' ? '✓' : '◈'
 }
 
-const LAST_READ_KEY = 'mumega_notifications_last_read'
+import { STORAGE_KEYS } from '../../lib/storage-keys'
 
 export function NotificationBell() {
   const [open, setOpen] = useState(false)
   const [items, setItems] = useState<ActivityItem[]>([])
   const [loading, setLoading] = useState(false)
   const [lastRead, setLastRead] = useState<number>(() => {
-    const stored = typeof localStorage !== 'undefined' ? localStorage.getItem(LAST_READ_KEY) : null
+    const stored = typeof localStorage !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.notificationsLastRead) : null
     return stored ? parseInt(stored, 10) : 0
   })
 
   const fetchActivity = useCallback(async () => {
-    const apiUrl = localStorage.getItem('mumega_api_url') || ''
-    const token = localStorage.getItem('mumega_auth_token') || ''
+    const apiUrl = localStorage.getItem(STORAGE_KEYS.apiUrl) || ''
+    const token = localStorage.getItem(STORAGE_KEYS.authToken) || ''
     if (!apiUrl || !token) return
 
     setLoading(true)
@@ -68,7 +68,7 @@ export function NotificationBell() {
   function markAllRead() {
     const now = Date.now()
     setLastRead(now)
-    localStorage.setItem(LAST_READ_KEY, String(now))
+    localStorage.setItem(STORAGE_KEYS.notificationsLastRead, String(now))
   }
 
   function toggleOpen() {

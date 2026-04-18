@@ -3,6 +3,12 @@ import { env, exports } from 'cloudflare:workers'
 const BASE = 'http://localhost'
 
 /**
+ * System token that bypasses RBAC — matches PUBLISH_TOKEN in wrangler.toml [vars].
+ * Tests use this so requests are not blocked by role checks.
+ */
+const SYSTEM_AUTH_HEADER = 'Bearer test-publish-token'
+
+/**
  * Send a request through the worker and return the response.
  */
 export async function request(
@@ -15,6 +21,7 @@ export async function request(
     method,
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': SYSTEM_AUTH_HEADER,
       ...headers,
     },
   }

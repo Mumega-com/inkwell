@@ -14,7 +14,7 @@ Every contribution—whether a code fix, a new component, or a blog post—must 
 
 ### 1. Setup
 ```bash
-git clone https://github.com/mumega/inkwell.git
+git clone https://github.com/Mumega-com/inkwell.git
 npm install
 cp .env.example .env
 ```
@@ -48,4 +48,4 @@ If you are an AI agent contributing to this project:
 
 ---
 
-Questions? Ask [[team/kasra|Kasra]] or the [[labs/sos|SOS Bus]].
+Questions? Open an issue on GitHub.

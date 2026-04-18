@@ -25,6 +25,32 @@ export const config = {
     contentWidth: '680px',
     pageWidth: '1200px',
     darkFirst: true,
+
+    spacing: {
+      xs: '0.25rem',
+      sm: '0.5rem',
+      md: '1rem',
+      lg: '1.5rem',
+      xl: '2rem',
+      '2xl': '3rem',
+      '3xl': '4rem',
+    },
+
+    typography: {
+      xs:  { size: '0.75rem',  lineHeight: '1rem' },
+      sm:  { size: '0.875rem', lineHeight: '1.25rem' },
+      md:  { size: '1rem',     lineHeight: '1.5rem' },
+      lg:  { size: '1.125rem', lineHeight: '1.75rem' },
+      xl:  { size: '1.25rem',  lineHeight: '1.75rem' },
+      '2xl': { size: '1.5rem',   lineHeight: '2rem' },
+      '3xl': { size: '1.875rem', lineHeight: '2.25rem' },
+    },
+
+    shadows: {
+      sm: '0 1px 2px rgba(0,0,0,0.05)',
+      md: '0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06)',
+      lg: '0 10px 15px rgba(0,0,0,0.1), 0 4px 6px rgba(0,0,0,0.05)',
+    },
   },
 
   i18n: {
@@ -70,6 +96,16 @@ export const config = {
       ],
     },
     defaultAuthor: { name: 'Inkwell', url: 'https://inkwell.dev' },
+  },
+
+  // Network — how this instance connects to external services.
+  // Forks override these. Standalone instances leave them empty.
+  network: {
+    apiUrl: '',                    // External API for network tools (remember, recall, tasks, marketplace)
+    storageKeyPrefix: 'inkwell',   // Prefix for localStorage keys (e.g. 'inkwell_auth_token')
+    brandName: 'Inkwell',          // Shown in "Powered by X" footer, ledger entries
+    poweredByUrl: 'https://github.com/Mumega-com/inkwell',
+    busTarget: 'owner',            // Default bus recipient for system messages
   },
 
   workerUrl: '',

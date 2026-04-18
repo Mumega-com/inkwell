@@ -5,13 +5,13 @@ import Footer from '../components/layout/Footer.astro'
 import { getEntry, render } from 'astro:content'
 
 const page = await getEntry('pages', 'whitepaper')
-if (!page) throw new Error('Whitepaper not found')
+if (!page) return Astro.redirect('/404')
 const { Content, headings } = await render(page)
 
 const tocItems = headings.filter((h) => h.depth === 2)
 ---
 
-<Base title="Whitepaper — Mumega" description={page.data.description}>
+<Base title="Whitepaper — Inkwell" description={page.data.description}>
   <Header />
 
   <main class="wp-page">

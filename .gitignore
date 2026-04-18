@@ -9,6 +9,10 @@ dist/
 workers/**/node_modules/
 wrangler.toml
 wrangler.production.toml
+.dev.vars
+
+# Smoke test backup
+*.smoke-backup
 
 # OS
 .DS_Store

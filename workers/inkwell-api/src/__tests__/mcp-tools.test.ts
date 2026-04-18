@@ -3,13 +3,21 @@ import { env, exports } from 'cloudflare:workers'
 
 const BASE = 'http://localhost'
 
+/**
+ * System token that bypasses RBAC — matches PUBLISH_TOKEN in wrangler.toml [vars].
+ */
+const SYSTEM_AUTH_HEADER = 'Bearer test-publish-token'
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 async function mcpRequest(body: unknown): Promise<Response> {
   return exports.default.fetch(
     new Request(`${BASE}/mcp`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': SYSTEM_AUTH_HEADER,
+      },
       body: JSON.stringify(body),
     }),
   )
@@ -281,11 +289,11 @@ describe('MCP endpoint', () => {
     })
   })
 
-  // ── 5. remember without MUMEGA_API_URL ─────────────────────────────────────
+  // ── 5. remember without NETWORK_API_URL ─────────────────────────────────────
 
-  describe('network tools without MUMEGA_API_URL', () => {
+  describe('network tools without NETWORK_API_URL', () => {
     it('returns network_required error for remember', async () => {
-      // In the test environment, MUMEGA_API_URL and MUMEGA_TOKEN are not set.
+      // In the test environment, NETWORK_API_URL and NETWORK_TOKEN are not set.
       // The tool should reject with the network_required error.
       const res = await callTool('remember', { text: 'Test memory entry' })
 
@@ -296,7 +304,7 @@ describe('MCP endpoint', () => {
 
       expect(result.error).toBe('network_required')
       expect(typeof result.message).toBe('string')
-      expect(result.message).toContain('Mumega')
+      expect(result.message).toContain('network')
     })
 
     it('returns network_required error for recall', async () => {
@@ -327,15 +335,15 @@ describe('MCP endpoint', () => {
     })
   })
 
-  // ── 6. remember with MUMEGA_API_URL set ─────────────────────────────────────
+  // ── 6. remember with NETWORK_API_URL set ─────────────────────────────────────
 
-  describe('network tools with MUMEGA_API_URL set', () => {
+  describe('network tools with NETWORK_API_URL set', () => {
     beforeAll(() => {
-      // Inject fake Mumega credentials into the env used by the worker.
+      // Inject fake network credentials into the env used by the worker.
       // The worker will try to fetch but fail since the URL isn't real —
       // that's expected. We just verify it does NOT return network_required.
-      ;(env as Record<string, unknown>)['MUMEGA_API_URL'] = 'http://127.0.0.1:9999'
-      ;(env as Record<string, unknown>)['MUMEGA_TOKEN'] = 'test-token-vitest'
+      ;(env as Record<string, unknown>)['NETWORK_API_URL'] = 'http://127.0.0.1:9999'
+      ;(env as Record<string, unknown>)['NETWORK_TOKEN'] = 'test-token-vitest'
     })
 
     it('does NOT return network_required — returns a connection/fetch error instead', async () => {
@@ -350,7 +358,7 @@ describe('MCP endpoint', () => {
       expect(result.error).not.toBe('network_required')
 
       // Should be a network/connection failure error since 127.0.0.1:9999 isn't listening
-      expect(['mumega_unreachable', 'mumega_error']).toContain(result.error)
+      expect(['network_unreachable', 'network_error']).toContain(result.error)
     })
   })
 
@@ -361,7 +369,10 @@ describe('MCP endpoint', () => {
       const res = await exports.default.fetch(
         new Request(`${BASE}/mcp`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': SYSTEM_AUTH_HEADER,
+          },
           body: 'not json{{',
         }),
       )

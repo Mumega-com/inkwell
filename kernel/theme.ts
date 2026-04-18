@@ -7,8 +7,41 @@ function isColorPair(v: ColorValue): v is ColorPair {
   return typeof v === 'object' && 'dark' in v && 'light' in v
 }
 
+// Defaults used when config omits optional scales
+const DEFAULT_SPACING: Record<string, string> = {
+  xs: '0.25rem',
+  sm: '0.5rem',
+  md: '1rem',
+  lg: '1.5rem',
+  xl: '2rem',
+  '2xl': '3rem',
+  '3xl': '4rem',
+}
+
+const DEFAULT_TYPOGRAPHY: Record<string, { size: string; lineHeight: string }> = {
+  xs:  { size: '0.75rem',  lineHeight: '1rem' },
+  sm:  { size: '0.875rem', lineHeight: '1.25rem' },
+  md:  { size: '1rem',     lineHeight: '1.5rem' },
+  lg:  { size: '1.125rem', lineHeight: '1.75rem' },
+  xl:  { size: '1.25rem',  lineHeight: '1.75rem' },
+  '2xl': { size: '1.5rem',   lineHeight: '2rem' },
+  '3xl': { size: '1.875rem', lineHeight: '2.25rem' },
+}
+
+const DEFAULT_SHADOWS: Record<string, string> = {
+  sm: '0 1px 2px rgba(0,0,0,0.05)',
+  md: '0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06)',
+  lg: '0 10px 15px rgba(0,0,0,0.1), 0 4px 6px rgba(0,0,0,0.05)',
+}
+
 export function generateCssVars(): string {
   const { colors, fonts, radius, contentWidth, pageWidth } = config.theme
+
+  // Merge with defaults — config values override defaults
+  const theme = config.theme as Record<string, unknown>
+  const spacing = { ...DEFAULT_SPACING, ...(theme.spacing as Record<string, string> | undefined) }
+  const typography = { ...DEFAULT_TYPOGRAPHY, ...(theme.typography as Record<string, { size: string; lineHeight: string }> | undefined) }
+  const shadows = { ...DEFAULT_SHADOWS, ...(theme.shadows as Record<string, string> | undefined) }
 
   const lightVars: string[] = []
   const darkVars: string[] = []
@@ -55,6 +88,24 @@ export function generateCssVars(): string {
   lightVars.push(...derivedLight)
   darkVars.push(...derivedDark)
 
+  // Spacing scale
+  const spacingVars = Object.entries(spacing).map(
+    ([key, value]) => `  --ink-space-${key}: ${value};`
+  )
+
+  // Typography scale
+  const typographyVars = Object.entries(typography).flatMap(
+    ([key, value]) => [
+      `  --ink-text-size-${key}: ${value.size};`,
+      `  --ink-text-lh-${key}: ${value.lineHeight};`,
+    ]
+  )
+
+  // Shadow tokens
+  const shadowVars = Object.entries(shadows).map(
+    ([key, value]) => `  --ink-shadow-${key}: ${value};`
+  )
+
   const sharedVars = [
     `  --ink-font-display: ${fonts.display};`,
     `  --ink-font-body: ${fonts.body};`,
@@ -62,6 +113,9 @@ export function generateCssVars(): string {
     `  --ink-radius: ${radius};`,
     `  --ink-content-width: ${contentWidth};`,
     `  --ink-page-width: ${pageWidth};`,
+    ...spacingVars,
+    ...typographyVars,
+    ...shadowVars,
   ].join('\n')
 
   return `/* Auto-generated from inkwell.config.ts — do not edit */

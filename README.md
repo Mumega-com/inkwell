@@ -1,184 +1,226 @@
 # Inkwell
 
-**Give your AI a business. Fork → deploy → connect.**
+**Forkable SaaS framework. One config file. Agent-operated.**
 
 [![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-F38020?logo=cloudflare&logoColor=white)](https://workers.cloudflare.com/)
 [![Astro](https://img.shields.io/badge/Astro-6-BC52EE?logo=astro&logoColor=white)](https://astro.build/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![MCP](https://img.shields.io/badge/MCP-Streamable_HTTP-00D4AA)](https://modelcontextprotocol.io/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Strict-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![MCP](https://img.shields.io/badge/MCP-12_Tools-00D4AA)](https://modelcontextprotocol.io/)
 [![MIT](https://img.shields.io/badge/License-MIT-green)](./LICENSE)
 
-Inkwell is a complete, forkable business operating system built on Astro 6 + Cloudflare Workers. One config file drives the whole stack: content engine, business dashboard, commerce, contracts, analytics flywheel, and an MCP server so your AI agent can operate the entire thing.
+Inkwell is a microkernel SaaS framework on Astro 6 + Cloudflare Workers. Fork it, change one config file, deploy. You get a content engine, business dashboard, commerce, auth, contracts, courses, analytics, and an MCP server -- all operated by your AI agent.
 
-**Fork = customer. Config = their brand. Agent operates it.**
+```
+Fork --> edit inkwell.config.ts --> deploy --> connect your agent
+```
 
 ---
 
 ## Architecture
 
+Inkwell follows a **microkernel + plugin** architecture with hexagonal ports.
+
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                        INKWELL                              │
-│                                                             │
-│  ┌──────────────────┐    ┌───────────────────────────────┐  │
-│  │  Astro 6 Site    │    │   Cloudflare Worker (Hono)    │  │
-│  │                  │    │                               │  │
-│  │  • Blog / Pages  │◄───│  • REST API (leads, contracts │  │
-│  │  • Dashboard UI  │    │    checkout, dashboard, SEO)  │  │
-│  │  • Chat Widget   │    │  • MCP Server (8 tools)       │  │
-│  │  • Search        │    │  • Daily flywheel (GSC / GA4) │  │
-│  │  • Dark/Light    │    │  • Telegram webhook           │  │
-│  └────────┬─────────┘    └───────────────┬───────────────┘  │
-│           │                              │                  │
-│           │         Cloudflare           │                  │
-│  ┌────────▼──────────────────────────────▼───────────────┐  │
-│  │   Pages (CDN)    │  D1 (SQL)  │  KV  │  R2 (media)   │  │
-│  └───────────────────────────────────────────────────────┘  │
-│                              ▲                              │
-│                    ┌─────────┴──────────┐                   │
-│                    │   MCP Client       │                   │
-│                    │  (any AI agent)    │                   │
-│                    │                   │                   │
-│                    │  POST /mcp         │                   │
-│                    │  Authorization:    │                   │
-│                    │  Bearer <token>    │                   │
-│                    └────────────────────┘                   │
-└─────────────────────────────────────────────────────────────┘
+inkwell.config.ts                 <-- One file drives everything
+       |
+   kernel/                        <-- Contracts only (5 files, ~430 lines)
+   |   types.ts                   <-- Plugin manifests, port interfaces, RBAC
+   |   plugin-loader.ts           <-- Registry, route mounting, MCP tool collection
+   |   adapter-registry.ts        <-- Hexagonal ports (swap infra, zero code changes)
+   |   roles.ts                   <-- Role hierarchy + permission checks
+   |   theme.ts                   <-- Config --> CSS custom properties
+       |
+   plugins/                       <-- 17 self-contained vertical modules
+   |   {name}/manifest.ts         <-- Name, version, role, config defaults
+   |   {name}/routes.ts           <-- Hono routes (Worker backend)
+   |   {name}/components/         <-- React islands (dashboard UI)
+       |
+   workers/inkwell-api/           <-- Cloudflare Worker entry point
+       src/index.ts               <-- Loads plugins, mounts middleware
+       src/middleware/             <-- Tenant, auth, RBAC, usage, adapters
 ```
+
+**Rules:**
+
+- Kernel owns contracts. Plugins own features.
+- Plugins never import from other plugins.
+- No hardcoded URLs -- everything from config or env vars.
+- Adapters are swappable. Change `adapters.bus: 'sos'` to `'standalone'` -- no code changes.
+- `config.plugins[]` is the source of truth. Not in the list? Doesn't load.
 
 ---
 
-## What You Get
+## What's Inside
 
-### Content Engine (v3)
-- 7 content collections: blog, topics, labs, tools, team, products, pages
-- Markdown + MDX with Zod validation
-- SEO-complete: JSON-LD (14 schema types), sitemap.xml, RSS, `llms.txt`, Open Graph
-- Client-side full-text search via Pagefind — zero cost, zero server
-- Dark/light theme from config, i18n + RTL support
-- Inbox publish: drop a markdown file, run `npm run publish` — done
+### 17 Plugins
 
-### Business Dashboard (v4)
-- 5 pages: overview, SEO, leads, campaigns, seasonal calendar
-- KPI cards with trend indicators, line/bar charts, sortable tables (Recharts)
+| Plugin | What it does |
+|--------|-------------|
+| **auth** | Passwordless OTP login (email/phone). Session cookies via KV. |
+| **dashboard** | Business control panel -- KPIs, task board, wallet, squads, settings, AI chat |
+| **content** | Publish engine -- MDX with wikilinks, knowledge graph, versioning |
+| **commerce** | Digital product sales -- Stripe checkout, subscriptions, royalty splits |
+| **courses** | Course platform -- lessons, drip scheduling, progress tracking, certificates |
+| **contracts** | E-signature -- create, sign, track shipments, SMS/email confirmation |
+| **payments** | Stripe Connect -- webhooks, refunds, subscription lifecycle |
+| **analytics** | GSC + GA4 flywheel -- daily ingest, week-over-week scoring |
+| **mcp** | MCP server -- 12 tools for AI agent operation |
+| **telegram** | Telegram bot -- webhook receiver, message routing |
+| **discovery** | Lead capture -- forms, qualification, CRM pipeline |
+| **onboarding** | Setup wizard -- business profile, team selection, MCP connection |
+| **notifications** | In-app notification system with bell UI |
+| **diagnostics** | Health checks, FMAAP safety gate, A/B testing |
+| **organism** | Managed AI agent -- provision, budget, usage tracking |
+| **questionnaire** | Survey builder with scoring |
+| **chat** | Live chat widget |
+
+### 12 Hexagonal Ports
+
+Swap infrastructure without changing plugin code:
+
+| Port | Purpose |
+|------|---------|
+| `DatabasePort` | D1, Postgres, MySQL -- query, execute, batch |
+| `AuthPort` | CF Access, Auth.js, custom -- getUser, requireUser |
+| `SessionPort` | KV, Redis -- get, set, delete |
+| `ContentPort` | KV, S3 -- getPage, putPage, listPages |
+| `StoragePort` | R2, S3, GCS -- blob storage |
+| `GraphPort` | D1 -- knowledge graph nodes, edges, backlinks |
+| `AgentPort` | D1 -- provision, budget, usage tracking |
+| `CRMPort` | Any CRM -- contacts, opportunities |
+| `SearchPort` | D1 FTS, vectors -- index, search |
+| `BusPort` | Standalone or network -- send, broadcast, subscribe |
+| `MemoryPort` | Standalone or vector -- remember, recall |
+| `EconomyPort` | Standalone or network -- charge, transfer, balance |
+
+### Content Engine
+
+- 7 collections: blog, topics, labs, tools, team, products, pages
+- MDX with `[[wikilinks]]` -- auto-builds a knowledge graph
+- 14 custom block types: callout, figure, stats, FAQ, chart, mermaid, timeline, CTA
+- SEO-complete: JSON-LD (14 schema types), sitemap, RSS, `llms.txt`, Open Graph
+- Full-text search via Pagefind -- zero cost, zero server
+- Dark/light theme from config, i18n + RTL ready
+- Inbox publish: drop markdown, run `npm run publish`
+
+### Business Dashboard
+
+- Shadcn UI components with Inkwell design token bridge
+- Pages: overview, SEO, leads, campaigns, calendar, tasks, squads, wallet, chat, settings
 - Mobile-responsive: sidebar on desktop, bottom tabs on mobile
-- All data served from Worker API — no SSR blocking
+- RBAC: `owner > admin > manager > member > viewer`
 
-### Glass Commerce — Digital Products (v5)
-- Sell books, courses, and digital products directly
-- Stripe Connect integration — no SaaS intermediary
-- Subscription tiers with auto-provisioning via webhook
-- Buy / download flow works on any device
+### MCP Server -- 12 Tools
 
-### Contracts + E-Signature (v4)
-- Create contracts via API, get a shareable signing link
-- Customer signs on their phone — no login required
-- Insurance selection, 9-step shipment tracking timeline
-- SMS confirmation via Twilio, email via Resend
-
-### MCP Server — 8 Tools (v4)
-Any AI agent connects with one URL and controls everything:
+Any AI agent connects with one URL:
 
 | Tool | What it does |
 |------|-------------|
-| `publish_content` | Write a markdown post directly to the site |
-| `get_dashboard` | Retrieve all KPI data |
+| `publish_content` | Write markdown directly to the site |
+| `get_dashboard` | All KPIs in one call |
 | `get_seo_data` | GSC + GA4 snapshot |
-| `get_leads` | Pull lead list from D1 |
-| `create_checkout` | Start a Stripe Checkout session |
+| `get_leads` | Lead list from D1 |
+| `create_checkout` | Start a Stripe session |
 | `subscription_status` | Check subscription by email |
-| `send_telegram` | Send a message to your Telegram bot |
-| `site_info` | Return site config and feature flags |
-
-### Daily Flywheel (v4)
-- Cron at 6am: ingests GSC + GA4, stores normalized snapshots in D1
-- Week-over-week scoring — no LLM, pure SQL math
-- Optional: reports to your agent bus if `SOS_BUS_URL` is set
-
-### Diagnostics + Safety Gate (v5)
-- FMAAP gate: checks Flow, Metabolism, Alignment, Autonomy, Physics before any agent action
-- DIAG-UI: translates routing math into human-readable health narratives
-- Adaptive A/B edge testing with chi-squared significance + human approval loop
+| `send_telegram` | Message your Telegram bot |
+| `site_info` | Site config and feature flags |
+| `remember` | Store to agent memory |
+| `recall` | Retrieve from agent memory |
+| `create_task` | Create a task for your team |
+| `browse_marketplace` | Discover plugins and services |
 
 ---
 
-## Deploy in 5 Minutes
+## Quick Start
 
 ```bash
-# 1. Fork on GitHub, then clone your fork
+# 1. Fork + clone
 git clone https://github.com/YOUR-USERNAME/inkwell
-cd inkwell
+cd inkwell && npm install
 
-# 2. Install dependencies
-npm install
+# 2. Configure
+#    Edit inkwell.config.ts -- name, domain, theme, features, plugins
 
-# 3. Configure your site
-cp inkwell.config.example.ts inkwell.config.ts
-# Edit inkwell.config.ts — set name, domain, theme, features
+# 3. Local dev
+npm run dev                    # Astro dev server on :4321
 
-# 4. Configure the Worker
-# Edit workers/inkwell-api/wrangler.toml:
-#   - Set account_id (your Cloudflare account)
-#   - Replace database_id values (after running: npx wrangler d1 create inkwell-core, etc.)
-#   - Replace kv id values (after running: npx wrangler kv namespace create CONTENT, etc.)
-#   - Set SITE_URL to your domain
-#   - Update [[routes]] pattern to your domain
+# 4. Worker dev (API + MCP)
+cd workers/inkwell-api
+npm run migrate                # Create local D1 tables
+npx wrangler dev               # Worker on :8787
 
-# 5. Set Worker secrets (never stored in code)
+# 5. Deploy
+npm run deploy                 # Build + deploy to Cloudflare Pages
+```
+
+### Production Setup
+
+```bash
+# Create Cloudflare resources
+npx wrangler d1 create inkwell-core
+npx wrangler d1 create inkwell-analytics
+npx wrangler d1 create inkwell-marketing
+npx wrangler kv namespace create CONTENT
+npx wrangler kv namespace create KV
+
+# Update workers/inkwell-api/wrangler.toml with the IDs
+
+# Set secrets (never in code)
 npx wrangler secret put STRIPE_SECRET_KEY
 npx wrangler secret put STRIPE_WEBHOOK_SECRET
 npx wrangler secret put TELEGRAM_BOT_TOKEN
 npx wrangler secret put RESEND_API_KEY
-# See workers/inkwell-api/.env.example for full list
 
-# 6. Run D1 migrations
-npx wrangler d1 migrations apply inkwell-core
-npx wrangler d1 migrations apply inkwell-analytics
-npx wrangler d1 migrations apply inkwell-marketing
-
-# 7. Deploy
-npm run deploy
+# Migrate + deploy
+npm run migrate:prod
+npx wrangler deploy
 ```
 
-That's it. Free. Forever. Cloudflare Pages + Workers free tier handles a serious production workload.
+Free. Cloudflare's free tier handles real production workloads.
 
 ---
 
-## One Config Drives Everything
+## One Config File
 
 ```typescript
 // inkwell.config.ts
-export default {
-  name: "Your Business",
-  domain: "yourbusiness.com",
+export const config = {
+  name: 'Your Business',
+  domain: 'yourbusiness.com',
+  tagline: 'Your tagline here.',
+
   theme: {
-    colors: { primary: "#D4A017" }
+    colors: { primary: '#D4A017', secondary: '#06B6D4' },
+    fonts: { display: "'Inter', sans-serif" },
+    radius: '8px',
   },
+
   features: {
-    dashboard: true,
-    chat: true,
+    reactions: true,
     newsletter: true,
-    contracts: true,
-    commerce: true,
-    payments: true,
-    telegram: true,
-    flywheel: true,
-    // toggle any feature on or off
+    knowledgeGraph: true,
+    search: true,
+    chat: false,
   },
-  connectors: {
-    gsc: { siteUrl: "https://yourbusiness.com/" },
-    ga4: { propertyId: "G-XXXXXXXXXX" },
-  }
+
+  plugins: [
+    'auth', 'dashboard', 'content', 'commerce',
+    'mcp', 'analytics', 'telegram',
+  ],
+
+  adapters: {
+    bus: 'standalone',
+    memory: 'standalone',
+    economy: 'standalone',
+  },
 }
 ```
 
-Toggle a feature off → its routes, UI, and dependencies disappear automatically. No dead code, no conditional clutter.
+Toggle a feature off -- its routes and UI disappear. Remove a plugin -- its code never loads. Change an adapter -- infrastructure swaps with zero code changes.
 
 ---
 
 ## Connect Your AI
-
-Point any MCP-compatible AI agent at your deployed Worker:
 
 ```json
 {
@@ -186,103 +228,72 @@ Point any MCP-compatible AI agent at your deployed Worker:
     "my-business": {
       "url": "https://your-worker.workers.dev/mcp",
       "headers": {
-        "Authorization": "Bearer YOUR_INKWELL_MCP_TOKEN"
+        "Authorization": "Bearer YOUR_TOKEN"
       }
     }
   }
 }
 ```
 
-Set `INKWELL_MCP_TOKEN` as a Worker secret, and your agent gets 8 tools to operate the entire site — publishing content, reading leads, checking analytics, sending messages, and processing payments.
-
-Works with Claude (claude.ai, Claude Code, Claude Desktop), ChatGPT, Cursor, or any client that speaks [MCP streamable HTTP](https://modelcontextprotocol.io/).
-
----
-
-## Free vs. Mumega SaaS
-
-Inkwell is fully self-contained and free to run. Some tools connect to the Mumega network for extended capabilities:
-
-| Capability | Standalone (free) | Mumega SaaS |
-|-----------|-------------------|-------------|
-| Content publishing | Yes | Yes |
-| Dashboard + analytics | Yes | Yes |
-| Commerce + payments | Yes | Yes |
-| Contracts + e-signature | Yes | Yes |
-| MCP server (8 tools) | Yes | Yes |
-| AI memory (Mirror) | No | Yes |
-| Task orchestration | No | Yes |
-| Multi-tenant routing | No | Yes |
-| Agent marketplace | No | Yes |
-| Multi-site management | No | Yes |
-
-Network tools require setting `MUMEGA_API_URL` and `MUMEGA_TOKEN`. Get a token at [mumega.com](https://mumega.com). Standalone deployments never phone home.
+Works with Claude Code, Claude Desktop, ChatGPT, Cursor, Windsurf, or any MCP client.
 
 ---
 
 ## Project Structure
 
-```text
-inkwell.config.ts              # All configuration — name, domain, theme, features
-inkwell.config.example.ts      # Copy this to get started
-
-content/
-  inbox/                       # Drop markdown here → npm run ingest
-  en/blog/                     # Blog posts
-  en/pages/                    # Static pages
-
+```
+inkwell.config.ts              # All configuration
+kernel/                        # Contracts: types, plugin loader, adapters, RBAC, theme
+plugins/                       # 17 feature modules
+  auth/                        #   Passwordless OTP auth
+  dashboard/                   #   Business control panel (React islands)
+  commerce/                    #   Stripe checkout + subscriptions
+  content/                     #   MDX publish engine + knowledge graph
+  mcp/                         #   MCP server (12 tools)
+  organism/                    #   Managed AI agent provisioning
+  ...
+workers/inkwell-api/           # Cloudflare Worker (Hono)
+  src/middleware/              #   Tenant, auth, RBAC, usage, adapters
+  migrations/                  #   D1 schema (core, analytics, marketing)
+  wrangler.toml                #   Bindings + config
 src/
-  pages/                       # Astro routes
-  components/
-    content/                   # Callout, figure, author card
-    engagement/                # Reactions, newsletter, social proof
-    layout/                    # Header, footer, nav
-    seo/                       # JSON-LD helpers
-    dashboard/                 # KPI cards, charts, tables
-    chat/                      # Floating chat widget
-  lib/                         # Theme, config, SEO utilities
-
-workers/
-  inkwell-api/                 # Cloudflare Worker (Hono)
-    src/
-      routes/                  # dashboard, contracts, leads, checkout, mcp, telegram
-      middleware/              # auth, tenant
-      types.ts                 # Env interface — all bindings typed
-    migrations/                # D1 schema migrations
-    wrangler.toml              # Worker config and bindings
-
-scripts/
-  ingest.ts                    # Inbox → content collections
-  publish.sh                   # Build, commit, push
+  pages/                       # Astro routes (site + dashboard)
+  components/                  # Astro + React components
+  layouts/                     # Base, Dashboard
+  styles/base.css              # Design tokens + Shadcn bridge
+content/en/                    # Markdown content
+scripts/                       # Ingest, publish, fork smoke test
+instances/                     # Per-deployment overrides
 ```
 
 ---
 
 ## Commands
 
-```bash
-npm run dev          # Dev server (Astro)
-npm run build        # Production build
-npm run preview      # Preview production build locally
-npm run ingest       # Process content/inbox/ into collections
-npm run publish      # Ingest + build + commit + push
-npm run deploy       # Build + deploy to Cloudflare Pages
-npm test             # Run Worker tests
-```
+| Command | What it does |
+|---------|-------------|
+| `npm run dev` | Astro dev server |
+| `npm run build` | Production build |
+| `npm run deploy` | Build + deploy to Cloudflare Pages |
+| `npm run ingest` | Process content/inbox/ into collections |
+| `npm run publish` | Ingest + build + commit + push |
+| `npm run migrate` | Apply D1 migrations (local) |
+| `npm run migrate:prod` | Apply D1 migrations (remote) |
+| `npm test` | Kernel tests (100 tests) |
+| `npm run test:worker` | Worker integration tests (39 tests) |
 
 ---
 
 ## Fork Checklist
 
-1. Edit `inkwell.config.ts` — name, domain, theme colors, analytics IDs
+1. Edit `inkwell.config.ts` -- name, domain, theme, features, plugins
 2. Replace `content/en/` with your content
-3. Replace `public/favicon.svg` and `public/logo.*` with your brand
-4. Create Cloudflare resources and update `workers/inkwell-api/wrangler.toml`
-5. Set Worker secrets via `wrangler secret put`
-6. Enable/disable features in config
-7. Deploy
-
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full contributor guide.
+3. Replace `public/favicon.svg` and `public/logo.*`
+4. Create Cloudflare resources, update `wrangler.toml`
+5. Set secrets: `npx wrangler secret put <KEY>`
+6. Migrate: `npm run migrate:prod`
+7. Deploy: `npm run deploy`
+8. Verify: `bash scripts/fork-smoke.sh`
 
 ---
 
@@ -290,23 +301,18 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full contributor guide.
 
 | Layer | Technology |
 |-------|-----------|
-| Frontend | Astro 6 |
-| Backend | Cloudflare Workers + Hono |
-| Database | D1 (SQL, 3 databases) |
-| Cache / Sessions | KV |
-| Media | R2 (optional) |
-| Payments | Stripe |
-| SMS | Twilio |
-| Email | Resend |
-| Search | Pagefind |
-| Charts | Recharts (React 19) |
+| Frontend | Astro 6, React 19, Shadcn UI |
+| Backend | Cloudflare Workers, Hono |
+| Database | D1 (3 databases) |
+| Cache | KV |
+| Media | R2 |
+| Payments | Stripe Connect |
+| Auth | Passwordless OTP (built-in) |
+| AI | MCP server (12 tools) |
 | Hosting | Cloudflare Pages (free tier) |
 
 ---
 
-## Built By
-
-[Digid Inc.](https://digid.ca) — Toronto, Canada.  
-Crafted by [Hadi Servat](https://github.com/servathadi) and the Mumega agent team.
-
 MIT License. Fork freely.
+
+Built by [Digid Inc.](https://digid.ca)

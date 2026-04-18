@@ -6,7 +6,7 @@ import JsonLd from '../components/seo/JsonLd.astro'
 import { getEntry, render } from 'astro:content'
 
 const page = await getEntry('pages', 'subscribe')
-if (!page) throw new Error('Subscribe page not found')
+if (!page) return Astro.redirect('/404')
 const { Content } = await render(page)
 ---
 

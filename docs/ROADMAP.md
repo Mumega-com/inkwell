@@ -84,7 +84,7 @@ Customer signs up
 | Plugins | 16 | 17 (+ organism) |
 | Tests | 90 | 100 |
 | Bundle | 353 KiB | 383 KiB |
-| Organisms | 1 (Viamar) | ready for 1,000+ |
+| Organisms | 1 | ready for 1,000+ |
 | Graph edges | manual | self-organizing |
 | Agent cost/mo | n/a | ~$5 (Haiku-first) |
 

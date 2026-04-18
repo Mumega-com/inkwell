@@ -73,7 +73,7 @@ function SquadCard({ squad }: { squad: Squad }) {
           <CardTitle className="flex-1 text-base">{squad.name}</CardTitle>
           {squad.hired && (
             <Badge variant="secondary" className="text-amber-500 border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 uppercase tracking-wider text-[0.6rem]">
-              Mumega
+              Network
             </Badge>
           )}
         </div>

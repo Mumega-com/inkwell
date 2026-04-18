@@ -538,3 +538,28 @@ body * {
     display: none !important;
   }
 }
+
+/* Shadcn ↔ Inkwell bridge — maps Shadcn CSS variables to Inkwell design tokens */
+:root,
+:root.dark {
+  --background: var(--ink-bg);
+  --foreground: var(--ink-text);
+  --card: var(--ink-surface);
+  --card-foreground: var(--ink-text);
+  --popover: var(--ink-surface);
+  --popover-foreground: var(--ink-text);
+  --primary: var(--ink-primary);
+  --primary-foreground: #000;
+  --secondary: var(--ink-surface);
+  --secondary-foreground: var(--ink-text);
+  --muted: var(--ink-surface);
+  --muted-foreground: var(--ink-muted);
+  --accent: var(--ink-surface);
+  --accent-foreground: var(--ink-text);
+  --destructive: var(--ink-danger, #EF4444);
+  --destructive-foreground: #fff;
+  --border: var(--ink-border);
+  --input: var(--ink-border);
+  --ring: var(--ink-primary);
+  --radius: var(--ink-radius);
+}

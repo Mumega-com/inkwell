@@ -90,7 +90,7 @@ app.use('*', async (c, next) => {
       try {
         const res = await fetch(
           `${saasUrl}/auth/tenant?email=${encodeURIComponent(email)}`,
-          { headers: { 'Authorization': `Bearer ${c.env.MUMEGA_TOKEN ?? ''}` } },
+          { headers: { 'Authorization': `Bearer ${c.env.NETWORK_TOKEN ?? ''}` } },
         )
         if (res.ok) {
           const data = await res.json() as { tenant_slug?: string }
@@ -115,9 +115,14 @@ app.use('*', async (c, next) => {
 app.use('*', cors({
   origin: (origin) => {
     if (!origin) return null
-    // Allow mumega.com and all tenant subdomains
-    if (origin === 'https://mumega.com') return origin
-    if (/^https:\/\/[a-z0-9-]+\.mumega\.com$/.test(origin)) return origin
+    // Allow the configured SITE_URL origin and all tenant subdomains
+    const siteUrl = config.domain ? `https://${config.domain}` : ''
+    if (siteUrl && origin === siteUrl) return origin
+    // Allow tenant subdomains (*.domain)
+    if (config.domain) {
+      const pattern = new RegExp(`^https://[a-z0-9-]+\\.${config.domain.replace('.', '\\.')}$`)
+      if (pattern.test(origin)) return origin
+    }
     // Allow localhost on any port for local development
     if (/^http:\/\/localhost(:\d+)?$/.test(origin)) return origin
     return null
@@ -203,7 +208,8 @@ app.get('*', async (c) => {
         c.get('cf_access_email')
       ) {
         const cfTenant = c.get('cf_access_tenant')
-        const saasUrl = c.env.SOS_SAAS_URL ?? 'https://api.mumega.com'
+        const saasUrl = c.env.SOS_SAAS_URL ?? ''
+        const keyPrefix = config.network.storageKeyPrefix
 
         // Look up bus_token for the tenant so the dashboard can authenticate API calls
         let busToken = ''
@@ -211,7 +217,7 @@ app.get('*', async (c) => {
           try {
             const tokenRes = await fetch(
               `${c.env.SOS_SAAS_URL}/auth/tenant?email=${encodeURIComponent(c.get('cf_access_email') ?? '')}`,
-              { headers: { 'Authorization': `Bearer ${c.env.MUMEGA_TOKEN ?? ''}` } },
+              { headers: { 'Authorization': `Bearer ${c.env.NETWORK_TOKEN ?? ''}` } },
             )
             if (tokenRes.ok) {
               const tokenData = await tokenRes.json() as { bus_token?: string }
@@ -224,10 +230,10 @@ app.get('*', async (c) => {
 
         const autoConfigScript = `<script>
   (function(){
-    if (!localStorage.getItem('mumega_auth_token') && ${JSON.stringify(busToken)}) {
-      localStorage.setItem('mumega_auth_token', ${JSON.stringify(busToken)});
-      localStorage.setItem('mumega_tenant_slug', ${JSON.stringify(cfTenant ?? '')});
-      localStorage.setItem('mumega_api_url', ${JSON.stringify(saasUrl)});
+    if (!localStorage.getItem('${keyPrefix}_auth_token') && ${JSON.stringify(busToken)}) {
+      localStorage.setItem('${keyPrefix}_auth_token', ${JSON.stringify(busToken)});
+      localStorage.setItem('${keyPrefix}_tenant_slug', ${JSON.stringify(cfTenant ?? '')});
+      localStorage.setItem('${keyPrefix}_api_url', ${JSON.stringify(saasUrl)});
     }
   })();
 <\/script>`
@@ -244,7 +250,7 @@ app.get('*', async (c) => {
       if (
         contentType === 'text/html; charset=utf-8' &&
         tenantSlug &&
-        new URL(c.req.url).hostname.endsWith('.mumega.com')
+        config.domain && new URL(c.req.url).hostname.endsWith(`.${config.domain}`)
       ) {
         const noindexTag = '<meta name="robots" content="noindex, nofollow">'
         if (!content.includes('noindex') && content.includes('</head>')) {
@@ -279,7 +285,7 @@ app.get('*', async (c) => {
 </head><body><div class="c">
 <h1>${tenantSlug}</h1>
 <p>This site is being set up. Check back soon.</p>
-<p><a href="https://mumega.com">Powered by Mumega</a></p>
+<p><a href="${config.network.poweredByUrl}">${config.network.brandName ? `Powered by ${config.network.brandName}` : ''}</a></p>
 </div></body></html>`,
     200,
   )

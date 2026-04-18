@@ -109,7 +109,7 @@ glassRoutes.post('/transactions', async (c) => {
   const platformRoyaltyId = crypto.randomUUID()
   await db.execute(
     `INSERT INTO glass_royalties (id, transaction_id, recipient_type, recipient_id, amount_cents)
-     VALUES (?, ?, 'platform', 'mumega', ?)`,
+     VALUES (?, ?, 'platform', 'inkwell', ?)`,
     [platformRoyaltyId, txId, platformFeeCents]
   )
 

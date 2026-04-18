@@ -1,6 +1,6 @@
 ---
 title: "Glass Commerce Engine"
-description: "Native digital commerce and revenue attribution for the Mumega ecosystem."
+description: "Native digital commerce and revenue attribution for Inkwell."
 parent: "index"
 order: 6
 tags: ["features", "commerce", "payments", "stripe"]

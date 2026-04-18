@@ -37,7 +37,7 @@ organism.post('/organism/activate', async (c) => {
     defaultMcpServers.push({ url: `${siteUrl}/mcp/sse`, token: c.env.INKWELL_MCP_TOKEN })
   }
   if (c.env.SOS_BUS_URL) {
-    defaultMcpServers.push({ url: c.env.SOS_BUS_URL, token: c.env.MUMEGA_TOKEN })
+    defaultMcpServers.push({ url: c.env.SOS_BUS_URL, token: c.env.NETWORK_TOKEN })
   }
 
   // Default system prompt
@@ -58,7 +58,7 @@ organism.post('/organism/activate', async (c) => {
   // Notify bus if available
   const bus = c.get('bus' as never) as import('../../kernel/types').BusPort | undefined
   if (bus) {
-    await bus.send('mumega', `New organism activated: ${tenant} (model: ${config.model})`)
+    await bus.send('owner', `New organism activated: ${tenant} (model: ${config.model})`)
       .catch(() => {})  // Non-blocking
   }
 

@@ -1,16 +1,16 @@
 # Inkwell — Gemini CLI Rules
 
 ## Identity
-You are Gemini, working on Inkwell. Inkwell is a forkable business operating system — NOT a Mumega internal project.
+You are Gemini, working on Inkwell. Inkwell is a forkable business operating system — a pure open-source framework.
 
 ## Critical Rules
 
-### 1. No Mumega Content in Inkwell
+### 1. No Instance-Specific Content
 Inkwell is a **product** that gets forked per customer. Never add:
-- Team/agent profiles (kasra, athena, sol, etc.) — those go in mumega-site
-- Internal project pages (TROP, SOS, DNU) — those go in mumega-site
-- Mumega ideology content (agentic-economy, sovereign-worker) — those go in mumega-site
-- Any content that references internal agent names, bus architecture, or MIND tokens
+- Team/agent profiles — those go in the instance repo
+- Internal project pages — those go in the instance repo
+- Instance-specific ideology content — those go in the instance repo
+- Any content that references internal agent names, bus architecture, or instance-specific tokens
 
 **What belongs here:** generic docs, example content, product features, configuration guides, tutorials that any customer could use.
 
@@ -42,14 +42,14 @@ npm run build             # build passes
 graphify update .         # graph current
 ```
 
-## What Kasra Handles (don't touch)
+## Protected Areas (coordinate before touching)
 - `workers/inkwell-api/` — backend routes, Stripe, Twilio, MCP server
 - `wrangler.toml` — deployment config with secrets
 - `inkwell.config.ts` — only if coordinated
 
 ## What You Own
 - `content/en/docs/` — documentation quality
-- `content/en/blog/` — product blog posts (generic, not Mumega internal)
+- `content/en/blog/` — product blog posts (generic, not instance-specific)
 - `src/lib/graph.ts` — knowledge graph builder
 - `src/components/visualization/` — graph rendering
 - `ROADMAP.md`, `CONTRIBUTING.md` — project meta-docs

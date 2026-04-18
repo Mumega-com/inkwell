@@ -1,5 +1,6 @@
 import type { MiddlewareHandler } from 'hono'
 import type { AppBindings } from '../types'
+import { config } from '../../../../inkwell.config'
 import {
   getCachedTenant,
   cacheTenant,
@@ -12,7 +13,7 @@ import {
  * Resolution order:
  * 1. Check session cache for full tenant data (fast path — no origin call)
  * 2. Check for custom domain mapping: domain:{hostname} -> slug
- * 3. Check for subdomain pattern: {slug}.mumega.com -> slug
+ * 3. Check for subdomain pattern: {slug}.yourdomain.com -> slug
  * 4. If SOS_SAAS_URL is set, resolve from origin and cache the result
  * 5. If no tenant found, request proceeds without tenant context (single-site mode)
  *
@@ -47,8 +48,9 @@ export function tenantResolver(): MiddlewareHandler<AppBindings> {
     }
 
     // 3. Check subdomain pattern
-    if (!tenantSlug && host.endsWith('.mumega.com')) {
-      const parts = host.replace('.mumega.com', '').split('.')
+    const baseDomain = config.domain
+    if (!tenantSlug && baseDomain && host.endsWith(`.${baseDomain}`)) {
+      const parts = host.replace(`.${baseDomain}`, '').split('.')
       if (parts.length === 1 && parts[0].length > 0) {
         tenantSlug = parts[0]
       }

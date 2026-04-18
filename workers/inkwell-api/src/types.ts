@@ -43,9 +43,9 @@ export interface Env {
   CHAT_SYSTEM_PROMPT?: string  // Custom system prompt for chat assistant
   SOS_REPORT_RECIPIENT?: string // Agent bus recipient for flywheel reports (default: "owner")
   ENABLED_ROUTES?: string      // Comma-separated list of enabled route groups
-  SOS_SAAS_URL?: string        // Origin SaaS service URL for tenant resolution (e.g. "https://saas.mumega.com")
-  MUMEGA_API_URL?: string      // Mumega SaaS API URL for network tools (default: "https://api.mumega.com")
-  MUMEGA_TOKEN?: string        // Bearer token for authenticating with Mumega SaaS API
+  SOS_SAAS_URL?: string        // Origin SaaS service URL for tenant resolution
+  NETWORK_API_URL?: string     // Network API URL for network tools (memory, tasks, marketplace)
+  NETWORK_TOKEN?: string       // Bearer token for authenticating with network API
   // SOS integration (v6.3)
   SOS_ECONOMY_URL?: string     // SOS Economy service URL
   SOS_MIRROR_URL?: string      // SOS Mirror memory service URL

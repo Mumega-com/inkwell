@@ -50,7 +50,7 @@ To change fonts, update the `@import` in `src/styles/base.css` and the variable 
 | Property | Type | Description |
 |---|---|---|
 | `name` | `string` | Your brand name. Used in headers, titles, and SEO. |
-| `domain` | `string` | The canonical domain (e.g., `mumega.com`). |
+| `domain` | `string` | The canonical domain (e.g., `yourdomain.com`). |
 | `tagline` | `string` | A short pitch for your homepage hero. |
 ::
 

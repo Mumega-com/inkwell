@@ -21,11 +21,7 @@ interface TaskCard {
   labels?: string[]
 }
 
-const STORAGE_KEYS = {
-  apiUrl: 'mumega_api_url',
-  authToken: 'mumega_auth_token',
-  tenantSlug: 'mumega_tenant_slug',
-} as const
+import { STORAGE_KEYS } from '../../lib/storage-keys'
 
 function TaskCardDisplay({ data }: { data: TaskCard }) {
   return (

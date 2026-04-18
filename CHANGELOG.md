@@ -127,7 +127,7 @@ All notable changes to Inkwell. Format: [Keep a Changelog](https://keepachangelo
 - **Onboarding wizard** — 5-step React component (profile → business → discover → goals → invite)
 - **Notifications plugin** — floating bell, dropdown, real-time updates
 - **Team invite endpoint** — invite members to tenant
-- **4 Mumega Network MCP tools** — remember, recall, create_task, browse_marketplace (require MUMEGA_API_URL)
+- **4 Network MCP tools** — remember, recall, create_task, browse_marketplace (require NETWORK_API_URL)
 - **Shadcn UI components** — avatar, badge, button, card, chart, dialog, input, progress, select, separator, table, tabs, textarea
 - **MCP tools test suite** — 400 lines, validates all 12 tools
 - **Inkwell manual** — 5-chapter book (Logos, Telos, Kairos, Nomos, Threshold)

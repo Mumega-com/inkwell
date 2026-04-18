@@ -1,100 +1,67 @@
 #!/usr/bin/env bash
 #
-# Fork smoke test — proves Inkwell can be forked with config-only changes.
+# Fork smoke test — proves Inkwell builds with config-only changes.
 #
-# Usage: ./scripts/fork-smoke.sh [target-dir]
-# Default target: /tmp/inkwell-fork-test
+# Modifies inkwell.config.ts in place with test values, runs `npm run build`,
+# then restores the original. Exit 0 = pass, exit 1 = fail.
+#
+# Usage: bash scripts/fork-smoke.sh
 #
 set -euo pipefail
 
 INKWELL_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-TARGET="${1:-/tmp/inkwell-fork-test}"
+CONFIG="$INKWELL_ROOT/inkwell.config.ts"
+BACKUP="$INKWELL_ROOT/inkwell.config.ts.smoke-backup"
+PASSED=false
+
+cleanup() {
+  if [ -f "$BACKUP" ]; then
+    cp "$BACKUP" "$CONFIG"
+    rm -f "$BACKUP"
+    echo "[restore] Original inkwell.config.ts restored."
+  fi
+}
+
+# Always restore config on exit, even on failure or interrupt
+trap cleanup EXIT
 
 echo "=== Inkwell Fork Smoke Test ==="
-echo "Source: $INKWELL_ROOT"
-echo "Target: $TARGET"
+echo "Root: $INKWELL_ROOT"
 echo ""
 
-# Clean previous test
-rm -rf "$TARGET"
-mkdir -p "$TARGET"
+# 1. Back up the original config
+echo "[1/4] Backing up inkwell.config.ts..."
+cp "$CONFIG" "$BACKUP"
 
-# Copy the forkable structure
-echo "[1/5] Copying kernel, plugins, worker..."
-cp -r "$INKWELL_ROOT/kernel" "$TARGET/kernel"
-cp -r "$INKWELL_ROOT/plugins" "$TARGET/plugins"
-cp -r "$INKWELL_ROOT/workers" "$TARGET/workers"
-cp "$INKWELL_ROOT/package.json" "$TARGET/package.json"
-cp "$INKWELL_ROOT/tsconfig.json" "$TARGET/tsconfig.json" 2>/dev/null || true
+# 2. Modify config with test fork values
+echo "[2/4] Writing fork test config..."
+sed -i "s/name: '.*'/name: 'ForkSmokeTest'/" "$CONFIG"
+sed -i "s/domain: '.*'/domain: 'smoke.example.com'/" "$CONFIG"
+sed -i "s/tagline: '.*'/tagline: 'Smoke test fork instance.'/" "$CONFIG"
 
-# Write a minimal fork config
-echo "[2/5] Writing fork inkwell.config.ts..."
-cat > "$TARGET/inkwell.config.ts" << 'FORKEOF'
-export const config = {
-  name: 'ForkTest',
-  domain: 'forktest.example.com',
-  tagline: 'A fork smoke test instance.',
-  theme: {
-    colors: {
-      primary: '#FF5733',
-      secondary: '#1A1D23',
-      accent: '#06B6D4',
-      danger: '#EF4444',
-      bg:      { dark: '#0A0A10', light: '#FAFBFC' },
-      surface: { dark: '#151519', light: '#FFFFFF' },
-      text:    { dark: '#EDEDF0', light: '#1A1D23' },
-      muted:   { dark: 'rgba(255,255,255,0.55)', light: 'rgba(0,0,0,0.55)' },
-      dim:     { dark: 'rgba(255,255,255,0.35)', light: 'rgba(0,0,0,0.35)' },
-      border:  { dark: 'rgba(255,255,255,0.10)', light: 'rgba(0,0,0,0.10)' },
-    },
-    fonts: {
-      display: "'Inter', sans-serif",
-      body: "'DM Sans', system-ui, sans-serif",
-      mono: "'JetBrains Mono', monospace",
-    },
-    radius: '8px',
-    contentWidth: '680px',
-    pageWidth: '1200px',
-    darkFirst: true,
-  },
-  i18n: { defaultLang: 'en' as const, languages: ['en'] as const, rtl: [] as const, fallback: 'en' as const },
-  features: { reactions: false, newsletter: false, readingProgress: false, toc: false, shareButtons: false, commandPalette: false, knowledgeGraph: false, rss: false, search: false, darkModeToggle: true },
-  analytics: { googleAnalytics: '', clarity: '', hotjar: '', tagManager: '', plausible: '' },
-  seo: { organization: { name: 'ForkTest', url: 'https://forktest.example.com', logo: '/logo.svg', knowsAbout: [] }, defaultAuthor: { name: 'ForkTest', url: 'https://forktest.example.com' } },
-  workerUrl: '',
-  publish: { inbox: false, api: true, mcp: true },
-  brand: { voice: 'test', logo: '/logo.svg', favicon: '/favicon.svg', ogImage: '/og-default.png', teamNames: {} as Record<string, string>, statusLabels: {} as Record<string, string>, priorityLabels: {} as Record<string, string>, counterpartyNames: {} as Record<string, string> },
-  plugins: ['analytics', 'auth', 'dashboard', 'content', 'mcp'],
-} as const
-
-export type InkwellConfig = typeof config
-FORKEOF
-
-# Install dependencies
-echo "[3/5] Installing dependencies..."
-cd "$TARGET"
-npm install --ignore-scripts 2>&1 | tail -3
-
-# Update wrangler.toml for fork
-echo "[4/5] Updating wrangler.toml..."
-sed -i 's/name = ".*"/name = "forktest-api"/' workers/inkwell-api/wrangler.toml
-sed -i 's|SITE_URL = ".*"|SITE_URL = "https://forktest.example.com"|' workers/inkwell-api/wrangler.toml
-
-# Build
-echo "[5/5] Building Worker (dry-run)..."
-cd workers/inkwell-api
-npx wrangler deploy --dry-run --outdir=.wrangler/tmp 2>&1 | tail -5
-
-BUILD_EXIT=$?
-
-echo ""
-if [ $BUILD_EXIT -eq 0 ]; then
-  echo "PASS — Fork builds successfully with config-only changes."
-else
-  echo "FAIL — Fork build failed. Check output above."
+# Verify the substitution happened
+if ! grep -q "ForkSmokeTest" "$CONFIG"; then
+  echo "FAIL — sed did not update the config. Check inkwell.config.ts format."
   exit 1
 fi
 
-# Cleanup
-rm -rf "$TARGET"
-echo "Cleaned up $TARGET"
+echo "       name    -> ForkSmokeTest"
+echo "       domain  -> smoke.example.com"
+echo "       tagline -> Smoke test fork instance."
+
+# 3. Run the build
+echo "[3/4] Running npm run build..."
+cd "$INKWELL_ROOT"
+if npm run build 2>&1; then
+  PASSED=true
+fi
+
+# 4. Report
+echo ""
+if [ "$PASSED" = true ]; then
+  echo "PASS — Fork builds successfully with config-only changes."
+  exit 0
+else
+  echo "FAIL — Build failed with fork config. Check output above."
+  exit 1
+fi

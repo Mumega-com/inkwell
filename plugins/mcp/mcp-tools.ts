@@ -7,43 +7,45 @@ type Env = AppBindings['Bindings']
 
 const NETWORK_REQUIRED_ERROR = (feature: string) => ({
   error: 'network_required',
-  message: `Connect to Mumega for ${feature}. Add MUMEGA_API_URL and MUMEGA_TOKEN to your Worker env. Get a token at mumega.com/connect`,
+  message: `Connect to a network API for ${feature}. Add NETWORK_API_URL and NETWORK_TOKEN to your Worker env.`,
 })
 
-async function mumegaPost(env: Env, path: string, body: unknown): Promise<unknown> {
-  const baseUrl = env.MUMEGA_API_URL ?? 'https://api.mumega.com'
+async function networkPost(env: Env, path: string, body: unknown): Promise<unknown> {
+  const baseUrl = env.NETWORK_API_URL ?? ''
+  if (!baseUrl) return NETWORK_REQUIRED_ERROR('API')
   try {
     const res = await fetch(`${baseUrl}${path}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${env.MUMEGA_TOKEN ?? ''}`,
+        Authorization: `Bearer ${env.NETWORK_TOKEN ?? ''}`,
       },
       body: JSON.stringify(body),
     })
     if (!res.ok) {
       const text = await res.text().catch(() => '')
-      return { error: 'mumega_error', status: res.status, detail: text.slice(0, 300) }
+      return { error: 'network_error', status: res.status, detail: text.slice(0, 300) }
     }
     return await res.json()
   } catch {
-    return { error: 'mumega_unreachable', message: 'Could not reach Mumega API. Check MUMEGA_API_URL and network connectivity.' }
+    return { error: 'network_unreachable', message: 'Could not reach network API. Check NETWORK_API_URL and network connectivity.' }
   }
 }
 
-async function mumegaGet(env: Env, path: string): Promise<unknown> {
-  const baseUrl = env.MUMEGA_API_URL ?? 'https://api.mumega.com'
+async function networkGet(env: Env, path: string): Promise<unknown> {
+  const baseUrl = env.NETWORK_API_URL ?? ''
+  if (!baseUrl) return NETWORK_REQUIRED_ERROR('API')
   try {
     const res = await fetch(`${baseUrl}${path}`, {
-      headers: { Authorization: `Bearer ${env.MUMEGA_TOKEN ?? ''}` },
+      headers: { Authorization: `Bearer ${env.NETWORK_TOKEN ?? ''}` },
     })
     if (!res.ok) {
       const text = await res.text().catch(() => '')
-      return { error: 'mumega_error', status: res.status, detail: text.slice(0, 300) }
+      return { error: 'network_error', status: res.status, detail: text.slice(0, 300) }
     }
     return await res.json()
   } catch {
-    return { error: 'mumega_unreachable', message: 'Could not reach Mumega API. Check MUMEGA_API_URL and network connectivity.' }
+    return { error: 'network_unreachable', message: 'Could not reach network API. Check NETWORK_API_URL and network connectivity.' }
   }
 }
 
@@ -82,7 +84,7 @@ export const mcpOwnTools: McpToolDef[] = [
   },
   {
     name: 'remember',
-    description: '[Mumega Network] Store a memory engram for this site. Requires Mumega connection. Returns engram ID.',
+    description: '[Network] Store a memory engram for this site. Requires network connection. Returns engram ID.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -93,7 +95,7 @@ export const mcpOwnTools: McpToolDef[] = [
     },
     handler: async (a, rawEnv) => {
       const env = rawEnv as Env
-      if (!env.MUMEGA_API_URL && !env.MUMEGA_TOKEN) return NETWORK_REQUIRED_ERROR('memory (remember/recall)')
+      if (!env.NETWORK_API_URL && !env.NETWORK_TOKEN) return NETWORK_REQUIRED_ERROR('memory (remember/recall)')
 
       const text = typeof a.text === 'string' ? a.text.trim() : ''
       if (!text) return { error: 'text required' }
@@ -102,12 +104,12 @@ export const mcpOwnTools: McpToolDef[] = [
         ? (a.tags as unknown[]).filter((t): t is string => typeof t === 'string')
         : []
 
-      return mumegaPost(env, '/mcp/remember', { agent: tenantSlugFromEnv(env), text, tags })
+      return networkPost(env, '/mcp/remember', { agent: tenantSlugFromEnv(env), text, tags })
     },
   },
   {
     name: 'recall',
-    description: '[Mumega Network] Search memories stored for this site. Requires Mumega connection. Returns matching engrams.',
+    description: '[Network] Search memories stored for this site. Requires network connection. Returns matching engrams.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -117,17 +119,17 @@ export const mcpOwnTools: McpToolDef[] = [
     },
     handler: async (a, rawEnv) => {
       const env = rawEnv as Env
-      if (!env.MUMEGA_API_URL && !env.MUMEGA_TOKEN) return NETWORK_REQUIRED_ERROR('memory (remember/recall)')
+      if (!env.NETWORK_API_URL && !env.NETWORK_TOKEN) return NETWORK_REQUIRED_ERROR('memory (remember/recall)')
 
       const query = typeof a.query === 'string' ? a.query.trim() : ''
       if (!query) return { error: 'query required' }
 
-      return mumegaPost(env, '/mcp/recall', { agent: tenantSlugFromEnv(env), query })
+      return networkPost(env, '/mcp/recall', { agent: tenantSlugFromEnv(env), query })
     },
   },
   {
     name: 'create_task',
-    description: '[Mumega Network] Create a task in the Mumega Squad Service for this site. Requires Mumega connection.',
+    description: '[Network] Create a task in the squad service for this site. Requires network connection.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -140,7 +142,7 @@ export const mcpOwnTools: McpToolDef[] = [
     },
     handler: async (a, rawEnv) => {
       const env = rawEnv as Env
-      if (!env.MUMEGA_API_URL && !env.MUMEGA_TOKEN) return NETWORK_REQUIRED_ERROR('task management')
+      if (!env.NETWORK_API_URL && !env.NETWORK_TOKEN) return NETWORK_REQUIRED_ERROR('task management')
 
       const title = typeof a.title === 'string' ? a.title.trim() : ''
       if (!title) return { error: 'title required' }
@@ -153,12 +155,12 @@ export const mcpOwnTools: McpToolDef[] = [
         ? (a.labels as unknown[]).filter((l): l is string => typeof l === 'string')
         : []
 
-      return mumegaPost(env, '/mcp/task', { title, description, priority, labels, source: tenantSlugFromEnv(env) })
+      return networkPost(env, '/mcp/task', { title, description, priority, labels, source: tenantSlugFromEnv(env) })
     },
   },
   {
     name: 'browse_marketplace',
-    description: '[Mumega Network] Browse the Mumega skill marketplace — available agent skills, integrations, and add-ons. Requires Mumega connection.',
+    description: '[Network] Browse the skill marketplace — available agent skills, integrations, and add-ons. Requires network connection.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -167,11 +169,11 @@ export const mcpOwnTools: McpToolDef[] = [
     },
     handler: async (a, rawEnv) => {
       const env = rawEnv as Env
-      if (!env.MUMEGA_API_URL && !env.MUMEGA_TOKEN) return NETWORK_REQUIRED_ERROR('marketplace')
+      if (!env.NETWORK_API_URL && !env.NETWORK_TOKEN) return NETWORK_REQUIRED_ERROR('marketplace')
 
       const category = typeof a.category === 'string' ? a.category.trim() : ''
       const path = category ? `/mcp/marketplace?category=${encodeURIComponent(category)}` : '/mcp/marketplace'
-      return mumegaGet(env, path)
+      return networkGet(env, path)
     },
   },
 ]

@@ -15,6 +15,8 @@
     "upload": "tsx scripts/upload-media.ts",
     "cache": "tsx scripts/cache-to-kv.ts",
     "publish": "bash scripts/publish.sh",
+    "migrate": "cd workers/inkwell-api && npx wrangler d1 migrations apply inkwell-core --local && npx wrangler d1 migrations apply inkwell-analytics --local && npx wrangler d1 migrations apply inkwell-marketing --local",
+    "migrate:prod": "cd workers/inkwell-api && npx wrangler d1 migrations apply inkwell-core --remote && npx wrangler d1 migrations apply inkwell-analytics --remote && npx wrangler d1 migrations apply inkwell-marketing --remote",
     "test": "cd kernel && npx vitest run",
     "test:worker": "cd workers/inkwell-api && npm test"
   },

@@ -50,8 +50,8 @@ type Env = AppBindings['Bindings']
 function createBusAdapter(type: string, env: Env, tenant: string): BusPort {
   switch (type) {
     case 'sos':
-      if (!env.SOS_BUS_URL || !env.MUMEGA_TOKEN) return new StandaloneBusAdapter()
-      return new SOSBusAdapter(env.SOS_BUS_URL, env.MUMEGA_TOKEN, `organism:${tenant}`)
+      if (!env.SOS_BUS_URL || !env.NETWORK_TOKEN) return new StandaloneBusAdapter()
+      return new SOSBusAdapter(env.SOS_BUS_URL, env.NETWORK_TOKEN, `organism:${tenant}`)
     case 'standalone':
     default:
       return new StandaloneBusAdapter()
@@ -61,8 +61,8 @@ function createBusAdapter(type: string, env: Env, tenant: string): BusPort {
 function createMemoryAdapter(type: string, env: Env, tenant: string): MemoryPort {
   switch (type) {
     case 'mirror':
-      if (!env.SOS_MIRROR_URL || !env.MUMEGA_TOKEN) return new StandaloneMemoryAdapter()
-      return new SOSMemoryAdapter(env.SOS_MIRROR_URL, env.MUMEGA_TOKEN, tenant)
+      if (!env.SOS_MIRROR_URL || !env.NETWORK_TOKEN) return new StandaloneMemoryAdapter()
+      return new SOSMemoryAdapter(env.SOS_MIRROR_URL, env.NETWORK_TOKEN, tenant)
     case 'standalone':
     default:
       return new StandaloneMemoryAdapter()
@@ -72,8 +72,8 @@ function createMemoryAdapter(type: string, env: Env, tenant: string): MemoryPort
 function createEconomyAdapter(type: string, env: Env): EconomyPort {
   switch (type) {
     case 'sos':
-      if (!env.SOS_ECONOMY_URL || !env.MUMEGA_TOKEN) return new StandaloneEconomyAdapter()
-      return new SOSEconomyAdapter(env.SOS_ECONOMY_URL, env.MUMEGA_TOKEN)
+      if (!env.SOS_ECONOMY_URL || !env.NETWORK_TOKEN) return new StandaloneEconomyAdapter()
+      return new SOSEconomyAdapter(env.SOS_ECONOMY_URL, env.NETWORK_TOKEN)
     case 'standalone':
     default:
       return new StandaloneEconomyAdapter()

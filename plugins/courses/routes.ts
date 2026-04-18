@@ -27,7 +27,7 @@ const COURSES: Record<string, CourseConfig> = {
     ],
     certificateTemplate: {
       title: 'AI Governance Starter Kit',
-      issuer: 'Digid Inc.',
+      issuer: 'Inkwell',
       description: 'Completed the AI Governance Starter Kit covering ISO 42001 fundamentals, risk assessment, and policy development.',
     },
   },

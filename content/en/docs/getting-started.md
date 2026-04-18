@@ -37,7 +37,7 @@ Inkwell is built with Astro and runs on Cloudflare. Familiarity with these techn
 Start by cloning the Inkwell repository:
 
 ```bash
-git clone https://github.com/mumega/inkwell.git
+git clone https://github.com/Mumega-com/inkwell.git
 cd inkwell
 ```
 

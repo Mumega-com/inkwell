@@ -10,6 +10,8 @@ account_id = "YOUR_ACCOUNT_ID"
 SITE_URL = "https://example.com"
 # SaaS origin for tenant resolution (subdomains → tenant config)
 SOS_SAAS_URL = ""
+# System token for CI / test — RBAC bypass (override with a real secret in production)
+PUBLISH_TOKEN = "test-publish-token"
 
 [[d1_databases]]
 binding = "DB_ANALYTICS"

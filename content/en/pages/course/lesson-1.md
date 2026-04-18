@@ -14,7 +14,7 @@ You need Node.js v20 or later and Git. That's it. Run `node --version` to check.
 ## Step 1: Clone and Install
 
 ```bash
-git clone https://github.com/mumega/inkwell.git my-business
+git clone https://github.com/Mumega-com/inkwell.git my-business
 cd my-business
 npm install
 ```

@@ -262,11 +262,11 @@ const navItems = [
 
     <!-- Auth context: seeded server-side by inkwell-api Worker via CF Access JWT.
          On first dashboard visit after CF Access login, localStorage is auto-configured
-         with mumega_auth_token, mumega_tenant_slug, and mumega_api_url. -->
+         with inkwell_auth_token, inkwell_tenant_slug, and inkwell_api_url. -->
 
     <script is:inline>
       ;(function() {
-        var role = (localStorage.getItem('mumega_user_role') || 'viewer')
+        var role = (localStorage.getItem('inkwell_user_role') || 'viewer')
         var h = { viewer:1, member:2, manager:3, admin:4, owner:5 }
         var level = h[role] || 1
         document.querySelectorAll('[data-required-role]').forEach(function(el) {
@@ -277,7 +277,7 @@ const navItems = [
     </script>
 
     <script is:inline>
-      if (!localStorage.getItem('mumega_onboarded') && !window.location.pathname.includes('/onboarding')) {
+      if (!localStorage.getItem('inkwell_onboarded') && !window.location.pathname.includes('/onboarding')) {
         window.location.href = '/dashboard/onboarding'
       }
     </script>

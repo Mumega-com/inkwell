@@ -6,15 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Progress } from '../../../src/components/ui/progress'
 import { Textarea } from '../../../src/components/ui/textarea'
 
-// ---------------------------------------------------------------------------
-// Storage keys (mirrors dashboard plugin convention)
-// ---------------------------------------------------------------------------
-const STORAGE_KEYS = {
-  apiUrl: 'mumega_api_url',
-  authToken: 'mumega_auth_token',
-  tenantSlug: 'mumega_tenant_slug',
-  onboarded: 'mumega_onboarded',
-} as const
+import { STORAGE_KEYS } from '../../lib/storage-keys'
 
 const TOTAL_STEPS = 5
 
@@ -41,7 +33,7 @@ function StepWelcome({ onNext }: { onNext: () => void }) {
       </div>
       <div className="flex flex-col gap-2">
         <h2 className="text-2xl font-bold" style={{ color: 'var(--ink-text)' }}>
-          Welcome to Mumega
+          Welcome
         </h2>
         <p style={{ color: 'var(--ink-muted)' }} className="text-sm">
           Let&apos;s set up your AI team in 2 minutes
@@ -164,7 +156,7 @@ function StepConnectAI({ onNext, onSkip }: { onNext: () => void; onSkip: () => v
       // Build a placeholder config from tenant slug
       const slug = localStorage.getItem(STORAGE_KEYS.tenantSlug) ?? 'your-tenant'
       const placeholder = JSON.stringify(
-        { mcpServers: { inkwell: { url: `https://${slug}.mumega.com/mcp` } } },
+        { mcpServers: { inkwell: { url: `https://${slug}.example.com/mcp` } } },
         null,
         2
       )
@@ -415,8 +407,8 @@ export function OnboardingWizard() {
   async function handleStart(firstRequest: string) {
     setSubmitting(true)
     try {
-      const apiUrl = localStorage.getItem('mumega_api_url') ?? ''
-      const authToken = localStorage.getItem('mumega_auth_token') ?? ''
+      const apiUrl = localStorage.getItem(STORAGE_KEYS.apiUrl) ?? ''
+      const authToken = localStorage.getItem(STORAGE_KEYS.authToken) ?? ''
 
       if (apiUrl && authToken) {
         // Create squads for selected teams
@@ -458,7 +450,7 @@ export function OnboardingWizard() {
     } catch {
       // best-effort — complete onboarding regardless
     } finally {
-      localStorage.setItem('mumega_onboarded', 'true')
+      localStorage.setItem(STORAGE_KEYS.onboarded, 'true')
       window.location.href = '/dashboard'
     }
   }

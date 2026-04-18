@@ -96,7 +96,7 @@ describe('D1AgentAdapter', () => {
   describe('provision', () => {
     it('creates a new agent config', async () => {
       const config = await adapter.provision({
-        tenantId: 'viamar',
+        tenantId: 'test-tenant',
         model: 'haiku',
         systemPrompt: 'Test prompt',
         mcpServers: [{ url: 'https://mcp.test.com/sse' }],
@@ -105,7 +105,7 @@ describe('D1AgentAdapter', () => {
         budgetPerMonth: 10000,
       })
 
-      expect(config.tenantId).toBe('viamar')
+      expect(config.tenantId).toBe('test-tenant')
       expect(config.model).toBe('haiku')
       expect(config.status).toBe('provisioning')
       expect(config.createdAt).toBeTruthy()
@@ -120,7 +120,7 @@ describe('D1AgentAdapter', () => {
 
     it('returns config after provision', async () => {
       await adapter.provision({
-        tenantId: 'viamar',
+        tenantId: 'test-tenant',
         model: 'sonnet',
         systemPrompt: 'Test',
         mcpServers: [],
@@ -129,7 +129,7 @@ describe('D1AgentAdapter', () => {
         budgetPerMonth: 10000,
       })
 
-      const config = await adapter.getConfig('viamar')
+      const config = await adapter.getConfig('test-tenant')
       expect(config).not.toBeNull()
       expect(config!.model).toBe('sonnet')
     })
@@ -138,7 +138,7 @@ describe('D1AgentAdapter', () => {
   describe('recordUsage + getUsage', () => {
     it('records and retrieves usage', async () => {
       const usage: AgentUsage = {
-        tenantId: 'viamar',
+        tenantId: 'test-tenant',
         date: '2026-04-18',
         sessionHours: 0.5,
         inputTokens: 1000,
@@ -147,7 +147,7 @@ describe('D1AgentAdapter', () => {
       }
 
       await adapter.recordUsage(usage)
-      const results = await adapter.getUsage('viamar', '2026-04-01', '2026-04-30')
+      const results = await adapter.getUsage('test-tenant', '2026-04-01', '2026-04-30')
 
       expect(results.length).toBe(1)
       expect(results[0].costCents).toBe(10)
@@ -155,15 +155,15 @@ describe('D1AgentAdapter', () => {
 
     it('accumulates usage on the same date', async () => {
       await adapter.recordUsage({
-        tenantId: 'viamar', date: '2026-04-18',
+        tenantId: 'test-tenant', date: '2026-04-18',
         sessionHours: 0.5, inputTokens: 1000, outputTokens: 500, costCents: 10,
       })
       await adapter.recordUsage({
-        tenantId: 'viamar', date: '2026-04-18',
+        tenantId: 'test-tenant', date: '2026-04-18',
         sessionHours: 0.3, inputTokens: 800, outputTokens: 400, costCents: 8,
       })
 
-      const results = await adapter.getUsage('viamar', '2026-04-01', '2026-04-30')
+      const results = await adapter.getUsage('test-tenant', '2026-04-01', '2026-04-30')
       expect(results.length).toBe(1)
       expect(results[0].costCents).toBe(18)
       expect(results[0].inputTokens).toBe(1800)
@@ -179,13 +179,13 @@ describe('D1AgentAdapter', () => {
 
     it('returns allowed for active agent with budget', async () => {
       await adapter.provision({
-        tenantId: 'viamar', model: 'haiku', systemPrompt: 'Test',
+        tenantId: 'test-tenant', model: 'haiku', systemPrompt: 'Test',
         mcpServers: [], tools: [], budgetPerDay: 500, budgetPerMonth: 10000,
       })
       // Manually set status to active
-      await adapter.updateConfig('viamar', { status: 'active' })
+      await adapter.updateConfig('test-tenant', { status: 'active' })
 
-      const result = await adapter.checkBudget('viamar')
+      const result = await adapter.checkBudget('test-tenant')
       expect(result.allowed).toBe(true)
       expect(result.remainingCents).toBeGreaterThan(0)
     })

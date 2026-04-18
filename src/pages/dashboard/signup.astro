@@ -10,7 +10,7 @@ const cssVars = generateCssVars()
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style set:html={cssVars}></style>
-    <title>Create Account — Mumega</title>
+    <title>Create Account</title>
     <meta name="robots" content="noindex" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <style>
@@ -160,11 +160,12 @@ const cssVars = generateCssVars()
     <div class="signup-card">
       <div class="signup-logo">◎</div>
       <h1 class="signup-heading">Create your account</h1>
-      <p class="signup-subtext">Your AI business operator is ready in seconds.</p>
+      <p class="signup-subtext">Get started in seconds — no password needed.</p>
 
       <div id="error-msg" class="error-msg"></div>
       <div id="success-msg" class="success-msg"></div>
 
+      <!-- Step 1: Collect info + send code -->
       <form id="signup-form" novalidate>
         <div class="form-group">
           <label class="form-label" for="name">Your name</label>
@@ -204,21 +205,29 @@ const cssVars = generateCssVars()
           />
         </div>
 
+        <button type="submit" id="submit-btn" class="submit-btn">Send verification code</button>
+      </form>
+
+      <!-- Step 2: Verify code (hidden initially) -->
+      <form id="verify-form" novalidate style="display:none">
         <div class="form-group">
-          <label class="form-label" for="password">Password</label>
+          <label class="form-label" for="code">Enter your 6-digit code</label>
           <input
-            id="password"
-            name="password"
-            type="password"
+            id="code"
+            name="code"
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]{6}"
+            maxlength="6"
             class="form-input"
-            placeholder="••••••••"
-            autocomplete="new-password"
+            placeholder="000000"
+            autocomplete="one-time-code"
             required
-            minlength="8"
           />
         </div>
 
-        <button type="submit" id="submit-btn" class="submit-btn">Create Account</button>
+        <button type="submit" class="submit-btn">Verify & create account</button>
+        <button type="button" class="forgot-link" id="back-btn" style="display:block;text-align:center;margin-top:0.75rem;cursor:pointer;border:none;background:none;width:100%;color:var(--ink-muted);font-size:0.82rem">Back</button>
       </form>
 
       <p class="login-prompt">
@@ -228,83 +237,84 @@ const cssVars = generateCssVars()
     </div>
 
     <script is:inline>
-      const form = document.getElementById('signup-form')
-      const errorMsg = document.getElementById('error-msg')
-      const successMsg = document.getElementById('success-msg')
-      const submitBtn = document.getElementById('submit-btn')
+      var apiUrl = localStorage.getItem('inkwell_api_url') || window.location.origin
+      var signupForm = document.getElementById('signup-form')
+      var verifyForm = document.getElementById('verify-form')
+      var errorMsg = document.getElementById('error-msg')
+      var successMsg = document.getElementById('success-msg')
+      var submitBtn = document.getElementById('submit-btn')
+      var backBtn = document.getElementById('back-btn')
+      var contactValue = ''
+      var customerSlug = ''
+      var fullName = ''
 
-      form.addEventListener('submit', async (e) => {
+      function showError(msg) { errorMsg.textContent = msg; errorMsg.style.display = 'block'; successMsg.style.display = 'none' }
+      function showSuccess(msg) { successMsg.textContent = msg; successMsg.style.display = 'block'; errorMsg.style.display = 'none' }
+      function hideMessages() { errorMsg.style.display = 'none'; successMsg.style.display = 'none' }
+
+      signupForm.addEventListener('submit', async function(e) {
         e.preventDefault()
-        errorMsg.style.display = 'none'
-        successMsg.style.display = 'none'
+        hideMessages()
 
-        const name = form.name.value.trim()
-        const business = form.business.value.trim()
-        const email = form.email.value.trim()
-        const password = form.password.value
+        fullName = document.getElementById('name').value.trim()
+        var business = document.getElementById('business').value.trim()
+        contactValue = document.getElementById('email').value.trim()
 
-        if (!name || !business || !email || !password) {
-          errorMsg.textContent = 'Please fill in all fields.'
-          errorMsg.style.display = 'block'
-          return
-        }
+        if (!fullName || !business || !contactValue) { showError('Please fill in all fields.'); return }
 
-        if (password.length < 8) {
-          errorMsg.textContent = 'Password must be at least 8 characters.'
-          errorMsg.style.display = 'block'
-          return
-        }
-
+        customerSlug = business.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
         submitBtn.disabled = true
-        submitBtn.textContent = 'Creating account…'
+        submitBtn.textContent = 'Sending code…'
 
         try {
-          const resp = await fetch('https://api.mumega.com/auth/register', {
+          var resp = await fetch(apiUrl + '/api/auth/request-code', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password, name: business }),
+            body: JSON.stringify({ customerSlug: customerSlug, contact: contactValue, fullName: fullName }),
           })
+          var data = await resp.json()
+          if (!resp.ok) { showError(data.error || 'Could not send code.'); submitBtn.disabled = false; submitBtn.textContent = 'Send verification code'; return }
 
-          if (!resp.ok) {
-            const err = await resp.json().catch(() => ({}))
-            errorMsg.textContent = err.detail || 'Could not create account. Try a different name.'
-            errorMsg.style.display = 'block'
-            submitBtn.disabled = false
-            submitBtn.textContent = 'Create Account'
-            return
-          }
-
-          const data = await resp.json()
-          const user = data.user
-
-          // Store tenant info
-          if (user?.tenant) localStorage.setItem('mumega_tenant_slug', user.tenant)
-
-          // Fetch bus token
-          try {
-            const tenantResp = await fetch(
-              `https://api.mumega.com/auth/tenant?email=${encodeURIComponent(email)}`
-            )
-            if (tenantResp.ok) {
-              const tenantData = await tenantResp.json()
-              if (tenantData.bus_token) {
-                localStorage.setItem('mumega_auth_token', tenantData.bus_token)
-              }
-            }
-          } catch (_) {}
-
-          successMsg.textContent = 'Account created! Redirecting to your dashboard…'
-          successMsg.style.display = 'block'
-
-          setTimeout(() => {
-            window.location.href = '/dashboard'
-          }, 1200)
-        } catch (err) {
-          errorMsg.textContent = 'Something went wrong. Please try again.'
-          errorMsg.style.display = 'block'
+          signupForm.style.display = 'none'
+          verifyForm.style.display = 'block'
+          showSuccess('Code sent! Check your email.')
+          if (data.testCode) showSuccess('Dev mode — your code is: ' + data.testCode)
+        } catch (_) {
+          showError('Could not reach server.')
           submitBtn.disabled = false
-          submitBtn.textContent = 'Create Account'
+          submitBtn.textContent = 'Send verification code'
         }
+      })
+
+      verifyForm.addEventListener('submit', async function(e) {
+        e.preventDefault()
+        hideMessages()
+        var code = document.getElementById('code').value.trim()
+        if (!code) { showError('Please enter the 6-digit code.'); return }
+
+        try {
+          var resp = await fetch(apiUrl + '/api/auth/verify-code', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ customerSlug: customerSlug, contact: contactValue, code: code, fullName: fullName }),
+          })
+          var data = await resp.json()
+          if (!resp.ok) { showError(data.error === 'code_expired' ? 'Code expired. Go back and try again.' : data.error === 'invalid_code' ? 'Invalid code.' : data.error || 'Verification failed.'); return }
+
+          if (data.session) localStorage.setItem('inkwell_tenant_slug', data.session.customerSlug)
+          showSuccess('Account created! Redirecting…')
+          setTimeout(function() { window.location.href = '/dashboard' }, 800)
+        } catch (_) {
+          showError('Could not reach server.')
+        }
+      })
+
+      backBtn.addEventListener('click', function() {
+        hideMessages()
+        verifyForm.style.display = 'none'
+        signupForm.style.display = 'block'
+        submitBtn.disabled = false
+        submitBtn.textContent = 'Send verification code'
       })
     </script>
   </body>

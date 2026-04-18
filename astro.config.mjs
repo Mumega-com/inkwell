@@ -9,7 +9,7 @@ import remarkMath from 'remark-math'
 import rehypeKatex from 'rehype-katex'
 
 export default defineConfig({
-  site: 'https://mumega.com',
+  site: process.env.SITE_URL || 'https://example.com',
   // Auth handled at the edge by Cloudflare Access (JWT injection via inkwell-api Worker).
   // auth-astro removed — CF Access replaces the need for OAuth/magic-link flows.
   integrations: [react(), mdx()],
