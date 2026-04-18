@@ -140,6 +140,7 @@ questionnaireRoutes.post('/send', async (c) => {
   const questionText = QUESTION_BANK[questionIndex]
   const now = new Date().toISOString()
   const id = generateId()
+  const db = c.get('db_core')
 
   // Determine channel from request body or default to sms
   let body: Record<string, unknown> = {}
@@ -171,10 +172,11 @@ questionnaireRoutes.post('/send', async (c) => {
   }
 
   // Store question in D1
-  await c.env.DB_CORE.prepare(
+  await db.execute(
     `INSERT INTO questionnaire_responses (id, question_index, question_text, sent_at, channel)
-     VALUES (?, ?, ?, ?, ?)`
-  ).bind(id, questionIndex, questionText, now, channel).run()
+     VALUES (?, ?, ?, ?, ?)`,
+    [id, questionIndex, questionText, now, channel],
+  )
 
   return c.json({
     ok: true,
@@ -201,14 +203,15 @@ questionnaireRoutes.post('/answer', async (c) => {
   if (!answer) return c.json({ error: 'answer required' }, 400)
 
   const now = new Date().toISOString()
+  const db = c.get('db_core')
 
   // Find the most recent unanswered question
-  const pending = await c.env.DB_CORE.prepare(
+  const pending = await db.queryOne<{ id: string; question_index: number; question_text: string }>(
     `SELECT id, question_index, question_text FROM questionnaire_responses
      WHERE answer IS NULL
      ORDER BY sent_at DESC
-     LIMIT 1`
-  ).first<{ id: string; question_index: number; question_text: string }>()
+     LIMIT 1`,
+  )
 
   if (!pending) {
     // No pending question — store as a new answer with the current question index
@@ -216,10 +219,11 @@ questionnaireRoutes.post('/answer', async (c) => {
     const questionText = QUESTION_BANK[questionIndex]
     const id = generateId()
 
-    await c.env.DB_CORE.prepare(
+    await db.execute(
       `INSERT INTO questionnaire_responses (id, question_index, question_text, answer, answered_at, sent_at, channel)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`
-    ).bind(id, questionIndex, questionText, answer, now, now, 'manual').run()
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [id, questionIndex, questionText, answer, now, now, 'manual'],
+    )
 
     await pushToMirror(c.env, questionText, answer)
 
@@ -227,9 +231,10 @@ questionnaireRoutes.post('/answer', async (c) => {
   }
 
   // Update the pending row
-  await c.env.DB_CORE.prepare(
-    `UPDATE questionnaire_responses SET answer = ?, answered_at = ? WHERE id = ?`
-  ).bind(answer, now, pending.id).run()
+  await db.execute(
+    `UPDATE questionnaire_responses SET answer = ?, answered_at = ? WHERE id = ?`,
+    [answer, now, pending.id],
+  )
 
   // Push to Mirror (SOS bus) as an engram
   await pushToMirror(c.env, pending.question_text, answer)
@@ -249,24 +254,26 @@ questionnaireRoutes.post('/answer', async (c) => {
 questionnaireRoutes.get('/history', async (c) => {
   const limitParam = c.req.query('limit')
   const limit = limitParam ? Math.min(parseInt(limitParam, 10) || 30, 100) : 30
+  const db = c.get('db_core')
 
-  const rows = await c.env.DB_CORE.prepare(
+  const rows = await db.query<QuestionnaireRow>(
     `SELECT id, question_index, question_text, answer, answered_at, sent_at, channel
      FROM questionnaire_responses
      ORDER BY sent_at DESC
-     LIMIT ?`
-  ).bind(limit).all<QuestionnaireRow>()
+     LIMIT ?`,
+    [limit],
+  )
 
-  const total = await c.env.DB_CORE.prepare(
-    'SELECT COUNT(*) as count FROM questionnaire_responses'
-  ).first<{ count: number }>()
+  const total = await db.queryOne<{ count: number }>(
+    'SELECT COUNT(*) as count FROM questionnaire_responses',
+  )
 
-  const answered = await c.env.DB_CORE.prepare(
-    'SELECT COUNT(*) as count FROM questionnaire_responses WHERE answer IS NOT NULL'
-  ).first<{ count: number }>()
+  const answered = await db.queryOne<{ count: number }>(
+    'SELECT COUNT(*) as count FROM questionnaire_responses WHERE answer IS NOT NULL',
+  )
 
   return c.json({
-    history: rows.results,
+    history: rows,
     meta: {
       total: total?.count ?? 0,
       answered: answered?.count ?? 0,
@@ -281,13 +288,15 @@ questionnaireRoutes.get('/history', async (c) => {
 questionnaireRoutes.get('/today', async (c) => {
   const questionIndex = getTodayQuestionIndex()
   const questionText = QUESTION_BANK[questionIndex]
+  const db = c.get('db_core')
 
-  const existing = await c.env.DB_CORE.prepare(
+  const existing = await db.queryOne<{ id: string; answer: string | null; answered_at: string | null; sent_at: string }>(
     `SELECT id, answer, answered_at, sent_at FROM questionnaire_responses
      WHERE question_index = ?
      ORDER BY sent_at DESC
-     LIMIT 1`
-  ).bind(questionIndex).first<{ id: string; answer: string | null; answered_at: string | null; sent_at: string }>()
+     LIMIT 1`,
+    [questionIndex],
+  )
 
   return c.json({
     question_index: questionIndex,

@@ -4,7 +4,7 @@
 Forkable SaaS microkernel on Astro 6 + Cloudflare Workers. Config-driven, agent-first. Works standalone (Cloudflare only) or integrates with SOS (Sovereign Operating System). Designed to be forked per customer — one config file, zero code changes.
 
 ## Version
-v5.2.0 — Microkernel + 12 plugins + RBAC + Shadcn UI + 12 MCP tools
+v5.3.0 — Microkernel + hexagonal adapters + RBAC + test suite + CI
 
 ## Architecture: Microkernel
 
@@ -153,10 +153,14 @@ Without SOS, these ports use standalone adapters (no-op bus, KV memory, Stripe d
 ## Theme Colors
 All from config → CSS vars: `--ink-primary`, `--ink-secondary`, `--ink-bg`, `--ink-surface`, `--ink-text`, `--ink-muted`, `--ink-dim`, `--ink-border`
 
-## Known Gaps (v5.3 sprint)
-- Routes statically imported in index.ts → migrate to `plugin.mountRoutes()`
-- MCP tools hardcoded in mcp/routes.ts → migrate to `plugin.mcpTools[]`
-- Adapters defined but unused → plugins still access `c.env.DB_CORE` directly
-- RBAC middleware defined but not enforced on routes
-- `config.plugins[]` not gated at runtime
-- Hardcoded URLs remain in discovery plugin
+## Testing
+```bash
+npm test              # Kernel tests (41 tests, 4 files)
+npm run test:worker   # Worker integration tests (Cloudflare pool)
+bash scripts/fork-smoke.sh  # Fork smoke test (build with config-only changes)
+```
+
+## Known Gaps (v5.4 sprint)
+- Non-DB env access (c.env.SESSIONS, c.env.CONTENT, Stripe, Twilio) not ported to adapters yet
+- SOS integration ports (Bus, Memory, Economy) defined in roadmap but not implemented
+- See docs/ROADMAP.md for full version plan

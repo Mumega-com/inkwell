@@ -134,22 +134,23 @@ chatRoutes.post('/', async (c) => {
 
   if (reference && typeof reference === 'string' && /^VM-\d{4}-\d{4}-\d{3}$/.test(reference)) {
     try {
-      const row = await c.env.DB_CORE.prepare(
+      const db = c.get('db_core')
+      const row = await db.queryOne<ContractRow>(
         `SELECT reference, status, customer_name, origin, destination,
                 vehicle_description, service_type, rate, currency, insurance_type
-         FROM contracts WHERE reference = ? LIMIT 1`
-      ).bind(reference).first<ContractRow>()
+         FROM contracts WHERE reference = ? LIMIT 1`,
+        [reference]
+      )
 
       if (row) {
         contract = row
 
-        const msResult = await c.env.DB_CORE.prepare(
+        milestones = await db.query<MilestoneRow>(
           `SELECT step, label, status, completed_at FROM milestones
            WHERE contract_id = (SELECT id FROM contracts WHERE reference = ? LIMIT 1)
-           ORDER BY step ASC`
-        ).bind(reference).all<MilestoneRow>()
-
-        milestones = msResult.results
+           ORDER BY step ASC`,
+          [reference]
+        )
       }
     } catch {
       // DB unavailable or table missing — fall through to FAQ

@@ -116,7 +116,7 @@ contentRoutes.post('/publish', async (c) => {
     const tf = tenantFilter(tenantSlug)
     const [existingMeta, existingIndex] = await Promise.all([
       getContentMeta(c.env.CONTENT, tenantSlug, slug),
-      c.env.DB_ANALYTICS.prepare(`SELECT slug FROM content_index WHERE slug = ?${tf.clause} LIMIT 1`).bind(slug, ...tf.bind).first<{ slug: string }>(),
+      c.get('db_analytics').queryOne<{ slug: string }>(`SELECT slug FROM content_index WHERE slug = ?${tf.clause} LIMIT 1`, [slug, ...tf.bind]),
     ])
     if (existingMeta || existingIndex) {
       return c.json({ error: 'slug_exists', slug, hint: 'Use overwrite:true to replace, or choose a different slug' }, 409)
@@ -149,13 +149,15 @@ contentRoutes.post('/publish', async (c) => {
   // Index in D1 (tenant-scoped)
   const tf = tenantFilter(tenantSlug)
   if (tf.clause) {
-    await c.env.DB_ANALYTICS.prepare(
-      'INSERT OR REPLACE INTO content_index (slug, title, type, lang, author, tags, description, published_at, updated_at, word_count, tenant_slug) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-    ).bind(slug, title, 'blog', 'en', author, JSON.stringify(tags), description, date, date, content.split(/\s+/).length, tenantSlug).run()
+    await c.get('db_analytics').execute(
+      'INSERT OR REPLACE INTO content_index (slug, title, type, lang, author, tags, description, published_at, updated_at, word_count, tenant_slug) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [slug, title, 'blog', 'en', author, JSON.stringify(tags), description, date, date, content.split(/\s+/).length, tenantSlug]
+    )
   } else {
-    await c.env.DB_ANALYTICS.prepare(
-      'INSERT OR REPLACE INTO content_index (slug, title, type, lang, author, tags, description, published_at, updated_at, word_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-    ).bind(slug, title, 'blog', 'en', author, JSON.stringify(tags), description, date, date, content.split(/\s+/).length).run()
+    await c.get('db_analytics').execute(
+      'INSERT OR REPLACE INTO content_index (slug, title, type, lang, author, tags, description, published_at, updated_at, word_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [slug, title, 'blog', 'en', author, JSON.stringify(tags), description, date, date, content.split(/\s+/).length]
+    )
   }
 
   // Trigger CF Pages deploy hook if configured
@@ -182,13 +184,14 @@ contentRoutes.post('/publish', async (c) => {
 contentRoutes.get('/posts', async (c) => {
   const tenantSlug = c.get('tenant_slug')
   const tf = tenantFilter(tenantSlug)
-  const posts = await c.env.DB_ANALYTICS.prepare(
-    `SELECT slug, title, author, tags, description, published_at FROM content_index WHERE type = 'blog'${tf.clause} ORDER BY published_at DESC LIMIT 50`
-  ).bind(...tf.bind).all()
+  const posts = await c.get('db_analytics').query<Record<string, unknown>>(
+    `SELECT slug, title, author, tags, description, published_at FROM content_index WHERE type = 'blog'${tf.clause} ORDER BY published_at DESC LIMIT 50`,
+    [...tf.bind]
+  )
 
   // Filter out drafts from public listing
   const published = []
-  for (const post of posts.results) {
+  for (const post of posts) {
     const meta = await getContentMeta(c.env.CONTENT, tenantSlug, post.slug as string)
     if (!meta || meta.status !== 'draft') published.push(post)
   }
@@ -208,12 +211,13 @@ contentRoutes.get('/drafts', async (c) => {
 
   const tenantSlug = c.get('tenant_slug')
   const tf = tenantFilter(tenantSlug)
-  const all = await c.env.DB_ANALYTICS.prepare(
-    `SELECT slug, title, author, tags, description, published_at FROM content_index WHERE type = 'blog'${tf.clause} ORDER BY published_at DESC LIMIT 50`
-  ).bind(...tf.bind).all()
+  const all = await c.get('db_analytics').query<Record<string, unknown>>(
+    `SELECT slug, title, author, tags, description, published_at FROM content_index WHERE type = 'blog'${tf.clause} ORDER BY published_at DESC LIMIT 50`,
+    [...tf.bind]
+  )
 
   const drafts = []
-  for (const post of all.results) {
+  for (const post of all) {
     const meta = await getContentMeta(c.env.CONTENT, tenantSlug, post.slug as string)
     if (meta && meta.status === 'draft') drafts.push(post)
   }

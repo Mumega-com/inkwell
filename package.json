@@ -15,7 +15,8 @@
     "upload": "tsx scripts/upload-media.ts",
     "cache": "tsx scripts/cache-to-kv.ts",
     "publish": "bash scripts/publish.sh",
-    "test": "cd workers/inkwell-api && npm test"
+    "test": "cd kernel && npx vitest run",
+    "test:worker": "cd workers/inkwell-api && npm test"
   },
   "dependencies": {
     "@assistant-ui/react": "^0.12.25",
@@ -63,6 +64,7 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "tsx": "^4.0.0",
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "vitest": "^4.1.4"
   }
 }

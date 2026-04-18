@@ -120,7 +120,9 @@ contractRoutes.post('/create', async (c) => {
   const insuranceRate = typeof p.insurance_rate === 'number' ? p.insurance_rate : (typeof p.insurance_rate === 'string' ? parseFloat(p.insurance_rate) : null)
   const insuranceCost = typeof p.insurance_cost === 'number' ? p.insurance_cost : (typeof p.insurance_cost === 'string' ? parseFloat(p.insurance_cost) : null)
 
-  await c.env.DB_CORE.prepare(
+  const db = c.get('db_core')
+
+  await db.execute(
     `INSERT INTO contracts (
       id, reference, status,
       customer_name, customer_email, customer_phone,
@@ -128,33 +130,33 @@ contractRoutes.post('/create', async (c) => {
       rate, currency, payment_terms, service_inclusions,
       insurance_type, insurance_rate, insurance_cost,
       created_at
-    ) VALUES (?, ?, 'draft', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-  ).bind(
-    id, reference,
-    p.customer_name,
-    isNonEmptyString(p.customer_email) ? p.customer_email : null,
-    isNonEmptyString(p.customer_phone) ? p.customer_phone : null,
-    isNonEmptyString(p.vehicle_description) ? p.vehicle_description : null,
-    isNonEmptyString(p.origin) ? p.origin : null,
-    isNonEmptyString(p.destination) ? p.destination : null,
-    serviceType,
-    rate ?? null,
-    currency,
-    isNonEmptyString(p.payment_terms) ? p.payment_terms : null,
-    isNonEmptyString(p.service_inclusions) ? p.service_inclusions : null,
-    insuranceType,
-    insuranceRate ?? null,
-    insuranceCost ?? null,
-    now,
-  ).run()
+    ) VALUES (?, ?, 'draft', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      id, reference,
+      p.customer_name,
+      isNonEmptyString(p.customer_email) ? p.customer_email : null,
+      isNonEmptyString(p.customer_phone) ? p.customer_phone : null,
+      isNonEmptyString(p.vehicle_description) ? p.vehicle_description : null,
+      isNonEmptyString(p.origin) ? p.origin : null,
+      isNonEmptyString(p.destination) ? p.destination : null,
+      serviceType,
+      rate ?? null,
+      currency,
+      isNonEmptyString(p.payment_terms) ? p.payment_terms : null,
+      isNonEmptyString(p.service_inclusions) ? p.service_inclusions : null,
+      insuranceType,
+      insuranceRate ?? null,
+      insuranceCost ?? null,
+      now,
+    ]
+  )
 
   // Seed default milestones
-  const stmts = DEFAULT_MILESTONES.map((m) =>
-    c.env.DB_CORE.prepare(
-      'INSERT INTO contract_milestones (id, contract_id, step, label, status) VALUES (?, ?, ?, ?, ?)'
-    ).bind(generateId(), id, m.step, m.label, 'pending')
-  )
-  await c.env.DB_CORE.batch(stmts)
+  const stmts = DEFAULT_MILESTONES.map((m) => ({
+    sql: 'INSERT INTO contract_milestones (id, contract_id, step, label, status) VALUES (?, ?, ?, ?, ?)',
+    params: [generateId(), id, m.step, m.label, 'pending'],
+  }))
+  await db.batch(stmts)
 
   const siteUrl = c.env.SITE_URL ?? ''
   const portalUrl = `${siteUrl}/portal/contract/${reference}`
@@ -232,17 +234,21 @@ contractRoutes.post('/create', async (c) => {
 contractRoutes.get('/:reference', async (c) => {
   const reference = c.req.param('reference')
 
-  const contract = await c.env.DB_CORE.prepare(
-    'SELECT * FROM contracts WHERE reference = ? LIMIT 1'
-  ).bind(reference).first<ContractRow>()
+  const db = c.get('db_core')
+
+  const contract = await db.queryOne<ContractRow>(
+    'SELECT * FROM contracts WHERE reference = ? LIMIT 1',
+    [reference]
+  )
 
   if (!contract) return c.json({ error: 'not_found' }, 404)
 
   // Mark as viewed if still in sent state
   if (contract.status === 'sent') {
-    await c.env.DB_CORE.prepare(
-      "UPDATE contracts SET status = 'viewed', viewed_at = ? WHERE id = ?"
-    ).bind(new Date().toISOString(), contract.id).run()
+    await db.execute(
+      "UPDATE contracts SET status = 'viewed', viewed_at = ? WHERE id = ?",
+      [new Date().toISOString(), contract.id]
+    )
     contract.status = 'viewed'
     contract.viewed_at = new Date().toISOString()
   }
@@ -271,9 +277,12 @@ contractRoutes.post('/:reference/sign', async (c) => {
     return c.json({ error: 'signed_by required' }, 400)
   }
 
-  const contract = await c.env.DB_CORE.prepare(
-    'SELECT id, status FROM contracts WHERE reference = ? LIMIT 1'
-  ).bind(reference).first<{ id: string; status: string }>()
+  const db = c.get('db_core')
+
+  const contract = await db.queryOne<{ id: string; status: string }>(
+    'SELECT id, status FROM contracts WHERE reference = ? LIMIT 1',
+    [reference]
+  )
 
   if (!contract) return c.json({ error: 'not_found' }, 404)
   if (contract.status === 'signed') return c.json({ error: 'already_signed' }, 409)
@@ -287,19 +296,21 @@ contractRoutes.post('/:reference/sign', async (c) => {
   const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(ip + reference))
   const ipHash = Array.from(new Uint8Array(hashBuffer)).map((b) => b.toString(16).padStart(2, '0')).join('').slice(0, 32)
 
-  await c.env.DB_CORE.prepare(
+  await db.execute(
     `UPDATE contracts SET
       status = 'signed',
       signed_by = ?,
       signed_at = ?,
       signed_ip = ?
-    WHERE id = ?`
-  ).bind(p.signed_by, now, `${ipHash}|ua:${userAgent.slice(0, 120)}`, contract.id).run()
+    WHERE id = ?`,
+    [p.signed_by, now, `${ipHash}|ua:${userAgent.slice(0, 120)}`, contract.id]
+  )
 
   // Mark the "Contract Signed" milestone as completed
-  await c.env.DB_CORE.prepare(
-    "UPDATE contract_milestones SET status = 'completed', completed_at = ? WHERE contract_id = ? AND step = 1"
-  ).bind(now, contract.id).run()
+  await db.execute(
+    "UPDATE contract_milestones SET status = 'completed', completed_at = ? WHERE contract_id = ? AND step = 1",
+    [now, contract.id]
+  )
 
   const siteUrl = c.env.SITE_URL ?? ''
   const trackUrl = `${siteUrl}/portal/track/${reference}`
@@ -331,9 +342,12 @@ contractRoutes.post('/:reference/insurance', async (c) => {
     return c.json({ error: 'insurance_type must be all_risk, total_loss, or declined' }, 400)
   }
 
-  const contract = await c.env.DB_CORE.prepare(
-    'SELECT id, status FROM contracts WHERE reference = ? LIMIT 1'
-  ).bind(reference).first<{ id: string; status: string }>()
+  const db = c.get('db_core')
+
+  const contract = await db.queryOne<{ id: string; status: string }>(
+    'SELECT id, status FROM contracts WHERE reference = ? LIMIT 1',
+    [reference]
+  )
 
   if (!contract) return c.json({ error: 'not_found' }, 404)
   if (contract.status === 'signed') return c.json({ error: 'contract_already_signed' }, 409)
@@ -341,9 +355,10 @@ contractRoutes.post('/:reference/insurance', async (c) => {
   const insuranceRate = typeof p.insurance_rate === 'number' ? p.insurance_rate : null
   const insuranceCost = typeof p.insurance_cost === 'number' ? p.insurance_cost : null
 
-  await c.env.DB_CORE.prepare(
-    'UPDATE contracts SET insurance_type = ?, insurance_rate = ?, insurance_cost = ? WHERE id = ?'
-  ).bind(insuranceType, insuranceRate, insuranceCost, contract.id).run()
+  await db.execute(
+    'UPDATE contracts SET insurance_type = ?, insurance_rate = ?, insurance_cost = ? WHERE id = ?',
+    [insuranceType, insuranceRate, insuranceCost, contract.id]
+  )
 
   return c.json({ ok: true, insurance_type: insuranceType })
 })
@@ -353,17 +368,21 @@ contractRoutes.post('/:reference/insurance', async (c) => {
 contractRoutes.get('/:reference/timeline', async (c) => {
   const reference = c.req.param('reference')
 
-  const contract = await c.env.DB_CORE.prepare(
-    'SELECT id FROM contracts WHERE reference = ? LIMIT 1'
-  ).bind(reference).first<{ id: string }>()
+  const db = c.get('db_core')
+
+  const contract = await db.queryOne<{ id: string }>(
+    'SELECT id FROM contracts WHERE reference = ? LIMIT 1',
+    [reference]
+  )
 
   if (!contract) return c.json({ error: 'not_found' }, 404)
 
-  const milestones = await c.env.DB_CORE.prepare(
-    'SELECT * FROM contract_milestones WHERE contract_id = ? ORDER BY step ASC'
-  ).bind(contract.id).all<MilestoneRow>()
+  const milestones = await db.query<MilestoneRow>(
+    'SELECT * FROM contract_milestones WHERE contract_id = ? ORDER BY step ASC',
+    [contract.id]
+  )
 
-  return c.json({ milestones: milestones.results })
+  return c.json({ milestones })
 })
 
 // ── POST /api/contracts/:reference/milestone ─────────────────────────────
@@ -403,9 +422,12 @@ contractRoutes.post('/:reference/milestone', async (c) => {
     return c.json({ error: 'status must be pending, active, or completed' }, 400)
   }
 
-  const contract = await c.env.DB_CORE.prepare(
-    'SELECT id FROM contracts WHERE reference = ? LIMIT 1'
-  ).bind(reference).first<{ id: string }>()
+  const db = c.get('db_core')
+
+  const contract = await db.queryOne<{ id: string }>(
+    'SELECT id FROM contracts WHERE reference = ? LIMIT 1',
+    [reference]
+  )
 
   if (!contract) return c.json({ error: 'not_found' }, 404)
 
@@ -413,15 +435,17 @@ contractRoutes.post('/:reference/milestone', async (c) => {
   const note = isNonEmptyString(p.note) ? p.note : null
   const completedAt = status === 'completed' ? now : null
 
-  await c.env.DB_CORE.prepare(
-    'UPDATE contract_milestones SET status = ?, completed_at = ?, note = ? WHERE contract_id = ? AND step = ?'
-  ).bind(status, completedAt, note, contract.id, step).run()
+  await db.execute(
+    'UPDATE contract_milestones SET status = ?, completed_at = ?, note = ? WHERE contract_id = ? AND step = ?',
+    [status, completedAt, note, contract.id, step]
+  )
 
   // If step 9 (Delivered) is completed, update contract status
   if (step === 9 && status === 'completed') {
-    await c.env.DB_CORE.prepare(
-      "UPDATE contracts SET status = 'delivered', delivered_at = ? WHERE id = ?"
-    ).bind(now, contract.id).run()
+    await db.execute(
+      "UPDATE contracts SET status = 'delivered', delivered_at = ? WHERE id = ?",
+      [now, contract.id]
+    )
   }
 
   return c.json({ ok: true, step, status })

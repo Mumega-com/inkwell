@@ -586,33 +586,30 @@ discoveryRoutes.post('/submit', async (c) => {
   const planId = generateId()
   const now = new Date().toISOString()
 
-  await c.env.DB_CORE.prepare(
+  const db = c.get('db_core')
+
+  await db.execute(
     `INSERT INTO business_profiles (id, business_name, industry, answers, scores, readiness_score, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`
-  ).bind(
-    profileId,
-    answers.business_name.trim(),
-    answers.industry ?? '',
-    JSON.stringify(answers),
-    JSON.stringify(dimensions),
-    readinessScore,
-    now,
-  ).run()
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    [profileId, answers.business_name.trim(), answers.industry ?? '', JSON.stringify(answers), JSON.stringify(dimensions), readinessScore, now]
+  )
 
   // Persist plan
-  await c.env.DB_CORE.prepare(
+  await db.execute(
     `INSERT INTO business_plans (id, profile_id, title, total_steps, completed_steps, status, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`
-  ).bind(planId, profileId, '90-Day Growth Plan', orderedModules.length, 0, 'active', now).run()
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    [planId, profileId, '90-Day Growth Plan', orderedModules.length, 0, 'active', now]
+  )
 
   // Persist steps — first available, rest locked
   const stepInserts = orderedModules.map((mod, idx) => {
     const stepId = generateId()
     const status = idx === 0 ? 'available' : 'locked'
-    return c.env.DB_CORE.prepare(
+    return db.execute(
       `INSERT INTO plan_steps (id, plan_id, module_slug, title, description, week, order_index, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
-    ).bind(stepId, planId, mod.slug, mod.title, mod.description, mod.assigned_week, idx, status).run()
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [stepId, planId, mod.slug, mod.title, mod.description, mod.assigned_week, idx, status]
+    )
   })
 
   await Promise.all(stepInserts)
@@ -644,12 +641,9 @@ discoveryRoutes.post('/submit', async (c) => {
 discoveryRoutes.get('/plan/:planId', async (c) => {
   const planId = c.req.param('planId')
 
-  const plan = await c.env.DB_CORE.prepare(
-    `SELECT bp.*, bpr.business_name, bpr.industry, bpr.scores, bpr.readiness_score
-     FROM business_plans bp
-     JOIN business_profiles bpr ON bpr.id = bp.profile_id
-     WHERE bp.id = ?`
-  ).first<{
+  const db = c.get('db_core')
+
+  const plan = await db.queryOne<{
     id: string
     profile_id: string
     title: string
@@ -661,16 +655,17 @@ discoveryRoutes.get('/plan/:planId', async (c) => {
     industry: string
     scores: string
     readiness_score: number
-  }>()
+  }>(
+    `SELECT bp.*, bpr.business_name, bpr.industry, bpr.scores, bpr.readiness_score
+     FROM business_plans bp
+     JOIN business_profiles bpr ON bpr.id = bp.profile_id
+     WHERE bp.id = ?`,
+    [planId]
+  )
 
   if (!plan) return c.json({ error: 'plan not found' }, 404)
 
-  const stepsResult = await c.env.DB_CORE.prepare(
-    `SELECT id, module_slug, title, description, week, order_index, status, completed_at
-     FROM plan_steps
-     WHERE plan_id = ?
-     ORDER BY order_index ASC`
-  ).all<{
+  const steps = await db.query<{
     id: string
     module_slug: string
     title: string
@@ -679,7 +674,13 @@ discoveryRoutes.get('/plan/:planId', async (c) => {
     order_index: number
     status: string
     completed_at: string | null
-  }>()
+  }>(
+    `SELECT id, module_slug, title, description, week, order_index, status, completed_at
+     FROM plan_steps
+     WHERE plan_id = ?
+     ORDER BY order_index ASC`,
+    [planId]
+  )
 
   const scores: DimensionScores = typeof plan.scores === 'string'
     ? JSON.parse(plan.scores)
@@ -707,7 +708,7 @@ discoveryRoutes.get('/plan/:planId', async (c) => {
     status: plan.status,
     createdAt: plan.created_at,
     estimatedCompletionDate: estimatedEnd.toISOString().slice(0, 10),
-    steps: stepsResult.results,
+    steps,
   })
 })
 
@@ -728,39 +729,47 @@ discoveryRoutes.post('/plan/:planId/complete-step', async (c) => {
 
   const now = new Date().toISOString()
 
+  const db = c.get('db_core')
+
   // Mark step done
-  await c.env.DB_CORE.prepare(
-    `UPDATE plan_steps SET status = 'done', completed_at = ? WHERE id = ? AND plan_id = ?`
-  ).bind(now, stepId, planId).run()
+  await db.execute(
+    `UPDATE plan_steps SET status = 'done', completed_at = ? WHERE id = ? AND plan_id = ?`,
+    [now, stepId, planId]
+  )
 
   // Find the next locked step and unlock it
-  const nextLocked = await c.env.DB_CORE.prepare(
+  const nextLocked = await db.queryOne<{ id: string; order_index: number }>(
     `SELECT id, order_index FROM plan_steps
      WHERE plan_id = ? AND status = 'locked'
      ORDER BY order_index ASC
-     LIMIT 1`
-  ).first<{ id: string; order_index: number }>()
+     LIMIT 1`,
+    [planId]
+  )
 
   if (nextLocked) {
-    await c.env.DB_CORE.prepare(
-      `UPDATE plan_steps SET status = 'available' WHERE id = ?`
-    ).bind(nextLocked.id).run()
+    await db.execute(
+      `UPDATE plan_steps SET status = 'available' WHERE id = ?`,
+      [nextLocked.id]
+    )
   }
 
   // Update completed_steps count on plan
-  const completedCount = await c.env.DB_CORE.prepare(
-    `SELECT COUNT(*) as count FROM plan_steps WHERE plan_id = ? AND status = 'done'`
-  ).first<{ count: number }>()
+  const completedCount = await db.queryOne<{ count: number }>(
+    `SELECT COUNT(*) as count FROM plan_steps WHERE plan_id = ? AND status = 'done'`,
+    [planId]
+  )
 
   const newCount = completedCount?.count ?? 0
 
-  await c.env.DB_CORE.prepare(
-    `UPDATE business_plans SET completed_steps = ? WHERE id = ?`
-  ).bind(newCount, planId).run()
+  await db.execute(
+    `UPDATE business_plans SET completed_steps = ? WHERE id = ?`,
+    [newCount, planId]
+  )
 
-  const plan = await c.env.DB_CORE.prepare(
-    `SELECT total_steps, completed_steps FROM business_plans WHERE id = ?`
-  ).first<{ total_steps: number; completed_steps: number }>()
+  const plan = await db.queryOne<{ total_steps: number; completed_steps: number }>(
+    `SELECT total_steps, completed_steps FROM business_plans WHERE id = ?`,
+    [planId]
+  )
 
   const progressPercent = plan && plan.total_steps > 0
     ? Math.round((plan.completed_steps / plan.total_steps) * 100)

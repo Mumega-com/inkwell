@@ -81,6 +81,8 @@ export interface McpToolDef {
 export interface DatabasePort {
   /** Execute a SELECT query, returning typed rows */
   query<T = Record<string, unknown>>(sql: string, params?: unknown[]): Promise<T[]>
+  /** Execute a SELECT query, returning the first row or null */
+  queryOne<T = Record<string, unknown>>(sql: string, params?: unknown[]): Promise<T | null>
   /** Execute an INSERT / UPDATE / DELETE, returning affected rows */
   execute(sql: string, params?: unknown[]): Promise<{ changes: number }>
   /** Run multiple statements atomically */

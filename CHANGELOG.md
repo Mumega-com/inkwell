@@ -40,12 +40,17 @@ All notable changes to Inkwell. Format: [Keep a Changelog](https://keepachangelo
 - RBAC kernel defined (enforcement pending — Sprint 3)
 - Config-driven plugin activation via `config.plugins[]`
 
-### Known Gaps (by design — queued for v5.3+)
-- Plugin routes are statically imported in index.ts, not mounted via `plugin.mountRoutes()` — Sprint 3
-- MCP tools are hardcoded in mcp/routes.ts, not collected via `collectMcpTools()` — Sprint 3
-- Adapter registry (getAdapter/setAdapter) is defined but unused — plugins access env bindings directly — Sprint 4
-- RBAC middleware defined but not enforced on routes — Sprint 3
-- `config.plugins[]` declared but not gated at runtime — Sprint 3
+### Resolved (all former "Known Gaps" closed in this release)
+- Plugin routes mounted via `plugin.mountRoutes()` — static imports replaced with kernel loop
+- MCP tools collected via `collectMcpTools()` — mcp/routes.ts 765→117 lines
+- D1DatabaseAdapter wired — all 90 call sites across 13 plugins migrated from `c.env.DB_*` to `c.get('db_core')` / `c.get('db_analytics')` / `c.get('db_marketing')`
+- RBAC enforced per-plugin via Hono sub-app pattern + system token bypass
+- `config.plugins[]` gated at runtime — unlisted plugins don't load
+
+### Known Gaps (queued for v5.3+)
+- No test suite — adapter boundary makes plugins unit-testable but tests don't exist yet
+- Non-DB env access (`c.env.SESSIONS`, `c.env.CONTENT`, Stripe, Twilio) not ported to adapters yet
+- SOS integration ports (Bus, Memory, Economy) defined in roadmap but not implemented
 
 ## [5.1.0] — 2026-04-16
 

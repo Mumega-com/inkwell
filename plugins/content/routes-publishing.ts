@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { readSessionFromRequest, requireAuth } from '../middleware'
 import type { AppBindings } from '../types'
+import type { DatabasePort } from '../../kernel/types'
 
 type PublishingResourceRow = {
   external_id: string
@@ -66,26 +67,28 @@ function isResourceReleased(releaseAt: string | null): boolean {
   return !releaseAt || Date.parse(releaseAt) <= Date.now()
 }
 
-async function loadResource(db: AppBindings['Bindings']['DB_CORE'], customerSlug: string, externalId: string) {
-  return db.prepare(
+async function loadResource(db: DatabasePort, customerSlug: string, externalId: string) {
+  return db.queryOne<PublishingResourceRow>(
     `SELECT external_id, parent_external_id, source_system, resource_type, title, slug, visibility, release_at, preview_url, metadata_json
      FROM publishing_resources
      WHERE customer_slug = ? AND external_id = ?
-     LIMIT 1`
-  ).bind(customerSlug, externalId).first<PublishingResourceRow>()
+     LIMIT 1`,
+    [customerSlug, externalId]
+  )
 }
 
 async function loadActiveGrants(
-  db: AppBindings['Bindings']['DB_CORE'],
+  db: DatabasePort,
   customerSlug: string,
   portalAccountId: string,
 ) {
-  return db.prepare(
+  return db.query<AccessGrantRow>(
     `SELECT id, product_id, resource_external_id, grant_type, status, granted_at, expires_at, metadata_json
      FROM access_grants
      WHERE customer_slug = ? AND portal_account_id = ? AND status = 'active'
-     ORDER BY granted_at DESC`
-  ).bind(customerSlug, portalAccountId).all<AccessGrantRow>()
+     ORDER BY granted_at DESC`,
+    [customerSlug, portalAccountId]
+  )
 }
 
 publishingRoutes.get('/library', requireAuth, async (c) => {
@@ -94,26 +97,27 @@ publishingRoutes.get('/library', requireAuth, async (c) => {
     return c.json({ error: 'portal_account_required' }, 400)
   }
 
-  const grantsResult = await loadActiveGrants(c.env.DB_CORE, session.customerSlug, session.portalAccountId)
-  const grants = grantsResult.results.filter((grant) => !hasGrantExpired(grant.expires_at))
+  const allGrants = await loadActiveGrants(c.get('db_core'), session.customerSlug, session.portalAccountId)
+  const grants = allGrants.filter((grant) => !hasGrantExpired(grant.expires_at))
 
   const resourceIds = Array.from(new Set(grants.map((grant) => grant.resource_external_id).filter(Boolean))) as string[]
   const resources = new Map<string, PublishingResourceRow>()
 
   for (const resourceId of resourceIds) {
-    const resource = await loadResource(c.env.DB_CORE, session.customerSlug, resourceId)
+    const resource = await loadResource(c.get('db_core'), session.customerSlug, resourceId)
     if (resource) {
       resources.set(resourceId, resource)
     }
   }
 
-  const progressResult = await c.env.DB_CORE.prepare(
+  const progressRows = await c.get('db_core').query<ReadingProgressRow>(
     `SELECT resource_external_id, progress_percent, last_position, last_read_at, completed_at, metadata_json
      FROM reading_progress
-     WHERE customer_slug = ? AND portal_account_id = ?`
-  ).bind(session.customerSlug, session.portalAccountId).all<ReadingProgressRow>()
+     WHERE customer_slug = ? AND portal_account_id = ?`,
+    [session.customerSlug, session.portalAccountId]
+  )
 
-  const progress = new Map(progressResult.results.map((row) => [row.resource_external_id, row]))
+  const progress = new Map(progressRows.map((row) => [row.resource_external_id, row]))
 
   return c.json({
     items: grants.map((grant) => {
@@ -157,7 +161,7 @@ publishingRoutes.get('/access/:externalId', async (c) => {
     return c.json({ error: 'customer_required' }, 400)
   }
 
-  const resource = await loadResource(c.env.DB_CORE, customerSlug, externalId)
+  const resource = await loadResource(c.get('db_core'), customerSlug, externalId)
   if (!resource) {
     return c.json({ error: 'resource_not_found' }, 404)
   }
@@ -194,13 +198,14 @@ publishingRoutes.get('/access/:externalId', async (c) => {
     }, visibility === 'preview' ? 200 : 401)
   }
 
-  const grant = await c.env.DB_CORE.prepare(
+  const grant = await c.get('db_core').queryOne<{ id: string; expires_at: string | null }>(
     `SELECT id, expires_at
      FROM access_grants
      WHERE customer_slug = ? AND portal_account_id = ? AND resource_external_id = ? AND status = 'active'
      ORDER BY granted_at DESC
-     LIMIT 1`
-  ).bind(customerSlug, session.portalAccountId, externalId).first<{ id: string; expires_at: string | null }>()
+     LIMIT 1`,
+    [customerSlug, session.portalAccountId, externalId]
+  )
 
   if (grant && !hasGrantExpired(grant.expires_at) && released) {
     return c.json({
@@ -266,12 +271,12 @@ publishingRoutes.post('/progress', requireAuth, async (c) => {
   }
 
   const now = nowIso()
-  const resource = await loadResource(c.env.DB_CORE, session.customerSlug, resourceExternalId)
+  const resource = await loadResource(c.get('db_core'), session.customerSlug, resourceExternalId)
   if (!resource) {
     return c.json({ error: 'resource_not_found' }, 404)
   }
 
-  await c.env.DB_CORE.prepare(
+  await c.get('db_core').execute(
     `INSERT INTO reading_progress (
       id, customer_slug, portal_account_id, resource_external_id, progress_percent, last_position,
       last_read_at, completed_at, metadata_json, created_at, updated_at
@@ -282,20 +287,21 @@ publishingRoutes.post('/progress', requireAuth, async (c) => {
       last_read_at = excluded.last_read_at,
       completed_at = excluded.completed_at,
       metadata_json = excluded.metadata_json,
-      updated_at = excluded.updated_at`
-  ).bind(
-    crypto.randomUUID(),
-    session.customerSlug,
-    session.portalAccountId,
-    resourceExternalId,
-    progressPercent,
-    isNonEmptyString(lastPosition) ? lastPosition.trim().slice(0, 255) : null,
-    now,
-    completed || progressPercent >= 100 ? now : null,
-    metadata ? JSON.stringify(metadata) : null,
-    now,
-    now,
-  ).run()
+      updated_at = excluded.updated_at`,
+    [
+      crypto.randomUUID(),
+      session.customerSlug,
+      session.portalAccountId,
+      resourceExternalId,
+      progressPercent,
+      isNonEmptyString(lastPosition) ? lastPosition.trim().slice(0, 255) : null,
+      now,
+      completed || progressPercent >= 100 ? now : null,
+      metadata ? JSON.stringify(metadata) : null,
+      now,
+      now,
+    ]
+  )
 
   return c.json({
     ok: true,
@@ -312,12 +318,13 @@ publishingRoutes.get('/progress/:externalId', requireAuth, async (c) => {
   }
 
   const externalId = c.req.param('externalId')
-  const row = await c.env.DB_CORE.prepare(
+  const row = await c.get('db_core').queryOne<ReadingProgressRow>(
     `SELECT resource_external_id, progress_percent, last_position, last_read_at, completed_at, metadata_json
      FROM reading_progress
      WHERE customer_slug = ? AND portal_account_id = ? AND resource_external_id = ?
-     LIMIT 1`
-  ).bind(session.customerSlug, session.portalAccountId, externalId).first<ReadingProgressRow>()
+     LIMIT 1`,
+    [session.customerSlug, session.portalAccountId, externalId]
+  )
 
   if (!row) {
     return c.json({ progress: null })

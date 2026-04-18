@@ -96,36 +96,30 @@ glassRoutes.post('/transactions', async (c) => {
   const platformFeeCents = Math.round(body.amount_cents * PLATFORM_FEE_RATE)
   const tenantAmountCents = body.amount_cents - platformFeeCents
 
-  const db = c.env.DB_CORE
+  const db = c.get('db_core')
 
   // Insert transaction
-  await db
-    .prepare(
-      `INSERT INTO glass_transactions (id, tenant_id, stripe_tx_id, amount_cents, currency, tx_type, status, description)
-       VALUES (?, ?, ?, ?, 'usd', ?, 'pending', ?)`
-    )
-    .bind(txId, tenantId, body.stripe_tx_id ?? null, body.amount_cents, body.tx_type, body.description ?? null)
-    .run()
+  await db.execute(
+    `INSERT INTO glass_transactions (id, tenant_id, stripe_tx_id, amount_cents, currency, tx_type, status, description)
+     VALUES (?, ?, ?, ?, 'usd', ?, 'pending', ?)`,
+    [txId, tenantId, body.stripe_tx_id ?? null, body.amount_cents, body.tx_type, body.description ?? null]
+  )
 
   // Create platform royalty (5%)
   const platformRoyaltyId = crypto.randomUUID()
-  await db
-    .prepare(
-      `INSERT INTO glass_royalties (id, transaction_id, recipient_type, recipient_id, amount_cents)
-       VALUES (?, ?, 'platform', 'mumega', ?)`
-    )
-    .bind(platformRoyaltyId, txId, platformFeeCents)
-    .run()
+  await db.execute(
+    `INSERT INTO glass_royalties (id, transaction_id, recipient_type, recipient_id, amount_cents)
+     VALUES (?, ?, 'platform', 'mumega', ?)`,
+    [platformRoyaltyId, txId, platformFeeCents]
+  )
 
   // Create tenant royalty (95%)
   const tenantRoyaltyId = crypto.randomUUID()
-  await db
-    .prepare(
-      `INSERT INTO glass_royalties (id, transaction_id, recipient_type, recipient_id, amount_cents)
-       VALUES (?, ?, 'tenant', ?, ?)`
-    )
-    .bind(tenantRoyaltyId, txId, tenantId, tenantAmountCents)
-    .run()
+  await db.execute(
+    `INSERT INTO glass_royalties (id, transaction_id, recipient_type, recipient_id, amount_cents)
+     VALUES (?, ?, 'tenant', ?, ?)`,
+    [tenantRoyaltyId, txId, tenantId, tenantAmountCents]
+  )
 
   return c.json(
     {
@@ -146,20 +140,20 @@ glassRoutes.get('/transactions', async (c) => {
 
   const limit = Math.min(parseInt(c.req.query('limit') ?? '50', 10), 200)
 
-  const db = c.env.DB_CORE
+  const db = c.get('db_core')
 
-  const countResult = await db
-    .prepare('SELECT COUNT(*) as cnt FROM glass_transactions WHERE tenant_id = ?')
-    .bind(tenantId)
-    .first<{ cnt: number }>()
+  const countResult = await db.queryOne<{ cnt: number }>(
+    'SELECT COUNT(*) as cnt FROM glass_transactions WHERE tenant_id = ?',
+    [tenantId]
+  )
 
-  const rows = await db
-    .prepare('SELECT * FROM glass_transactions WHERE tenant_id = ? ORDER BY created_at DESC LIMIT ?')
-    .bind(tenantId, limit)
-    .all<TransactionRow>()
+  const transactions = await db.query<TransactionRow>(
+    'SELECT * FROM glass_transactions WHERE tenant_id = ? ORDER BY created_at DESC LIMIT ?',
+    [tenantId, limit]
+  )
 
   return c.json({
-    transactions: rows.results,
+    transactions,
     total_count: countResult?.cnt ?? 0,
   })
 })
@@ -172,7 +166,7 @@ glassRoutes.get('/revenue', async (c) => {
   }
 
   const period = c.req.query('period') // YYYY-MM format
-  const db = c.env.DB_CORE
+  const db = c.get('db_core')
 
   let dateFilter = ''
   const binds: (string | number)[] = [tenantId]
@@ -184,39 +178,33 @@ glassRoutes.get('/revenue', async (c) => {
   }
 
   // Total revenue
-  const totalResult = await db
-    .prepare(
-      `SELECT COALESCE(SUM(amount_cents), 0) as total_revenue_cents
-       FROM glass_transactions
-       WHERE tenant_id = ? ${dateFilter}`
-    )
-    .bind(...binds)
-    .first<{ total_revenue_cents: number }>()
+  const totalResult = await db.queryOne<{ total_revenue_cents: number }>(
+    `SELECT COALESCE(SUM(amount_cents), 0) as total_revenue_cents
+     FROM glass_transactions
+     WHERE tenant_id = ? ${dateFilter}`,
+    binds
+  )
 
   // Platform fees (royalties to platform for this tenant's transactions)
-  const feesResult = await db
-    .prepare(
-      `SELECT COALESCE(SUM(r.amount_cents), 0) as platform_fees_cents
-       FROM glass_royalties r
-       JOIN glass_transactions t ON r.transaction_id = t.id
-       WHERE t.tenant_id = ? AND r.recipient_type = 'platform' ${dateFilter.replace(/created_at/g, 't.created_at')}`
-    )
-    .bind(...binds)
-    .first<{ platform_fees_cents: number }>()
+  const feesResult = await db.queryOne<{ platform_fees_cents: number }>(
+    `SELECT COALESCE(SUM(r.amount_cents), 0) as platform_fees_cents
+     FROM glass_royalties r
+     JOIN glass_transactions t ON r.transaction_id = t.id
+     WHERE t.tenant_id = ? AND r.recipient_type = 'platform' ${dateFilter.replace(/created_at/g, 't.created_at')}`,
+    binds
+  )
 
   // Breakdown by tx_type
-  const breakdownRows = await db
-    .prepare(
-      `SELECT tx_type, COUNT(*) as count, COALESCE(SUM(amount_cents), 0) as total_cents
-       FROM glass_transactions
-       WHERE tenant_id = ? ${dateFilter}
-       GROUP BY tx_type`
-    )
-    .bind(...binds)
-    .all<{ tx_type: string; count: number; total_cents: number }>()
+  const breakdownResults = await db.query<{ tx_type: string; count: number; total_cents: number }>(
+    `SELECT tx_type, COUNT(*) as count, COALESCE(SUM(amount_cents), 0) as total_cents
+     FROM glass_transactions
+     WHERE tenant_id = ? ${dateFilter}
+     GROUP BY tx_type`,
+    binds
+  )
 
   const breakdownByType: Record<string, { count: number; total_cents: number }> = {}
-  for (const row of breakdownRows.results) {
+  for (const row of breakdownResults) {
     breakdownByType[row.tx_type] = { count: row.count, total_cents: row.total_cents }
   }
 
@@ -247,13 +235,11 @@ glassRoutes.post('/metering', async (c) => {
   const now = new Date()
   const billingCycleStart = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-01`
 
-  await c.env.DB_CORE
-    .prepare(
-      `INSERT INTO glass_metering (id, tenant_id, resource_type, quantity, billing_cycle_start)
-       VALUES (?, ?, ?, ?, ?)`
-    )
-    .bind(id, tenantId, body.resource_type, body.quantity, billingCycleStart)
-    .run()
+  await c.get('db_core').execute(
+    `INSERT INTO glass_metering (id, tenant_id, resource_type, quantity, billing_cycle_start)
+     VALUES (?, ?, ?, ?, ?)`,
+    [id, tenantId, body.resource_type, body.quantity, billingCycleStart]
+  )
 
   return c.json({ id, billing_cycle_start: billingCycleStart }, 201)
 })
@@ -273,18 +259,16 @@ glassRoutes.get('/metering', async (c) => {
         return `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-01`
       })()
 
-  const rows = await c.env.DB_CORE
-    .prepare(
-      `SELECT resource_type, COALESCE(SUM(quantity), 0) as total_quantity
-       FROM glass_metering
-       WHERE tenant_id = ? AND billing_cycle_start = ?
-       GROUP BY resource_type`
-    )
-    .bind(tenantId, billingCycleStart)
-    .all<{ resource_type: string; total_quantity: number }>()
+  const rows = await c.get('db_core').query<{ resource_type: string; total_quantity: number }>(
+    `SELECT resource_type, COALESCE(SUM(quantity), 0) as total_quantity
+     FROM glass_metering
+     WHERE tenant_id = ? AND billing_cycle_start = ?
+     GROUP BY resource_type`,
+    [tenantId, billingCycleStart]
+  )
 
   const usage: Record<string, number> = {}
-  for (const row of rows.results) {
+  for (const row of rows) {
     usage[row.resource_type] = row.total_quantity
   }
 

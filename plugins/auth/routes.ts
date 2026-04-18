@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
-import type { D1Database } from '@cloudflare/workers-types'
 
+import type { DatabasePort } from '../../kernel/types'
 import {
   authSessionMiddleware,
   buildExpiredSessionCookie,
@@ -117,21 +117,22 @@ async function parseJsonBody(request: Request): Promise<Record<string, unknown> 
 }
 
 async function findIdentity(
-  db: D1Database,
+  db: DatabasePort,
   customerSlug: string,
   channel: AuthChannel,
   contactNormalized: string,
 ): Promise<AuthIdentityRow | null> {
-  return db.prepare(
+  return db.queryOne<AuthIdentityRow>(
     `SELECT id, customer_slug, channel, contact_value, contact_normalized, status, verified_at, last_login_at
      FROM auth_identities
      WHERE customer_slug = ? AND channel = ? AND contact_normalized = ?
-     LIMIT 1`
-  ).bind(customerSlug, channel, contactNormalized).first<AuthIdentityRow>()
+     LIMIT 1`,
+    [customerSlug, channel, contactNormalized],
+  )
 }
 
 async function ensureIdentity(
-  db: D1Database,
+  db: DatabasePort,
   customerSlug: string,
   channel: AuthChannel,
   contactValue: string,
@@ -142,11 +143,12 @@ async function ensureIdentity(
   const updatedAt = nowIso()
 
   if (existing) {
-    await db.prepare(
+    await db.execute(
       `UPDATE auth_identities
        SET contact_value = ?, metadata_json = COALESCE(?, metadata_json), updated_at = ?
-       WHERE id = ?`
-    ).bind(contactValue, metadataJson, updatedAt, existing.id).run()
+       WHERE id = ?`,
+      [contactValue, metadataJson, updatedAt, existing.id],
+    )
 
     return {
       ...existing,
@@ -165,51 +167,54 @@ async function ensureIdentity(
     last_login_at: null,
   }
 
-  await db.prepare(
+  await db.execute(
     `INSERT INTO auth_identities (
       id, customer_slug, channel, contact_value, contact_normalized, status, metadata_json, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-  ).bind(
-    created.id,
-    customerSlug,
-    channel,
-    contactValue,
-    contactNormalized,
-    created.status,
-    metadataJson,
-    updatedAt,
-    updatedAt,
-  ).run()
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      created.id,
+      customerSlug,
+      channel,
+      contactValue,
+      contactNormalized,
+      created.status,
+      metadataJson,
+      updatedAt,
+      updatedAt,
+    ],
+  )
 
   return created
 }
 
 async function ensurePortalAccount(
-  db: D1Database,
+  db: DatabasePort,
   customerSlug: string,
   identity: AuthIdentityRow,
   fullName: string | null,
 ): Promise<PortalAccountRow> {
-  const existing = await db.prepare(
+  const existing = await db.queryOne<PortalAccountRow>(
     `SELECT id, full_name, email, phone
      FROM portal_accounts
      WHERE customer_slug = ? AND identity_id = ?
-     LIMIT 1`
-  ).bind(customerSlug, identity.id).first<PortalAccountRow>()
+     LIMIT 1`,
+    [customerSlug, identity.id],
+  )
 
   const email = identity.channel === 'email' ? identity.contact_value : null
   const phone = identity.channel === 'phone' ? identity.contact_value : null
   const updatedAt = nowIso()
 
   if (existing) {
-    await db.prepare(
+    await db.execute(
       `UPDATE portal_accounts
        SET full_name = COALESCE(?, full_name),
            email = COALESCE(?, email),
            phone = COALESCE(?, phone),
            updated_at = ?
-       WHERE id = ?`
-    ).bind(fullName, email, phone, updatedAt, existing.id).run()
+       WHERE id = ?`,
+      [fullName, email, phone, updatedAt, existing.id],
+    )
 
     return {
       id: existing.id,
@@ -219,25 +224,27 @@ async function ensurePortalAccount(
     }
   }
 
-  const purchaselessMatch = await db.prepare(
+  const purchaselessMatch = await db.queryOne<PortalAccountRow>(
     `SELECT id, full_name, email, phone
      FROM portal_accounts
      WHERE customer_slug = ?
        AND identity_id IS NULL
        AND ((? IS NOT NULL AND email = ?) OR (? IS NOT NULL AND phone = ?))
-     LIMIT 1`
-  ).bind(customerSlug, email, email, phone, phone).first<PortalAccountRow>()
+     LIMIT 1`,
+    [customerSlug, email, email, phone, phone],
+  )
 
   if (purchaselessMatch) {
-    await db.prepare(
+    await db.execute(
       `UPDATE portal_accounts
        SET identity_id = ?,
            full_name = COALESCE(?, full_name),
            email = COALESCE(?, email),
            phone = COALESCE(?, phone),
            updated_at = ?
-       WHERE id = ?`
-    ).bind(identity.id, fullName, email, phone, updatedAt, purchaselessMatch.id).run()
+       WHERE id = ?`,
+      [identity.id, fullName, email, phone, updatedAt, purchaselessMatch.id],
+    )
 
     return {
       id: purchaselessMatch.id,
@@ -254,20 +261,21 @@ async function ensurePortalAccount(
     phone,
   }
 
-  await db.prepare(
+  await db.execute(
     `INSERT INTO portal_accounts (
       id, customer_slug, identity_id, full_name, email, phone, status, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, 'active', ?, ?)`
-  ).bind(
-    created.id,
-    customerSlug,
-    identity.id,
-    fullName,
-    email,
-    phone,
-    updatedAt,
-    updatedAt,
-  ).run()
+    ) VALUES (?, ?, ?, ?, ?, ?, 'active', ?, ?)`,
+    [
+      created.id,
+      customerSlug,
+      identity.id,
+      fullName,
+      email,
+      phone,
+      updatedAt,
+      updatedAt,
+    ],
+  )
 
   return created
 }
@@ -303,6 +311,7 @@ async function sendCodeDelivery(
 }
 
 authRoutes.post('/request-code', async (c) => {
+  const db = c.get('db_core')
   const parsedBody = await parseJsonBody(c.req.raw)
   if (parsedBody instanceof Response) return parsedBody
 
@@ -342,7 +351,7 @@ authRoutes.post('/request-code', async (c) => {
     : null
 
   const identity = await ensureIdentity(
-    c.env.DB_CORE,
+    db,
     customerSlug,
     channel,
     contactValue,
@@ -357,26 +366,28 @@ authRoutes.post('/request-code', async (c) => {
   const codeHash = await sha256Hex(`${customerSlug}:${channel}:${contactNormalized}:${code}`)
   const codeId = crypto.randomUUID()
 
-  await c.env.DB_CORE.prepare(
+  await db.execute(
     `UPDATE auth_login_codes
      SET status = 'superseded'
-     WHERE identity_id = ? AND status = 'issued'`
-  ).bind(identity.id).run()
+     WHERE identity_id = ? AND status = 'issued'`,
+    [identity.id],
+  )
 
-  await c.env.DB_CORE.prepare(
+  await db.execute(
     `INSERT INTO auth_login_codes (
       id, identity_id, customer_slug, delivery_channel, code_hash, status, expires_at, metadata_json, created_at
-    ) VALUES (?, ?, ?, ?, ?, 'issued', ?, ?, ?)`
-  ).bind(
-    codeId,
-    identity.id,
-    customerSlug,
-    channel,
-    codeHash,
-    expiresAt,
-    JSON.stringify({ fullName }),
-    issuedAt,
-  ).run()
+    ) VALUES (?, ?, ?, ?, ?, 'issued', ?, ?, ?)`,
+    [
+      codeId,
+      identity.id,
+      customerSlug,
+      channel,
+      codeHash,
+      expiresAt,
+      JSON.stringify({ fullName }),
+      issuedAt,
+    ],
+  )
 
   await c.env.SESSIONS.put(
     `login-code:${codeId}`,
@@ -404,11 +415,12 @@ authRoutes.post('/request-code', async (c) => {
       template: 'portal-login-code',
     })
   } catch (error) {
-    await c.env.DB_CORE.prepare(
+    await db.execute(
       `UPDATE auth_login_codes
        SET status = 'delivery_failed', metadata_json = ?
-       WHERE id = ?`
-    ).bind(JSON.stringify({ error: error instanceof Error ? error.message : 'delivery_failed' }), codeId).run()
+       WHERE id = ?`,
+      [JSON.stringify({ error: error instanceof Error ? error.message : 'delivery_failed' }), codeId],
+    )
     return jsonError('delivery_failed', 502)
   }
 
@@ -423,6 +435,7 @@ authRoutes.post('/request-code', async (c) => {
 })
 
 authRoutes.post('/verify-code', async (c) => {
+  const db = c.get('db_core')
   const parsedBody = await parseJsonBody(c.req.raw)
   if (parsedBody instanceof Response) return parsedBody
 
@@ -447,27 +460,29 @@ authRoutes.post('/verify-code', async (c) => {
   }
 
   const contactNormalized = normalizeContact(channel, contactValue)
-  const identity = await findIdentity(c.env.DB_CORE, customerSlug, channel, contactNormalized)
+  const identity = await findIdentity(db, customerSlug, channel, contactNormalized)
   if (!identity) {
     return jsonError('identity_not_found', 404)
   }
 
-  const issuedCode = await c.env.DB_CORE.prepare(
+  const issuedCode = await db.queryOne<{ id: string; code_hash: string; expires_at: string }>(
     `SELECT id, code_hash, expires_at
      FROM auth_login_codes
      WHERE identity_id = ? AND customer_slug = ? AND delivery_channel = ? AND status = 'issued'
      ORDER BY created_at DESC
-     LIMIT 1`
-  ).bind(identity.id, customerSlug, channel).first<{ id: string; code_hash: string; expires_at: string }>()
+     LIMIT 1`,
+    [identity.id, customerSlug, channel],
+  )
 
   if (!issuedCode) {
     return jsonError('code_not_found', 404)
   }
 
   if (Date.parse(issuedCode.expires_at) <= Date.now()) {
-    await c.env.DB_CORE.prepare(
-      `UPDATE auth_login_codes SET status = 'expired' WHERE id = ?`
-    ).bind(issuedCode.id).run()
+    await db.execute(
+      `UPDATE auth_login_codes SET status = 'expired' WHERE id = ?`,
+      [issuedCode.id],
+    )
     return jsonError('code_expired', 410)
   }
 
@@ -477,23 +492,25 @@ authRoutes.post('/verify-code', async (c) => {
   }
 
   const verifiedAt = nowIso()
-  await c.env.DB_CORE.batch([
-    c.env.DB_CORE.prepare(
-      `UPDATE auth_login_codes
+  await db.batch([
+    {
+      sql: `UPDATE auth_login_codes
        SET status = 'consumed', consumed_at = ?
-       WHERE id = ?`
-    ).bind(verifiedAt, issuedCode.id),
-    c.env.DB_CORE.prepare(
-      `UPDATE auth_identities
+       WHERE id = ?`,
+      params: [verifiedAt, issuedCode.id],
+    },
+    {
+      sql: `UPDATE auth_identities
        SET status = 'verified',
            verified_at = COALESCE(verified_at, ?),
            last_login_at = ?,
            updated_at = ?
-       WHERE id = ?`
-    ).bind(verifiedAt, verifiedAt, verifiedAt, identity.id),
+       WHERE id = ?`,
+      params: [verifiedAt, verifiedAt, verifiedAt, identity.id],
+    },
   ])
 
-  const portalAccount = await ensurePortalAccount(c.env.DB_CORE, customerSlug, identity, fullName)
+  const portalAccount = await ensurePortalAccount(db, customerSlug, identity, fullName)
   const sessionTtlSeconds = getSessionTtlSeconds(c.env.AUTH_SESSION_TTL_SECONDS)
   const sessionToken = randomHex(24)
   const sessionId = crypto.randomUUID()

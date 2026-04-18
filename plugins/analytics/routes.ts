@@ -13,10 +13,12 @@ analyticsRoutes.post('/view', async (c) => {
   const country = c.req.header('cf-ipcountry') ?? 'unknown'
   const mobile = c.req.header('sec-ch-ua-mobile')
   const device = mobile === '?1' ? 'mobile' : 'desktop'
+  const db = c.get('db_analytics')
 
-  await c.env.DB_ANALYTICS.prepare(
-    'INSERT INTO page_views (slug, referrer, scroll_depth, country, device, timestamp) VALUES (?, ?, ?, ?, ?, ?)'
-  ).bind(slug, referrer ?? null, scroll_depth ?? null, country, device, new Date().toISOString()).run()
+  await db.execute(
+    'INSERT INTO page_views (slug, referrer, scroll_depth, country, device, timestamp) VALUES (?, ?, ?, ?, ?, ?)',
+    [slug, referrer ?? null, scroll_depth ?? null, country, device, new Date().toISOString()],
+  )
 
   return c.json({ ok: true })
 })
@@ -34,17 +36,20 @@ analyticsRoutes.post('/reaction', async (c) => {
   const hashBuffer = await crypto.subtle.digest('SHA-256', data)
   const hashArray = Array.from(new Uint8Array(hashBuffer))
   const visitorHash = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('').slice(0, 16)
+  const db = c.get('db_analytics')
 
-  await c.env.DB_ANALYTICS.prepare(
-    'INSERT INTO reactions (slug, emoji, visitor_hash, timestamp) VALUES (?, ?, ?, ?)'
-  ).bind(slug, emoji, visitorHash, new Date().toISOString()).run()
+  await db.execute(
+    'INSERT INTO reactions (slug, emoji, visitor_hash, timestamp) VALUES (?, ?, ?, ?)',
+    [slug, emoji, visitorHash, new Date().toISOString()],
+  )
 
-  const counts = await c.env.DB_ANALYTICS.prepare(
-    'SELECT emoji, COUNT(*) as count FROM reactions WHERE slug = ? GROUP BY emoji'
-  ).bind(slug).all<{ emoji: string; count: number }>()
+  const rows = await db.query<{ emoji: string; count: number }>(
+    'SELECT emoji, COUNT(*) as count FROM reactions WHERE slug = ? GROUP BY emoji',
+    [slug],
+  )
 
   const result: Record<string, number> = {}
-  for (const row of counts.results) {
+  for (const row of rows) {
     result[row.emoji] = row.count
   }
 
@@ -54,13 +59,15 @@ analyticsRoutes.post('/reaction', async (c) => {
 // Get reaction counts for a slug
 analyticsRoutes.get('/reactions/:slug', async (c) => {
   const slug = c.req.param('slug')
+  const db = c.get('db_analytics')
 
-  const counts = await c.env.DB_ANALYTICS.prepare(
-    'SELECT emoji, COUNT(*) as count FROM reactions WHERE slug = ? GROUP BY emoji'
-  ).bind(slug).all<{ emoji: string; count: number }>()
+  const rows = await db.query<{ emoji: string; count: number }>(
+    'SELECT emoji, COUNT(*) as count FROM reactions WHERE slug = ? GROUP BY emoji',
+    [slug],
+  )
 
   const result: Record<string, number> = {}
-  for (const row of counts.results) {
+  for (const row of rows) {
     result[row.emoji] = row.count
   }
 
@@ -73,10 +80,12 @@ analyticsRoutes.post('/subscribe', async (c) => {
   const { email, name, source } = body
 
   if (!email) return c.json({ error: 'email required' }, 400)
+  const db = c.get('db_analytics')
 
-  await c.env.DB_ANALYTICS.prepare(
-    'INSERT OR IGNORE INTO subscribers (email, name, status, source) VALUES (?, ?, ?, ?)'
-  ).bind(email, name ?? '', 'active', source ?? 'website').run()
+  await db.execute(
+    'INSERT OR IGNORE INTO subscribers (email, name, status, source) VALUES (?, ?, ?, ?)',
+    [email, name ?? '', 'active', source ?? 'website'],
+  )
 
   return c.json({ ok: true, status: 'subscribed' })
 })
@@ -87,10 +96,12 @@ analyticsRoutes.post('/unsubscribe', async (c) => {
   const { email } = body
 
   if (!email) return c.json({ error: 'email required' }, 400)
+  const db = c.get('db_analytics')
 
-  await c.env.DB_ANALYTICS.prepare(
-    'UPDATE subscribers SET status = ? WHERE email = ?'
-  ).bind('unsubscribed', email).run()
+  await db.execute(
+    'UPDATE subscribers SET status = ? WHERE email = ?',
+    ['unsubscribed', email],
+  )
 
   return c.json({ ok: true, status: 'unsubscribed' })
 })
@@ -108,10 +119,12 @@ analyticsRoutes.post('/feedback', async (c) => {
   const hashBuffer = await crypto.subtle.digest('SHA-256', data)
   const hashArray = Array.from(new Uint8Array(hashBuffer))
   const visitorHash = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('').slice(0, 16)
+  const db = c.get('db_analytics')
 
-  await c.env.DB_ANALYTICS.prepare(
-    'INSERT INTO feedback (slug, type, text, visitor_hash, timestamp) VALUES (?, ?, ?, ?, ?)'
-  ).bind(slug, type, text ?? null, visitorHash, new Date().toISOString()).run()
+  await db.execute(
+    'INSERT INTO feedback (slug, type, text, visitor_hash, timestamp) VALUES (?, ?, ?, ?, ?)',
+    [slug, type, text ?? null, visitorHash, new Date().toISOString()],
+  )
 
   return c.json({ ok: true })
 })
@@ -119,17 +132,20 @@ analyticsRoutes.post('/feedback', async (c) => {
 // Stats for a slug
 analyticsRoutes.get('/stats/:slug', async (c) => {
   const slug = c.req.param('slug')
+  const db = c.get('db_analytics')
 
-  const views = await c.env.DB_ANALYTICS.prepare(
-    'SELECT COUNT(*) as count, AVG(scroll_depth) as avg_scroll FROM page_views WHERE slug = ?'
-  ).bind(slug).first<{ count: number; avg_scroll: number | null }>()
+  const views = await db.queryOne<{ count: number; avg_scroll: number | null }>(
+    'SELECT COUNT(*) as count, AVG(scroll_depth) as avg_scroll FROM page_views WHERE slug = ?',
+    [slug],
+  )
 
-  const reactions = await c.env.DB_ANALYTICS.prepare(
-    'SELECT emoji, COUNT(*) as count FROM reactions WHERE slug = ? GROUP BY emoji'
-  ).bind(slug).all<{ emoji: string; count: number }>()
+  const rows = await db.query<{ emoji: string; count: number }>(
+    'SELECT emoji, COUNT(*) as count FROM reactions WHERE slug = ? GROUP BY emoji',
+    [slug],
+  )
 
   const reactionCounts: Record<string, number> = {}
-  for (const row of reactions.results) {
+  for (const row of rows) {
     reactionCounts[row.emoji] = row.count
   }
 

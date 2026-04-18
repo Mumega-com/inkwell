@@ -36,6 +36,7 @@ import { tenantResolver } from './middleware/tenant'
 import { usageTracker } from './middleware/usage'
 import { authSessionMiddleware } from './middleware/auth'
 import { requireRole } from './middleware/rbac'
+import { adapterMiddleware } from './middleware/adapters'
 import { scheduled } from './scheduled'
 import type { AppBindings } from './types'
 
@@ -128,6 +129,9 @@ app.use('*', tenantResolver())
 
 // API usage tracking per tenant per day (fire-and-forget, non-blocking)
 app.use('*', usageTracker())
+
+// Database adapters — plugins use c.get('db_core') instead of c.env.DB_CORE
+app.use('*', adapterMiddleware)
 
 // Session resolution (non-blocking: null = unauthenticated)
 app.use('*', authSessionMiddleware)

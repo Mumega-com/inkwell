@@ -74,15 +74,19 @@ courseRoutes.get('/:courseSlug/access', async (c) => {
   if (!course) return c.json({ error: 'course_not_found' }, 404)
   if (!session) return c.json({ enrolled: false, reason: 'not_authenticated' })
 
-  const enrollment = await c.env.DB_CORE.prepare(
-    'SELECT * FROM course_enrollments WHERE student_id = ? AND course_slug = ? AND status = ?'
-  ).bind(session.identityId, courseSlug, 'active').first<{ purchased_at: string }>()
+  const db = c.get('db_core')
+
+  const enrollment = await db.queryOne<{ purchased_at: string }>(
+    'SELECT * FROM course_enrollments WHERE student_id = ? AND course_slug = ? AND status = ?',
+    [session.identityId, courseSlug, 'active']
+  )
 
   if (!enrollment) return c.json({ enrolled: false, reason: 'not_purchased' })
 
-  const completed = await c.env.DB_CORE.prepare(
-    'SELECT COUNT(*) as n FROM course_progress WHERE student_id = ? AND course_slug = ? AND completed_at IS NOT NULL'
-  ).bind(session.identityId, courseSlug).first<{ n: number }>()
+  const completed = await db.queryOne<{ n: number }>(
+    'SELECT COUNT(*) as n FROM course_progress WHERE student_id = ? AND course_slug = ? AND completed_at IS NOT NULL',
+    [session.identityId, courseSlug]
+  )
 
   const total = course.lessons.length
   const n = completed?.n ?? 0
@@ -104,9 +108,12 @@ courseRoutes.post('/:courseSlug/enroll', requireAuth, async (c) => {
   const studentId = body.studentId ?? session.identityId
   const now = new Date().toISOString()
 
-  await c.env.DB_CORE.prepare(
-    'INSERT OR IGNORE INTO course_enrollments (id, student_id, course_slug, purchased_at, stripe_session_id) VALUES (?, ?, ?, ?, ?)'
-  ).bind(generateId(), studentId, courseSlug, now, body.stripeSessionId ?? null).run()
+  const db = c.get('db_core')
+
+  await db.execute(
+    'INSERT OR IGNORE INTO course_enrollments (id, student_id, course_slug, purchased_at, stripe_session_id) VALUES (?, ?, ?, ?, ?)',
+    [generateId(), studentId, courseSlug, now, body.stripeSessionId ?? null]
+  )
 
   return c.json({ enrolled: true })
 })
@@ -118,18 +125,22 @@ courseRoutes.get('/:courseSlug/progress', requireAuth, async (c) => {
   const course = COURSES[courseSlug]
   if (!course) return c.json({ error: 'course_not_found' }, 404)
 
-  const enrollment = await c.env.DB_CORE.prepare(
-    'SELECT purchased_at FROM course_enrollments WHERE student_id = ? AND course_slug = ? AND status = ?'
-  ).bind(session.identityId, courseSlug, 'active').first<{ purchased_at: string }>()
+  const db = c.get('db_core')
+
+  const enrollment = await db.queryOne<{ purchased_at: string }>(
+    'SELECT purchased_at FROM course_enrollments WHERE student_id = ? AND course_slug = ? AND status = ?',
+    [session.identityId, courseSlug, 'active']
+  )
 
   if (!enrollment) return c.json({ error: 'not_enrolled' }, 403)
 
-  const rows = await c.env.DB_CORE.prepare(
-    'SELECT lesson_slug, completed_at, quiz_score FROM course_progress WHERE student_id = ? AND course_slug = ?'
-  ).bind(session.identityId, courseSlug).all<{ lesson_slug: string; completed_at: string | null; quiz_score: number | null }>()
-
   type ProgressRow = { lesson_slug: string; completed_at: string | null; quiz_score: number | null }
-  const progressMap = new Map<string, ProgressRow>(rows.results.map((r: ProgressRow) => [r.lesson_slug, r]))
+  const rows = await db.query<ProgressRow>(
+    'SELECT lesson_slug, completed_at, quiz_score FROM course_progress WHERE student_id = ? AND course_slug = ?',
+    [session.identityId, courseSlug]
+  )
+
+  const progressMap = new Map<string, ProgressRow>(rows.map((r: ProgressRow) => [r.lesson_slug, r]))
 
   const lessons = course.lessons.map(l => {
     const p = progressMap.get(l.slug)
@@ -160,9 +171,12 @@ courseRoutes.post('/:courseSlug/complete-lesson', requireAuth, async (c) => {
   const body = await c.req.json<{ lessonSlug: string; quizScore?: number }>()
   if (!body.lessonSlug) return c.json({ error: 'lessonSlug required' }, 400)
 
-  const enrollment = await c.env.DB_CORE.prepare(
-    'SELECT purchased_at FROM course_enrollments WHERE student_id = ? AND course_slug = ? AND status = ?'
-  ).bind(session.identityId, courseSlug, 'active').first<{ purchased_at: string }>()
+  const db = c.get('db_core')
+
+  const enrollment = await db.queryOne<{ purchased_at: string }>(
+    'SELECT purchased_at FROM course_enrollments WHERE student_id = ? AND course_slug = ? AND status = ?',
+    [session.identityId, courseSlug, 'active']
+  )
 
   if (!enrollment) return c.json({ error: 'not_enrolled' }, 403)
 
@@ -173,29 +187,33 @@ courseRoutes.post('/:courseSlug/complete-lesson', requireAuth, async (c) => {
   }
 
   const now = new Date().toISOString()
-  await c.env.DB_CORE.prepare(
-    'INSERT INTO course_progress (id, student_id, course_slug, lesson_slug, completed_at, quiz_score) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(student_id, course_slug, lesson_slug) DO UPDATE SET completed_at = excluded.completed_at, quiz_score = excluded.quiz_score'
-  ).bind(generateId(), session.identityId, courseSlug, body.lessonSlug, now, body.quizScore ?? null).run()
+  await db.execute(
+    'INSERT INTO course_progress (id, student_id, course_slug, lesson_slug, completed_at, quiz_score) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(student_id, course_slug, lesson_slug) DO UPDATE SET completed_at = excluded.completed_at, quiz_score = excluded.quiz_score',
+    [generateId(), session.identityId, courseSlug, body.lessonSlug, now, body.quizScore ?? null]
+  )
 
   // Check if all lessons done
-  const done = await c.env.DB_CORE.prepare(
-    'SELECT COUNT(*) as n FROM course_progress WHERE student_id = ? AND course_slug = ? AND completed_at IS NOT NULL'
-  ).bind(session.identityId, courseSlug).first<{ n: number }>()
+  const done = await db.queryOne<{ n: number }>(
+    'SELECT COUNT(*) as n FROM course_progress WHERE student_id = ? AND course_slug = ? AND completed_at IS NOT NULL',
+    [session.identityId, courseSlug]
+  )
 
   const courseCompleted = (done?.n ?? 0) >= course.lessons.length
   let certificateId: string | undefined
 
   if (courseCompleted) {
-    const existing = await c.env.DB_CORE.prepare(
-      'SELECT id FROM course_certificates WHERE student_id = ? AND course_slug = ?'
-    ).bind(session.identityId, courseSlug).first<{ id: string }>()
+    const existing = await db.queryOne<{ id: string }>(
+      'SELECT id FROM course_certificates WHERE student_id = ? AND course_slug = ?',
+      [session.identityId, courseSlug]
+    )
 
     if (!existing) {
       certificateId = generateId()
       const certNumber = generateCertNumber(courseSlug)
-      await c.env.DB_CORE.prepare(
-        'INSERT INTO course_certificates (id, student_id, course_slug, student_name, certificate_number) VALUES (?, ?, ?, ?, ?)'
-      ).bind(certificateId, session.identityId, courseSlug, session.fullName ?? session.contactValue, certNumber).run()
+      await db.execute(
+        'INSERT INTO course_certificates (id, student_id, course_slug, student_name, certificate_number) VALUES (?, ?, ?, ?, ?)',
+        [certificateId, session.identityId, courseSlug, session.fullName ?? session.contactValue, certNumber]
+      )
     } else {
       certificateId = existing.id
     }
@@ -211,9 +229,12 @@ courseRoutes.get('/:courseSlug/certificate', requireAuth, async (c) => {
   const course = COURSES[courseSlug]
   if (!course) return c.json({ error: 'course_not_found' }, 404)
 
-  const cert = await c.env.DB_CORE.prepare(
-    'SELECT * FROM course_certificates WHERE student_id = ? AND course_slug = ?'
-  ).bind(session.identityId, courseSlug).first<{ student_name: string; certificate_number: string; issued_at: string }>()
+  const db = c.get('db_core')
+
+  const cert = await db.queryOne<{ student_name: string; certificate_number: string; issued_at: string }>(
+    'SELECT * FROM course_certificates WHERE student_id = ? AND course_slug = ?',
+    [session.identityId, courseSlug]
+  )
 
   if (!cert) return c.json({ error: 'certificate_not_found' }, 404)
 
@@ -235,9 +256,12 @@ courseRoutes.post('/check-access', authSessionMiddleware, async (c) => {
   const body = await c.req.json<{ courseSlug: string }>()
   if (!body.courseSlug) return c.json({ error: 'courseSlug required' }, 400)
 
-  const enrollment = await c.env.DB_CORE.prepare(
-    'SELECT id FROM course_enrollments WHERE student_id = ? AND course_slug = ? AND status = ?'
-  ).bind(session.identityId, body.courseSlug, 'active').first()
+  const db = c.get('db_core')
+
+  const enrollment = await db.queryOne(
+    'SELECT id FROM course_enrollments WHERE student_id = ? AND course_slug = ? AND status = ?',
+    [session.identityId, body.courseSlug, 'active']
+  )
 
   return c.json({ hasAccess: !!enrollment, reason: enrollment ? 'enrolled' : 'not_purchased' })
 })

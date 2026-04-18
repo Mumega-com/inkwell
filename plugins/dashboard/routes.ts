@@ -64,33 +64,38 @@ function daysAgoIso(days: number): string {
 // ── GET /overview ─────────────────────────────────────────────────────────
 
 dashboardRoutes.get('/overview', async (c) => {
+  const dbCore = c.get('db_core')
+  const dbMarketing = c.get('db_marketing')
   const since = daysAgoIso(28)
 
   // Pull all needed metrics from DB_MARKETING in one query
   const [snapshots, ga4Sessions, leadsResult] = await Promise.allSettled([
-    c.env.DB_MARKETING.prepare(
+    dbMarketing.query<SnapshotRow>(
       `SELECT metric, value, fetched_at
        FROM marketing_snapshots
        WHERE source = 'gsc'
          AND metric IN ('total_clicks', 'total_impressions')
          AND date >= ?
-       ORDER BY fetched_at DESC`
-    ).bind(since).all<SnapshotRow>(),
+       ORDER BY fetched_at DESC`,
+      [since]
+    ),
 
-    c.env.DB_MARKETING.prepare(
+    dbMarketing.query<SnapshotRow>(
       `SELECT metric, value, fetched_at
        FROM marketing_snapshots
        WHERE source = 'ga4'
          AND metric IN ('sessions', 'bounce_rate')
          AND date >= ?
-       ORDER BY fetched_at DESC`
-    ).bind(since).all<SnapshotRow>(),
+       ORDER BY fetched_at DESC`,
+      [since]
+    ),
 
-    c.env.DB_CORE.prepare(
+    dbCore.queryOne<{ count: number }>(
       `SELECT COUNT(*) as count
        FROM contracts
-       WHERE created_at >= ?`
-    ).bind(since + 'T00:00:00.000Z').first<{ count: number }>(),
+       WHERE created_at >= ?`,
+      [since + 'T00:00:00.000Z']
+    ),
   ])
 
   // Aggregate GSC metrics
@@ -99,7 +104,7 @@ dashboardRoutes.get('/overview', async (c) => {
   let lastUpdated = ''
 
   if (snapshots.status === 'fulfilled') {
-    for (const row of snapshots.value.results) {
+    for (const row of snapshots.value) {
       if (row.metric === 'total_clicks') clicks += row.value
       if (row.metric === 'total_impressions') impressions += row.value
       if (!lastUpdated || row.fetched_at > lastUpdated) lastUpdated = row.fetched_at
@@ -111,7 +116,7 @@ dashboardRoutes.get('/overview', async (c) => {
   let bounceRate = 0
 
   if (ga4Sessions.status === 'fulfilled') {
-    for (const row of ga4Sessions.value.results) {
+    for (const row of ga4Sessions.value) {
       if (row.metric === 'sessions') sessions += row.value
       if (row.metric === 'bounce_rate') bounceRate = row.value
     }
@@ -140,53 +145,58 @@ dashboardRoutes.get('/overview', async (c) => {
 // ── GET /seo ─────────────────────────────────────────────────────────────
 
 dashboardRoutes.get('/seo', async (c) => {
+  const dbMarketing = c.get('db_marketing')
   const periodParam = c.req.query('period') ?? '28d'
   const days = periodToDays(periodParam)
   const since = daysAgoIso(days)
 
   const [summaryResult, queriesResult, pagesResult, trendResult] = await Promise.allSettled([
-    c.env.DB_MARKETING.prepare(
+    dbMarketing.query<{ metric: string; value: number }>(
       `SELECT metric, SUM(value) as value
        FROM marketing_snapshots
        WHERE source = 'gsc'
          AND metric IN ('total_clicks', 'total_impressions', 'avg_ctr', 'avg_position')
          AND date >= ?
-       GROUP BY metric`
-    ).bind(since).all<{ metric: string; value: number }>(),
+       GROUP BY metric`,
+      [since]
+    ),
 
-    c.env.DB_MARKETING.prepare(
+    dbMarketing.query<QueryRow>(
       `SELECT query, SUM(clicks) as clicks, SUM(impressions) as impressions,
               AVG(ctr) as ctr, AVG(position) as position
        FROM gsc_queries
        WHERE date >= ?
        GROUP BY query
        ORDER BY clicks DESC
-       LIMIT 20`
-    ).bind(since).all<QueryRow>(),
+       LIMIT 20`,
+      [since]
+    ),
 
-    c.env.DB_MARKETING.prepare(
+    dbMarketing.query<PageRow>(
       `SELECT page, SUM(clicks) as clicks, SUM(impressions) as impressions,
               AVG(ctr) as ctr, AVG(position) as position
        FROM gsc_pages
        WHERE date >= ?
        GROUP BY page
        ORDER BY clicks DESC
-       LIMIT 15`
-    ).bind(since).all<PageRow>(),
+       LIMIT 15`,
+      [since]
+    ),
 
-    c.env.DB_MARKETING.prepare(
+    dbMarketing.query<TrendRow>(
       `SELECT date, SUM(clicks) as clicks, SUM(impressions) as impressions
        FROM gsc_daily
        WHERE date >= ?
        GROUP BY date
-       ORDER BY date ASC`
-    ).bind(since).all<TrendRow>(),
+       ORDER BY date ASC`,
+      [since]
+    ),
   ])
 
   // Build summary from aggregate metrics
   const summaryMap: Record<string, number> = {}
   if (summaryResult.status === 'fulfilled') {
-    for (const row of summaryResult.value.results) {
+    for (const row of summaryResult.value) {
       summaryMap[row.metric] = row.value
     }
   }
@@ -198,9 +208,9 @@ dashboardRoutes.get('/seo', async (c) => {
     avgPosition: summaryMap['avg_position'] ?? 0,
   }
 
-  const queries = queriesResult.status === 'fulfilled' ? queriesResult.value.results : []
-  const pages = pagesResult.status === 'fulfilled' ? pagesResult.value.results : []
-  const trend = trendResult.status === 'fulfilled' ? trendResult.value.results : []
+  const queries = queriesResult.status === 'fulfilled' ? queriesResult.value : []
+  const pages = pagesResult.status === 'fulfilled' ? pagesResult.value : []
+  const trend = trendResult.status === 'fulfilled' ? trendResult.value : []
 
   return c.json({ summary, queries, pages, trend })
 })
@@ -208,6 +218,7 @@ dashboardRoutes.get('/seo', async (c) => {
 // ── GET /leads ────────────────────────────────────────────────────────────
 
 dashboardRoutes.get('/leads', async (c) => {
+  const dbCore = c.get('db_core')
   const limitParam = c.req.query('limit')
   const statusParam = c.req.query('status') ?? 'all'
   const limit = Math.min(Math.max(parseInt(limitParam ?? '20', 10) || 20, 1), 100)
@@ -215,30 +226,33 @@ dashboardRoutes.get('/leads', async (c) => {
   const weekAgo = daysAgoIso(7)
 
   const [totalResult, thisWeekResult, leadsResult] = await Promise.allSettled([
-    c.env.DB_CORE.prepare(
+    dbCore.queryOne<{ count: number }>(
       'SELECT COUNT(*) as count FROM contracts'
-    ).first<{ count: number }>(),
+    ),
 
-    c.env.DB_CORE.prepare(
-      'SELECT COUNT(*) as count FROM contracts WHERE created_at >= ?'
-    ).bind(weekAgo + 'T00:00:00.000Z').first<{ count: number }>(),
+    dbCore.queryOne<{ count: number }>(
+      'SELECT COUNT(*) as count FROM contracts WHERE created_at >= ?',
+      [weekAgo + 'T00:00:00.000Z']
+    ),
 
     statusParam === 'all'
-      ? c.env.DB_CORE.prepare(
+      ? dbCore.query<ContractRow>(
           `SELECT id, reference, customer_name, destination, service_type,
                   rate, status, customer_email, created_at
            FROM contracts
            ORDER BY created_at DESC
-           LIMIT ?`
-        ).bind(limit).all<ContractRow>()
-      : c.env.DB_CORE.prepare(
+           LIMIT ?`,
+          [limit]
+        )
+      : dbCore.query<ContractRow>(
           `SELECT id, reference, customer_name, destination, service_type,
                   rate, status, customer_email, created_at
            FROM contracts
            WHERE status = ?
            ORDER BY created_at DESC
-           LIMIT ?`
-        ).bind(statusParam, limit).all<ContractRow>(),
+           LIMIT ?`,
+          [statusParam, limit]
+        ),
   ])
 
   const total = totalResult.status === 'fulfilled' && totalResult.value
@@ -249,7 +263,7 @@ dashboardRoutes.get('/leads', async (c) => {
     ? thisWeekResult.value.count
     : 0
 
-  const rawLeads: ContractRow[] = leadsResult.status === 'fulfilled' ? leadsResult.value.results : []
+  const rawLeads: ContractRow[] = leadsResult.status === 'fulfilled' ? leadsResult.value : []
 
   const leads = rawLeads.map((row) => ({
     id: row.id,

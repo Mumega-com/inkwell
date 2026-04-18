@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { requireAuth } from '../middleware'
 import type { AppBindings } from '../types'
+import type { DatabasePort } from '../../kernel/types'
 
 type Plan = 'seo' | 'seo-ads' | 'full'
 
@@ -97,20 +98,21 @@ function safeJsonParse(value: string | null): Record<string, unknown> {
 }
 
 async function resolvePublishingProduct(
-  env: AppBindings['Bindings'],
+  db: DatabasePort,
   customerSlug: string,
   productKey: string,
 ): Promise<PublishingProductRow | null> {
-  return env.DB_CORE.prepare(
+  return db.queryOne<PublishingProductRow>(
     `SELECT id, customer_slug, product_key, stripe_price_id
      FROM publishing_products
      WHERE customer_slug = ? AND product_key = ? AND status IN ('draft', 'active', 'published')
-     LIMIT 1`
-  ).bind(customerSlug, productKey).first<PublishingProductRow>()
+     LIMIT 1`,
+    [customerSlug, productKey],
+  )
 }
 
 async function ensurePortalAccountForCheckout(
-  env: AppBindings['Bindings'],
+  db: DatabasePort,
   customerSlug: string,
   email: string | null,
   customerName: string | null,
@@ -119,12 +121,13 @@ async function ensurePortalAccountForCheckout(
   const normalizedEmail = email?.trim().toLowerCase() ?? null
   const now = new Date().toISOString()
   const existing = normalizedEmail
-    ? await env.DB_CORE.prepare(
+    ? await db.queryOne<{ id: string; metadata_json: string | null }>(
       `SELECT id, metadata_json
        FROM portal_accounts
        WHERE customer_slug = ? AND email = ?
-       LIMIT 1`
-    ).bind(customerSlug, normalizedEmail).first<{ id: string; metadata_json: string | null }>()
+       LIMIT 1`,
+      [customerSlug, normalizedEmail],
+    )
     : null
 
   if (existing) {
@@ -133,45 +136,47 @@ async function ensurePortalAccountForCheckout(
       ...metadata,
     }
 
-    await env.DB_CORE.prepare(
+    await db.execute(
       `UPDATE portal_accounts
        SET full_name = COALESCE(?, full_name),
            email = COALESCE(?, email),
            metadata_json = ?,
            updated_at = ?,
            status = 'active'
-       WHERE id = ?`
-    ).bind(
-      customerName,
-      normalizedEmail,
-      JSON.stringify(mergedMetadata),
-      now,
-      existing.id,
-    ).run()
+       WHERE id = ?`,
+      [
+        customerName,
+        normalizedEmail,
+        JSON.stringify(mergedMetadata),
+        now,
+        existing.id,
+      ],
+    )
 
     return existing.id
   }
 
   const id = crypto.randomUUID()
-  await env.DB_CORE.prepare(
+  await db.execute(
     `INSERT INTO portal_accounts
      (id, customer_slug, full_name, email, status, metadata_json, created_at, updated_at)
-     VALUES (?, ?, ?, ?, 'active', ?, ?, ?)`
-  ).bind(
-    id,
-    customerSlug,
-    customerName,
-    normalizedEmail,
-    JSON.stringify(metadata),
-    now,
-    now,
-  ).run()
+     VALUES (?, ?, ?, ?, 'active', ?, ?, ?)`,
+    [
+      id,
+      customerSlug,
+      customerName,
+      normalizedEmail,
+      JSON.stringify(metadata),
+      now,
+      now,
+    ],
+  )
 
   return id
 }
 
 async function grantDigitalAccess(
-  env: AppBindings['Bindings'],
+  db: DatabasePort,
   customerSlug: string,
   portalAccountId: string,
   productId: string | null,
@@ -181,51 +186,54 @@ async function grantDigitalAccess(
 ): Promise<void> {
   const now = new Date().toISOString()
   const existing = resourceExternalId
-    ? await env.DB_CORE.prepare(
+    ? await db.queryOne<{ id: string; metadata_json: string | null }>(
       `SELECT id, metadata_json
        FROM access_grants
        WHERE customer_slug = ? AND portal_account_id = ? AND resource_external_id = ? AND status = 'active'
-       LIMIT 1`
-    ).bind(customerSlug, portalAccountId, resourceExternalId).first<{ id: string; metadata_json: string | null }>()
+       LIMIT 1`,
+      [customerSlug, portalAccountId, resourceExternalId],
+    )
     : null
 
   if (existing) {
-    await env.DB_CORE.prepare(
+    await db.execute(
       `UPDATE access_grants
        SET product_id = COALESCE(?, product_id),
            grant_type = ?,
            metadata_json = ?,
            updated_at = ?
-       WHERE id = ?`
-    ).bind(
-      productId,
-      grantType,
-      JSON.stringify({
-        ...safeJsonParse(existing.metadata_json),
-        ...metadata,
-      }),
-      now,
-      existing.id,
-    ).run()
+       WHERE id = ?`,
+      [
+        productId,
+        grantType,
+        JSON.stringify({
+          ...safeJsonParse(existing.metadata_json),
+          ...metadata,
+        }),
+        now,
+        existing.id,
+      ],
+    )
     return
   }
 
-  await env.DB_CORE.prepare(
+  await db.execute(
     `INSERT INTO access_grants
      (id, customer_slug, portal_account_id, product_id, resource_external_id, grant_type, status, granted_at, metadata_json, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, 'active', ?, ?, ?, ?)`
-  ).bind(
-    crypto.randomUUID(),
-    customerSlug,
-    portalAccountId,
-    productId,
-    resourceExternalId,
-    grantType,
-    now,
-    JSON.stringify(metadata),
-    now,
-    now,
-  ).run()
+     VALUES (?, ?, ?, ?, ?, ?, 'active', ?, ?, ?, ?)`,
+    [
+      crypto.randomUUID(),
+      customerSlug,
+      portalAccountId,
+      productId,
+      resourceExternalId,
+      grantType,
+      now,
+      JSON.stringify(metadata),
+      now,
+      now,
+    ],
+  )
 }
 
 async function stripeGet(secretKey: string, path: string): Promise<Response> {
@@ -331,7 +339,8 @@ paymentRoutes.post('/create-checkout', async (c) => {
     if (isNonEmptyString(priceIdFromBody)) {
       priceId = priceIdFromBody.trim()
     } else if (productKey) {
-      const product = await resolvePublishingProduct(c.env, customerSlug, productKey)
+      const db = c.get('db_core')
+      const product = await resolvePublishingProduct(db, customerSlug, productKey)
       if (!product?.stripe_price_id) {
         return c.json({ success: false, error: 'digital_product_not_configured' }, 404)
       }
@@ -430,6 +439,8 @@ paymentRoutes.post('/webhook', async (c) => {
     return c.json({ error: 'invalid_json' }, 400)
   }
 
+  const db = c.get('db_core')
+
   try {
     switch (event.type) {
       case 'checkout.session.completed': {
@@ -449,7 +460,7 @@ paymentRoutes.post('/webhook', async (c) => {
         const resourceExternalId = session.metadata?.resourceExternalId ?? null
         const publishingProductId = session.metadata?.publishingProductId ?? null
         const portalAccountId = await ensurePortalAccountForCheckout(
-          c.env,
+          db,
           customerSlug,
           email,
           customerName,
@@ -464,7 +475,7 @@ paymentRoutes.post('/webhook', async (c) => {
 
         if (kind === 'digital') {
           await grantDigitalAccess(
-            c.env,
+            db,
             customerSlug,
             portalAccountId,
             isNonEmptyString(publishingProductId) ? publishingProductId : null,
@@ -488,30 +499,32 @@ paymentRoutes.post('/webhook', async (c) => {
           status: string
         }
 
-        await c.env.DB_CORE.prepare(
+        await db.execute(
           `UPDATE portal_accounts
            SET metadata_json = json_set(COALESCE(metadata_json, '{}'), '$.subscription_status', ?, '$.updated_at', ?),
                updated_at = ?,
                status = CASE WHEN ? IN ('active', 'trialing') THEN 'active' ELSE 'inactive' END
-           WHERE json_extract(metadata_json, '$.stripe_customer') = ?`
-        ).bind(
-          sub.status,
-          new Date().toISOString(),
-          new Date().toISOString(),
-          sub.status,
-          sub.customer,
-        ).run()
+           WHERE json_extract(metadata_json, '$.stripe_customer') = ?`,
+          [
+            sub.status,
+            new Date().toISOString(),
+            new Date().toISOString(),
+            sub.status,
+            sub.customer,
+          ],
+        )
 
         if (!['active', 'trialing'].includes(sub.status)) {
-          await c.env.DB_CORE.prepare(
+          await db.execute(
             `UPDATE access_grants
              SET status = 'inactive',
                  updated_at = ?
-             WHERE json_extract(metadata_json, '$.stripe_subscription') = ?`
-          ).bind(
-            new Date().toISOString(),
-            sub.id,
-          ).run()
+             WHERE json_extract(metadata_json, '$.stripe_subscription') = ?`,
+            [
+              new Date().toISOString(),
+              sub.id,
+            ],
+          )
         }
         break
       }
@@ -522,27 +535,29 @@ paymentRoutes.post('/webhook', async (c) => {
           customer: string
         }
 
-        await c.env.DB_CORE.prepare(
+        await db.execute(
           `UPDATE portal_accounts
            SET status = 'inactive',
                metadata_json = json_set(COALESCE(metadata_json, '{}'), '$.subscription_status', 'canceled', '$.canceled_at', ?),
                updated_at = ?
-           WHERE json_extract(metadata_json, '$.stripe_customer') = ?`
-        ).bind(
-          new Date().toISOString(),
-          new Date().toISOString(),
-          sub.customer,
-        ).run()
+           WHERE json_extract(metadata_json, '$.stripe_customer') = ?`,
+          [
+            new Date().toISOString(),
+            new Date().toISOString(),
+            sub.customer,
+          ],
+        )
 
-        await c.env.DB_CORE.prepare(
+        await db.execute(
           `UPDATE access_grants
            SET status = 'inactive',
                updated_at = ?
-           WHERE json_extract(metadata_json, '$.stripe_subscription') = ?`
-        ).bind(
-          new Date().toISOString(),
-          sub.id,
-        ).run()
+           WHERE json_extract(metadata_json, '$.stripe_subscription') = ?`,
+          [
+            new Date().toISOString(),
+            sub.id,
+          ],
+        )
         break
       }
 
@@ -565,9 +580,11 @@ paymentRoutes.get('/subscription-status', requireAuth, async (c) => {
     return c.json({ error: 'no_portal_account' }, 404)
   }
 
-  const account = await c.env.DB_CORE.prepare(
-    `SELECT status, metadata_json FROM portal_accounts WHERE id = ? LIMIT 1`
-  ).bind(session.portalAccountId).first<{ status: string; metadata_json: string | null }>()
+  const db = c.get('db_core')
+  const account = await db.queryOne<{ status: string; metadata_json: string | null }>(
+    `SELECT status, metadata_json FROM portal_accounts WHERE id = ? LIMIT 1`,
+    [session.portalAccountId],
+  )
 
   if (!account) {
     return c.json({ error: 'account_not_found' }, 404)

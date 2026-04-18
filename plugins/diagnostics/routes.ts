@@ -81,27 +81,23 @@ function daysAgoIso(days: number): string {
 // GET /api/diagnostics/health — Squad health overview for tenant
 diagnosticsRoutes.get('/health', async (c) => {
   const tenantId = getTenantId(c)
-  const db = c.env.DB_CORE
+  const db = c.get('db_core')
 
-  // Get the latest snapshot per squad (most recent snapshot_date)
-  const { results: latestSnapshots } = await db
-    .prepare(`
-      SELECT s.squad_id, s.conductance, s.force, s.coherence,
-             s.tasks_completed, s.tasks_failed, s.snapshot_date
-      FROM diagnostics_snapshots s
-      INNER JOIN (
-        SELECT squad_id, MAX(snapshot_date) AS max_date
-        FROM diagnostics_snapshots
-        WHERE tenant_id = ?
-        GROUP BY squad_id
-      ) latest ON s.squad_id = latest.squad_id AND s.snapshot_date = latest.max_date
-      WHERE s.tenant_id = ?
-    `)
-    .bind(tenantId, tenantId)
-    .all<SnapshotRow>()
+  const latestSnapshots = await db.query<SnapshotRow>(`
+    SELECT s.squad_id, s.conductance, s.force, s.coherence,
+           s.tasks_completed, s.tasks_failed, s.snapshot_date
+    FROM diagnostics_snapshots s
+    INNER JOIN (
+      SELECT squad_id, MAX(snapshot_date) AS max_date
+      FROM diagnostics_snapshots
+      WHERE tenant_id = ?
+      GROUP BY squad_id
+    ) latest ON s.squad_id = latest.squad_id AND s.snapshot_date = latest.max_date
+    WHERE s.tenant_id = ?
+  `, [tenantId, tenantId])
 
   const today = new Date()
-  const squads = (latestSnapshots ?? []).map((row) => {
+  const squads = latestSnapshots.map((row) => {
     const totalTasks = row.tasks_completed + row.tasks_failed
     const successRate = totalTasks > 0
       ? Math.round((row.tasks_completed / totalTasks) * 100)
@@ -145,49 +141,45 @@ diagnosticsRoutes.get('/squad/:id/history', async (c) => {
   const tenantId = getTenantId(c)
   const squadId = c.req.param('id')
   const since = daysAgoIso(30)
+  const db = c.get('db_core')
 
-  const { results } = await c.env.DB_CORE
-    .prepare(`
-      SELECT snapshot_date, conductance, force, coherence,
-             tasks_completed, tasks_failed
-      FROM diagnostics_snapshots
-      WHERE tenant_id = ? AND squad_id = ? AND snapshot_date >= ?
-      ORDER BY snapshot_date ASC
-    `)
-    .bind(tenantId, squadId, since)
-    .all<SnapshotRow>()
+  const snapshots = await db.query<SnapshotRow>(`
+    SELECT snapshot_date, conductance, force, coherence,
+           tasks_completed, tasks_failed
+    FROM diagnostics_snapshots
+    WHERE tenant_id = ? AND squad_id = ? AND snapshot_date >= ?
+    ORDER BY snapshot_date ASC
+  `, [tenantId, squadId, since])
 
   return c.json({
     tenant_id: tenantId,
     squad_id: squadId,
     period_days: 30,
-    snapshots: results ?? [],
+    snapshots,
   })
 })
 
 // GET /api/diagnostics/alerts — Unacknowledged alerts
 diagnosticsRoutes.get('/alerts', async (c) => {
   const tenantId = getTenantId(c)
+  const db = c.get('db_core')
 
-  const { results } = await c.env.DB_CORE
-    .prepare(`
-      SELECT id, squad_id, severity, narrative, acknowledged, created_at
-      FROM diagnostics_alerts
-      WHERE tenant_id = ? AND acknowledged = 0
-      ORDER BY
-        CASE severity
-          WHEN 'ACTION_REQUIRED' THEN 0
-          WHEN 'WARNING' THEN 1
-          WHEN 'INFO' THEN 2
-        END,
-        created_at DESC
-    `)
-    .bind(tenantId)
-    .all<AlertRow>()
+  const alerts = await db.query<AlertRow>(`
+    SELECT id, squad_id, severity, narrative, acknowledged, created_at
+    FROM diagnostics_alerts
+    WHERE tenant_id = ? AND acknowledged = 0
+    ORDER BY
+      CASE severity
+        WHEN 'ACTION_REQUIRED' THEN 0
+        WHEN 'WARNING' THEN 1
+        WHEN 'INFO' THEN 2
+      END,
+      created_at DESC
+  `, [tenantId])
 
   return c.json({
     tenant_id: tenantId,
-    alerts: results ?? [],
+    alerts,
   })
 })
 
@@ -195,17 +187,15 @@ diagnosticsRoutes.get('/alerts', async (c) => {
 diagnosticsRoutes.post('/alerts/:id/acknowledge', async (c) => {
   const tenantId = getTenantId(c)
   const alertId = c.req.param('id')
+  const db = c.get('db_core')
 
-  const result = await c.env.DB_CORE
-    .prepare(`
-      UPDATE diagnostics_alerts
-      SET acknowledged = 1
-      WHERE id = ? AND tenant_id = ?
-    `)
-    .bind(alertId, tenantId)
-    .run()
+  const result = await db.execute(`
+    UPDATE diagnostics_alerts
+    SET acknowledged = 1
+    WHERE id = ? AND tenant_id = ?
+  `, [alertId, tenantId])
 
-  if (!result.meta.changes || result.meta.changes === 0) {
+  if (result.changes === 0) {
     return c.json({ error: 'Alert not found or already acknowledged' }, 404)
   }
 
