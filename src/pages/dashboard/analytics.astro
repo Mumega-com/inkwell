@@ -1,0 +1,63 @@
+---
+import Dashboard from '../../layouts/Dashboard.astro'
+import { FunnelChart } from '../../../plugins/analytics/components/FunnelChart'
+import { CohortTable } from '../../../plugins/analytics/components/CohortTable'
+import { KPICard } from '../../components/charts/KPICard'
+---
+
+<Dashboard title="Analytics" active="analytics">
+  <style>
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .section-gap {
+      margin-bottom: 1.5rem;
+    }
+    @media (max-width: 1100px) {
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 640px) {
+      .kpi-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+
+  <div class="kpi-grid">
+    <KPICard
+      client:visible
+      title="Events Today"
+      endpoint="/api/analytics/snapshot"
+      field="events_today"
+      icon="◆"
+    />
+    <KPICard
+      client:visible
+      title="Unique Visitors"
+      endpoint="/api/analytics/snapshot"
+      field="unique_visitors"
+      icon="◎"
+    />
+    <KPICard
+      client:visible
+      title="Page Views"
+      endpoint="/api/analytics/snapshot"
+      field="page_views"
+      icon="◻"
+    />
+    <KPICard
+      client:visible
+      title="Avg Events/Visitor"
+      endpoint="/api/analytics/snapshot"
+      field="events_per_visitor"
+      icon="◈"
+    />
+  </div>
+
+  <div class="section-gap">
+    <FunnelChart client:load />
+  </div>
+
+  <CohortTable client:load />
+</Dashboard>

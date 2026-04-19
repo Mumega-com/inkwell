@@ -106,9 +106,9 @@ Plugin declares `requiredRole: 'manager'` → only manager, admin, owner can acc
 ## Plugins (21 active)
 | Plugin | Role | Description | Components |
 |--------|------|-------------|------------|
-| analytics | (default) | SEO + flywheel + event tracking + funnels + cohorts + recommendations | — |
+| analytics | (default) | SEO + flywheel + event tracking + funnels + cohorts + recommendations | FunnelChart, CohortTable |
 | auth | (default) | OTP passwordless login (request-code → verify-code → session) | — |
-| dashboard | viewer | Home, leads, campaigns, SEO, calendar, tasks, squads, wallet, media, chat, settings | ArrowDashboard, TaskBoard, WalletView, SquadPanel, ConnectPanel, SettingsForm, AssistantChat, MediaLibrary |
+| dashboard | viewer | Home, leads, campaigns, SEO, calendar, tasks, squads, wallet, media, analytics, feedback, chat, settings | ArrowDashboard, TaskBoard, WalletView, SquadPanel, ConnectPanel, SettingsForm, AssistantChat, MediaLibrary |
 | commerce | (default) | Checkout, subscriptions | — |
 | content | member | MDX ingest, publish, graph | — |
 | mcp | admin | MCP tool endpoint | — |

@@ -8,6 +8,7 @@ const analyticsPlugin: PluginManifest = {
   description: 'Page views, reactions, subscribers, and feedback tracking',
   requiredRole: 'viewer',
   mcpTools: analyticsMcpTools,
+  dashboardWidgets: ['FunnelChart', 'CohortTable'],
 
   mountRoutes: (app: HonoApp) => {
     app.route('/api', analyticsRoutes)

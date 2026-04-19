@@ -51,6 +51,7 @@ const manifest: PluginManifest = {
   version: '1.0.0',
   description: 'Customer feedback system — NPS/CSAT surveys, micro-surveys, feature voting, LLM classification, churn signals',
   requiredRole: 'viewer',
+  dashboardWidgets: ['FeedbackWidget', 'NpsWidget', 'FeatureVoteBoard'],
   mountRoutes: (app) => {
     app.route('/api/feedback', feedbackRoutes)
   },
