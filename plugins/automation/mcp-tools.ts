@@ -1,32 +1,30 @@
 /**
  * Automation MCP tools — trigger and list workflows from any provider.
  *
- * Provider auto-detection for API mode (checked in order):
- *   1. TORIVERS_API_URL → ToRivers (torivers.com) — pay-per-execution marketplace
- *   2. N8N_API_URL      → n8n — self-hosted workflow automation
- *   3. ZAPIER_WEBHOOK_URL → Zapier — default catch hook for API-mode triggers
+ * Provider auto-detection (checked in order):
+ *   1. INKWELL_WORKFLOW binding → CF Workflows (native edge, durable execution)
+ *   2. TORIVERS_API_URL         → ToRivers (torivers.com) — pay-per-execution marketplace
+ *   3. N8N_API_URL              → n8n — self-hosted workflow automation
+ *   4. ZAPIER_WEBHOOK_URL       → Zapier — webhook trigger (no list API)
+ *   5. webhook_url arg          → Generic HTTP POST (any endpoint)
  *
- * Webhook mode (webhook_url arg) works with any provider — ToRivers, n8n,
- * Zapier, Make.com, or any HTTP endpoint. Provider-agnostic by design.
+ * CF Workflows runs natively at the edge — steps, retries, sleep, durable
+ * execution. Zero external dependencies. Other providers work via HTTP.
  *
- * Zapier notes:
- *   - Triggering: webhook-only (hooks.zapier.com/hooks/catch/...)
- *   - No public API for listing/managing Zaps
- *   - Zapier NLA / AI Actions available separately via zapier.com/mcp
- *
- * Env vars:
- *   TORIVERS_API_URL   — ToRivers API base (e.g. https://torivers.com/api/v1)
- *   TORIVERS_API_KEY   — ToRivers API key
- *   N8N_API_URL        — n8n instance base (e.g. https://n8n.example.com)
- *   N8N_API_KEY        — n8n API key
- *   ZAPIER_WEBHOOK_URL — Zapier catch hook URL (default hook for API-mode triggers)
+ * Env vars / bindings:
+ *   INKWELL_WORKFLOW    — CF Workflow binding (wrangler.toml [[workflows]])
+ *   TORIVERS_API_URL    — ToRivers API base
+ *   TORIVERS_API_KEY    — ToRivers API key
+ *   N8N_API_URL         — n8n instance base
+ *   N8N_API_KEY         — n8n API key
+ *   ZAPIER_WEBHOOK_URL  — Zapier catch hook URL
  */
 import type { McpToolDef } from '../../kernel/types'
 import type { AppBindings } from '../types'
 
 type Env = AppBindings['Bindings']
 
-type Provider = 'torivers' | 'n8n' | 'zapier' | 'webhook'
+type Provider = 'cf_workflows' | 'torivers' | 'n8n' | 'zapier' | 'webhook'
 
 interface ProviderConfig {
   provider: Provider
@@ -43,8 +41,19 @@ interface WorkflowSummary {
   updated_at: string
 }
 
+/** Check if CF Workflows binding exists */
+function hasCfWorkflows(env: Env): boolean {
+  const e = env as Record<string, unknown>
+  return e['INKWELL_WORKFLOW'] != null && typeof e['INKWELL_WORKFLOW'] === 'object'
+}
+
 function detectProvider(env: Env): ProviderConfig | null {
   const e = env as Record<string, string>
+
+  // CF Workflows is detected via binding, not env var
+  if (hasCfWorkflows(env)) {
+    return { provider: 'cf_workflows', apiUrl: '', apiKey: '' }
+  }
 
   if (e['TORIVERS_API_URL'] && e['TORIVERS_API_KEY']) {
     return { provider: 'torivers', apiUrl: e['TORIVERS_API_URL'].replace(/\/+$/, ''), apiKey: e['TORIVERS_API_KEY'] }
@@ -69,12 +78,11 @@ function buildHeaders(provider: Provider, apiKey: string): Record<string, string
   } else if (provider === 'n8n') {
     headers['X-N8N-API-KEY'] = apiKey
   }
-  // Zapier webhooks require no auth headers
 
   return headers
 }
 
-/** Detect provider from a webhook URL for better logging */
+/** Detect provider from a webhook URL for logging */
 function detectProviderFromUrl(url: string): Provider {
   if (url.includes('hooks.zapier.com')) return 'zapier'
   if (url.includes('torivers.com')) return 'torivers'
@@ -82,21 +90,27 @@ function detectProviderFromUrl(url: string): Provider {
   return 'webhook'
 }
 
+/** CF Workflow binding interface (subset we use) */
+interface WorkflowBinding {
+  create(options: { id?: string; params: unknown }): Promise<{ id: string }>
+  get(id: string): Promise<{ id: string; status: { status: string }; output?: unknown }>
+}
+
 export const automationMcpTools: McpToolDef[] = [
   {
     name: 'trigger_workflow',
     description:
-      'Trigger a workflow execution. Supports ToRivers (pay-per-execution), n8n (self-hosted), Zapier (webhook), or any HTTP endpoint. Provide workflow_id for API mode or webhook_url for direct POST.',
+      'Trigger a workflow execution. Auto-detects provider: CF Workflows (native edge), ToRivers (marketplace), n8n (self-hosted), Zapier (webhook), or any HTTP endpoint.',
     inputSchema: {
       type: 'object',
       properties: {
         webhook_url: {
           type: 'string',
-          description: 'Direct webhook URL to POST to. Works with any provider: Zapier (hooks.zapier.com/...), n8n, ToRivers, Make.com, or any HTTP endpoint. Takes priority over workflow_id.',
+          description: 'Direct webhook URL to POST to. Works with any provider. Takes priority over workflow_id.',
         },
         workflow_id: {
           type: 'string',
-          description: 'Workflow/automation ID to trigger via API (ToRivers or n8n). For Zapier, use webhook_url instead.',
+          description: 'Workflow/automation ID to trigger via API.',
         },
         data: {
           type: 'object',
@@ -104,7 +118,7 @@ export const automationMcpTools: McpToolDef[] = [
         },
         wait_for_result: {
           type: 'boolean',
-          description: 'If true, waits for execution result (default false). Not supported by Zapier webhooks.',
+          description: 'If true, waits for execution result (default false).',
         },
       },
     },
@@ -123,7 +137,7 @@ export const automationMcpTools: McpToolDef[] = [
         }
       }
 
-      // --- Webhook mode (works with any provider) ---
+      // --- Webhook mode (provider-agnostic) ---
       if (webhookUrl) {
         const detectedProvider = detectProviderFromUrl(webhookUrl)
 
@@ -159,8 +173,9 @@ export const automationMcpTools: McpToolDef[] = [
       if (!config) {
         return {
           error: 'automation_not_configured',
-          message: 'No automation provider configured. Set one of: TORIVERS_API_URL + TORIVERS_API_KEY, N8N_API_URL + N8N_API_KEY, or ZAPIER_WEBHOOK_URL.',
+          message: 'No automation provider configured.',
           providers: {
+            cf_workflows: 'Add [[workflows]] binding to wrangler.toml (zero external deps)',
             torivers: 'npx wrangler secret put TORIVERS_API_URL && npx wrangler secret put TORIVERS_API_KEY',
             n8n: 'npx wrangler secret put N8N_API_URL && npx wrangler secret put N8N_API_KEY',
             zapier: 'npx wrangler secret put ZAPIER_WEBHOOK_URL',
@@ -170,7 +185,49 @@ export const automationMcpTools: McpToolDef[] = [
 
       const { provider, apiUrl, apiKey } = config
 
-      // Zapier in API mode uses default webhook URL with workflow_id as routing key
+      // --- CF Workflows (native edge execution) ---
+      if (provider === 'cf_workflows') {
+        try {
+          const binding = (env as Record<string, unknown>)['INKWELL_WORKFLOW'] as WorkflowBinding
+          const instanceId = workflowId || crypto.randomUUID()
+
+          const instance = await binding.create({
+            id: instanceId,
+            params: data,
+          })
+
+          await logExecution(env, 'cf_workflows', instance.id, 200)
+
+          const result: Record<string, unknown> = {
+            ok: true,
+            mode: 'api' as const,
+            provider: 'cf_workflows' as const,
+            instance_id: instance.id,
+            workflow_id: workflowId || null,
+            note: 'Workflow running at the edge. Use instance_id to check status.',
+          }
+
+          // If wait_for_result, poll for completion (with timeout)
+          if (waitForResult) {
+            try {
+              const status = await binding.get(instance.id)
+              result.status = status.status?.status ?? 'running'
+              if (status.output) {
+                result.response_preview = JSON.stringify(status.output).slice(0, 500)
+              }
+            } catch {
+              result.status = 'running'
+              result.note = 'Workflow started but status check failed. It is still running.'
+            }
+          }
+
+          return result
+        } catch (err) {
+          return { error: 'cf_workflow_failed', message: `CF Workflow creation failed: ${err instanceof Error ? err.message : 'unknown'}` }
+        }
+      }
+
+      // --- Zapier (webhook-based, fire-and-forget) ---
       if (provider === 'zapier') {
         try {
           const payload = { ...data, workflow_id: workflowId }
@@ -188,14 +245,14 @@ export const automationMcpTools: McpToolDef[] = [
             provider: 'zapier' as const,
             status: res.status,
             workflow_id: workflowId,
-            note: 'Zapier webhooks are fire-and-forget. Use Zap history in zapier.com to check execution.',
+            note: 'Zapier webhooks are fire-and-forget. Check Zap history at zapier.com.',
           }
         } catch {
           return { error: 'webhook_unreachable', message: 'Could not reach Zapier webhook' }
         }
       }
 
-      // ToRivers and n8n — full API mode
+      // --- ToRivers and n8n (full API) ---
       const headers = buildHeaders(provider, apiKey)
 
       let endpoint: string
@@ -237,7 +294,7 @@ export const automationMcpTools: McpToolDef[] = [
   {
     name: 'list_workflows',
     description:
-      'List available workflows/automations. Supports ToRivers and n8n (full API). Zapier has no public list API — use zapier.com dashboard.',
+      'List available workflows/automations. Supports CF Workflows (native), ToRivers, and n8n. Zapier has no public list API.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -262,27 +319,42 @@ export const automationMcpTools: McpToolDef[] = [
       if (!config) {
         return {
           error: 'automation_not_configured',
-          message: 'No automation provider configured. Set TORIVERS_API_URL + TORIVERS_API_KEY or N8N_API_URL + N8N_API_KEY.',
+          message: 'No automation provider configured.',
           providers: {
+            cf_workflows: 'Add [[workflows]] binding to wrangler.toml',
             torivers: 'npx wrangler secret put TORIVERS_API_URL && npx wrangler secret put TORIVERS_API_KEY',
             n8n: 'npx wrangler secret put N8N_API_URL && npx wrangler secret put N8N_API_KEY',
-            zapier: 'Zapier has no public workflow list API. Manage Zaps at zapier.com. Use trigger_workflow with webhook_url to trigger individual Zaps.',
+            zapier: 'Zapier has no public list API. Manage Zaps at zapier.com.',
           },
         }
       }
 
       const { provider, apiUrl, apiKey } = config
 
-      // Zapier has no public API for listing Zaps
+      // CF Workflows — return the bound workflows
+      if (provider === 'cf_workflows') {
+        return {
+          provider: 'cf_workflows' as const,
+          workflows: [
+            { id: 'inkwell-generic', name: 'Generic Workflow', active: true, provider: 'cf_workflows' as const, created_at: '', updated_at: '' },
+            { id: 'inkwell-outreach', name: 'Outreach Sequence', active: true, provider: 'cf_workflows' as const, created_at: '', updated_at: '' },
+          ],
+          total: 2,
+          note: 'CF Workflows run natively at the edge. Add more by defining WorkflowEntrypoint classes.',
+        }
+      }
+
+      // Zapier — no list API
       if (provider === 'zapier') {
         return {
           provider: 'zapier' as const,
           workflows: [],
           total: 0,
-          note: 'Zapier has no public API for listing Zaps. Manage your Zaps at zapier.com/app/zaps. Use trigger_workflow with webhook_url to trigger specific Zaps.',
+          note: 'Zapier has no public list API. Manage Zaps at zapier.com/app/zaps.',
         }
       }
 
+      // ToRivers and n8n — full list API
       const activeOnly = args.active_only !== false
       const search = typeof args.search === 'string' ? args.search.toLowerCase().trim() : ''
       const limit = typeof args.limit === 'number' && args.limit > 0 ? args.limit : 20

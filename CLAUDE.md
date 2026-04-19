@@ -4,7 +4,7 @@
 Forkable SaaS microkernel on Astro 6 + Cloudflare Workers. Config-driven, agent-first. Works standalone (Cloudflare only) or integrates with SOS (Sovereign Operating System). Designed to be forked per customer — one config file, zero code changes.
 
 ## Version
-v8.2.0 — Ship-ready platform + CRM + automation + outreach (16 ports, 23 plugins, 35 MCP tools)
+v8.3.0 — Ship-ready platform + CRM + automation + CF Zero Trust (16 ports, 23 plugins, 35 MCP tools)
 
 ## Architecture: Microkernel
 

@@ -2,6 +2,23 @@
 
 All notable changes to Inkwell. Format: [Keep a Changelog](https://keepachangelog.com/).
 
+## [8.3.0] — 2026-04-19
+
+### Added
+- **CF Workflows** — native durable execution at the edge. Two workflow classes: `GenericWorkflow` (arbitrary step sequences: fetch, sleep, db_query) and `OutreachSequenceWorkflow` (drip email/SMS with retries and delays). Zero external dependencies.
+- **CF Access Service Tokens** — machine-to-machine auth via `CF-Access-Client-Id` + `CF-Access-Client-Secret` headers. Service tokens get admin role. For agents, MCP tools, CI/CD.
+- **CF Access JWT verification** — RS256 signature verification against team JWKS endpoint (`https://<team>.cloudflareaccess.com/cdn-cgi/access/certs`). Keys cached in KV for 1 hour. Backwards compatible when `CF_ACCESS_TEAM` not set.
+- **5-provider automation** — automation plugin detects: CF Workflows (binding) > ToRivers (API) > n8n (API) > Zapier (webhook) > generic HTTP.
+
+### Changed
+- CF Access handling extracted from inline code to `middleware/cf-access.ts`
+- Automation plugin `trigger_workflow` and `list_workflows` now support all 5 providers
+
+### Security
+- JWT expiry check added to CF Access middleware
+- Service token validation with constant-time comparison pattern
+- Invalid service tokens return 403 (not pass-through)
+
 ## [8.2.0] — 2026-04-19
 
 ### Added

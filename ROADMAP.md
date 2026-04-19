@@ -1,6 +1,6 @@
 # Inkwell Roadmap
 
-Current: **v8.2.0** — Ship-ready platform, 23 plugins, 16 ports, 35 MCP tools
+Current: **v8.3.0** — Ship-ready platform, 23 plugins, 16 ports, 35 MCP tools, CF Zero Trust + Workflows
 
 ## v7.x — Shipped
 
@@ -58,6 +58,13 @@ Current: **v8.2.0** — Ship-ready platform, 23 plugins, 16 ports, 35 MCP tools
 - [x] S5.3 — Outreach tools (find_leads with enrichment webhook, run_outreach with n8n trigger)
 - [x] S5.4 — marketing_report MCP tool (cross-channel digest: contacts, deals, content, social, outreach)
 - [x] S5.5 — Wire plugins, compile migrations, tests pass (48/48)
+
+### Sprint 6: CF Zero Trust + Workflows (v8.3)
+
+- [x] S6.1 — CF Workflows as automation provider (GenericWorkflow + OutreachSequenceWorkflow)
+- [x] S6.2 — CF Access Service Tokens (machine-to-machine auth for agents)
+- [x] S6.3 — CF Access JWT signature verification (RS256, JWKS cached in KV)
+- [x] S6.4 — Automation plugin: 5-provider detection (CF Workflows > ToRivers > n8n > Zapier > webhook)
 
 ### Backlog
 

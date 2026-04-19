@@ -50,6 +50,20 @@ bucket_name = "inkwell-media"
 [ai]
 binding = "AI"
 
+# CF Workflows — native durable execution at the edge
+# Uncomment after deploying workflow classes (they extend cloudflare:workflows
+# which isn't available in vitest). Export GenericWorkflow + OutreachSequenceWorkflow
+# from src/index.ts before enabling.
+# [[workflows]]
+# name = "inkwell-generic"
+# binding = "INKWELL_WORKFLOW"
+# class_name = "GenericWorkflow"
+#
+# [[workflows]]
+# name = "inkwell-outreach"
+# binding = "INKWELL_OUTREACH_WORKFLOW"
+# class_name = "OutreachSequenceWorkflow"
+
 # Daily flywheel — ingest GSC/GA4, store snapshots, score WoW
 [triggers]
 crons = ["0 6 * * *"]

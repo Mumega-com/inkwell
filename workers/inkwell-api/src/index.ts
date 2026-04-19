@@ -41,6 +41,7 @@ for (const manifest of allPlugins) {
   registerPlugin(manifest)
 }
 
+import { cfAccessMiddleware } from './middleware/cf-access'
 import { autoMigrate } from './middleware/auto-migrate'
 import { tenantResolver } from './middleware/tenant'
 import { usageTracker } from './middleware/usage'
@@ -64,67 +65,8 @@ const app = new Hono<AppBindings>()
 // are registered but their routes are NOT mounted.
 // ───────────────────────────────────────────────────────────────────
 
-// ---------------------------------------------------------------------------
-// CF Access JWT middleware
-// Reads the CF-Access-JWT-Assertion header injected by Cloudflare Access.
-// CF has already verified the JWT signature — we just decode the payload.
-// Sets cf_access_email and cf_access_tenant on the context if a tenant is found.
-// Non-blocking: requests without the header pass through unchanged.
-// ---------------------------------------------------------------------------
-app.use('*', async (c, next) => {
-  const jwt = c.req.header('CF-Access-JWT-Assertion')
-  if (!jwt) {
-    c.set('cf_access_email', null)
-    c.set('cf_access_tenant', null)
-    return next()
-  }
-
-  try {
-    // JWT is three base64url-encoded segments: header.payload.signature
-    const parts = jwt.split('.')
-    if (parts.length !== 3) throw new Error('malformed jwt')
-
-    // base64url → base64 → decode
-    const payloadB64 = parts[1].replace(/-/g, '+').replace(/_/g, '/')
-    const padded = payloadB64 + '='.repeat((4 - (payloadB64.length % 4)) % 4)
-    const payload = JSON.parse(atob(padded)) as Record<string, unknown>
-
-    const email = typeof payload['email'] === 'string' ? payload['email'] : null
-    if (!email) {
-      c.set('cf_access_email', null)
-      c.set('cf_access_tenant', null)
-      return next()
-    }
-
-    c.set('cf_access_email', email)
-
-    // Look up tenant via SaaS API
-    const saasUrl = c.env.SOS_SAAS_URL
-    if (saasUrl) {
-      try {
-        const res = await fetch(
-          `${saasUrl}/auth/tenant?email=${encodeURIComponent(email)}`,
-          { headers: { 'Authorization': `Bearer ${c.env.NETWORK_TOKEN ?? ''}` } },
-        )
-        if (res.ok) {
-          const data = await res.json() as { tenant_slug?: string }
-          c.set('cf_access_tenant', data.tenant_slug ?? null)
-        } else {
-          c.set('cf_access_tenant', null)
-        }
-      } catch {
-        c.set('cf_access_tenant', null)
-      }
-    } else {
-      c.set('cf_access_tenant', null)
-    }
-  } catch {
-    c.set('cf_access_email', null)
-    c.set('cf_access_tenant', null)
-  }
-
-  return next()
-})
+// CF Access Zero Trust middleware — service tokens, JWT signature verification, tenant resolution
+app.use('*', cfAccessMiddleware)
 
 app.use('*', cors({
   origin: (origin) => {
