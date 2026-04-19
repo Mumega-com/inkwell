@@ -1,0 +1,8 @@
+---
+import Dashboard from '../../layouts/Dashboard.astro'
+import { ContractList } from '../../../plugins/contracts/components/ContractList'
+---
+
+<Dashboard title="Contracts" active="contracts">
+  <ContractList client:load />
+</Dashboard>

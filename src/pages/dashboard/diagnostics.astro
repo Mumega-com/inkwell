@@ -1,0 +1,8 @@
+---
+import Dashboard from '../../layouts/Dashboard.astro'
+import { HealthPanel } from '../../../plugins/diagnostics/components/HealthPanel'
+---
+
+<Dashboard title="System Health" active="diagnostics">
+  <HealthPanel client:load />
+</Dashboard>

@@ -1,0 +1,8 @@
+---
+import Dashboard from '../../layouts/Dashboard.astro'
+import { CourseOverview } from '../../../plugins/courses/components/CourseOverview'
+---
+
+<Dashboard title="Courses" active="courses">
+  <CourseOverview client:load />
+</Dashboard>

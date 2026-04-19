@@ -6,6 +6,7 @@ const diagnosticsPlugin: PluginManifest = {
   version: '1.0.0',
   description: 'Squad health narratives and alerts',
   requiredRole: 'admin',
+  dashboardWidgets: ['HealthPanel'],
 
   mountRoutes: (app: HonoApp) => {
     app.route('/api/diagnostics', diagnosticsRoutes)

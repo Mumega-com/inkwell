@@ -4,7 +4,7 @@
 Forkable SaaS microkernel on Astro 6 + Cloudflare Workers. Config-driven, agent-first. Works standalone (Cloudflare only) or integrates with SOS (Sovereign Operating System). Designed to be forked per customer — one config file, zero code changes.
 
 ## Version
-v7.6.0 — Editorial calendar + First-party data + Feedback + SEO Autopilot + media pipeline (16 ports, 21 plugins, 22 MCP tools)
+v7.7.0 — Full dashboard coverage + Editorial calendar + First-party data + Feedback + SEO Autopilot + media pipeline (16 ports, 21 plugins, 22 MCP tools)
 
 ## Architecture: Microkernel
 
@@ -108,18 +108,18 @@ Plugin declares `requiredRole: 'manager'` → only manager, admin, owner can acc
 |--------|------|-------------|------------|
 | analytics | (default) | SEO + flywheel + event tracking + funnels + cohorts + recommendations | FunnelChart, CohortTable |
 | auth | (default) | OTP passwordless login (request-code → verify-code → session) | — |
-| dashboard | viewer | Home, leads, campaigns, SEO, calendar, tasks, squads, wallet, media, analytics, feedback, chat, settings | ArrowDashboard, TaskBoard, WalletView, SquadPanel, ConnectPanel, SettingsForm, AssistantChat, MediaLibrary |
-| commerce | (default) | Checkout, subscriptions | — |
+| dashboard | viewer | Home, leads, campaigns, SEO, calendar, tasks, squads, wallet, media, analytics, feedback, commerce, contracts, courses, health, check-in, chat, settings | ArrowDashboard, TaskBoard, WalletView, SquadPanel, ConnectPanel, SettingsForm, AssistantChat, MediaLibrary |
+| commerce | manager | Glass Commerce — transactions, royalties, metering | RevenueOverview |
 | content | member | MDX ingest, publish, graph, editorial calendar, bulk planning | CalendarView |
 | mcp | admin | MCP tool endpoint | — |
-| contracts | manager | Contract management | — |
-| courses | (default) | Course content | — |
+| contracts | manager | E-signature contracts with SMS/email delivery, milestones | ContractList |
+| courses | member | Course enrollment, progress tracking, drip lessons, certificates | CourseOverview |
 | telegram | (default) | Telegram bot bridge | — |
 | chat | (default) | Real-time chat | — |
-| diagnostics | (default) | Health checks | — |
+| diagnostics | admin | Squad health narratives, alerts, conductance metrics | HealthPanel |
 | discovery | (default) | Network discovery + reputation | — |
 | payments | owner | Stripe payments + subscriptions | — |
-| questionnaire | (default) | Intake forms | — |
+| questionnaire | member | Daily business check-in questions via SMS/Telegram | QuestionnairePanel |
 | onboarding | (default) | First-run wizard | OnboardingWizard |
 | notifications | (default) | In-app notifications | NotificationBell |
 | organism | admin | Managed agent provisioning | — |

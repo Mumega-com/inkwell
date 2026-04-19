@@ -6,6 +6,7 @@ const questionnairePlugin: PluginManifest = {
   version: '1.0.0',
   description: 'Daily business check-in questions via SMS or Telegram with Mirror integration',
   requiredRole: 'member',
+  dashboardWidgets: ['QuestionnairePanel'],
 
   mountRoutes: (app: HonoApp) => {
     app.route('/api/questionnaire', questionnaireRoutes)

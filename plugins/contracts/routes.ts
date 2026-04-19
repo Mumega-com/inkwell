@@ -74,6 +74,34 @@ const DEFAULT_MILESTONES = [
   { step: 9, label: 'Delivered' },
 ]
 
+// ── GET /api/contracts — list recent contracts ───────────────────────────
+
+contractRoutes.get('/', async (c) => {
+  const db = c.get('db_core')
+  const limit = Math.min(parseInt(c.req.query('limit') ?? '50', 10), 200)
+  const statusFilter = c.req.query('status')
+
+  let where = ''
+  const binds: (string | number)[] = []
+
+  if (statusFilter) {
+    where = ' WHERE status = ?'
+    binds.push(statusFilter)
+  }
+
+  const contracts = await db.query<ContractRow>(
+    `SELECT * FROM contracts${where} ORDER BY created_at DESC LIMIT ?`,
+    [...binds, limit]
+  )
+
+  const countResult = await db.queryOne<{ cnt: number }>(
+    `SELECT COUNT(*) as cnt FROM contracts${where}`,
+    binds
+  )
+
+  return c.json({ contracts, total: countResult?.cnt ?? 0 })
+})
+
 // ── POST /api/contracts/create ────────────────────────────────────────────
 
 contractRoutes.post('/create', async (c) => {

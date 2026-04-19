@@ -6,6 +6,7 @@ const coursesPlugin: PluginManifest = {
   version: '1.0.0',
   description: 'Course enrollment, progress tracking, drip lessons, and certificates',
   requiredRole: 'member',
+  dashboardWidgets: ['CourseOverview'],
 
   mountRoutes: (app: HonoApp) => {
     app.route('/api/courses', courseRoutes)

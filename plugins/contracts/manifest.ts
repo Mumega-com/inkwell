@@ -6,6 +6,7 @@ const contractsPlugin: PluginManifest = {
   version: '1.0.0',
   description: 'E-signature contracts with SMS/email delivery',
   requiredRole: 'manager',
+  dashboardWidgets: ['ContractList'],
 
   mountRoutes: (app: HonoApp) => {
     app.route('/api/contracts', contractRoutes)

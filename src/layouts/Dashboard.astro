@@ -7,7 +7,7 @@ import { config } from '../lib/config'
 
 interface Props {
   title: string
-  active: 'dashboard' | 'seo' | 'leads' | 'campaigns' | 'calendar' | 'tasks' | 'wallet' | 'chat' | 'squads' | 'media' | 'analytics' | 'feedback' | 'settings'
+  active: 'dashboard' | 'seo' | 'leads' | 'campaigns' | 'calendar' | 'tasks' | 'wallet' | 'chat' | 'squads' | 'media' | 'analytics' | 'feedback' | 'commerce' | 'contracts' | 'diagnostics' | 'courses' | 'questionnaire' | 'settings'
 }
 
 const { title, active } = Astro.props
@@ -26,8 +26,13 @@ const navItems = [
   { key: 'media',     label: 'Media',      href: '/dashboard/media',      icon: '◻', requiredRole: 'member'  },
   { key: 'analytics', label: 'Analytics',  href: '/dashboard/analytics',  icon: '◆', requiredRole: 'manager' },
   { key: 'feedback',  label: 'Feedback',   href: '/dashboard/feedback',   icon: '◇', requiredRole: 'viewer'  },
-  { key: 'chat',      label: 'Chat',       href: '/dashboard/chat',       icon: '◉', requiredRole: 'member'  },
-  { key: 'settings',  label: 'Settings',   href: '/dashboard/settings',   icon: '⚙', requiredRole: 'owner'   },
+  { key: 'commerce',      label: 'Commerce',      href: '/dashboard/commerce',      icon: '◈', requiredRole: 'manager' },
+  { key: 'contracts',     label: 'Contracts',     href: '/dashboard/contracts',     icon: '◎', requiredRole: 'manager' },
+  { key: 'courses',       label: 'Courses',       href: '/dashboard/courses',       icon: '◇', requiredRole: 'viewer'  },
+  { key: 'diagnostics',   label: 'Health',        href: '/dashboard/diagnostics',   icon: '◆', requiredRole: 'admin'   },
+  { key: 'questionnaire', label: 'Check-In',      href: '/dashboard/questionnaire', icon: '◌', requiredRole: 'owner'   },
+  { key: 'chat',          label: 'Chat',          href: '/dashboard/chat',          icon: '◉', requiredRole: 'member'  },
+  { key: 'settings',      label: 'Settings',      href: '/dashboard/settings',      icon: '⚙', requiredRole: 'owner'   },
 ]
 ---
 

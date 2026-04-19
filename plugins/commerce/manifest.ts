@@ -6,6 +6,7 @@ const commercePlugin: PluginManifest = {
   version: '1.0.0',
   description: 'Glass Commerce — transactions, royalties, metering with 5% platform fee',
   requiredRole: 'manager',
+  dashboardWidgets: ['RevenueOverview'],
 
   mountRoutes: (app: HonoApp) => {
     app.route('/api/glass', glassRoutes)
