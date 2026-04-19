@@ -236,12 +236,24 @@ export const intakeMcpTools: McpToolDef[] = [
         pages.push(`${bizSlug}-goals`)
       }
 
+      // Trigger deploy hook so wiki pages go live
+      let deploy = 'manual'
+      if (pages.length > 0 && env.CF_PAGES_DEPLOY_HOOK) {
+        try {
+          const resp = await fetch(env.CF_PAGES_DEPLOY_HOOK, { method: 'POST' })
+          deploy = resp.ok ? 'triggered' : `trigger_failed_${resp.status}`
+        } catch {
+          deploy = 'trigger_failed'
+        }
+      }
+
       return {
         ok: true,
         business: biz.name,
         slug: bizSlug,
         pages_created: pages.length,
         pages,
+        deploy,
         next_step: 'Call content_strategy to generate a prioritized marketing plan based on this wiki.',
       }
     },

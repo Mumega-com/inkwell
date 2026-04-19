@@ -591,6 +591,17 @@ export const onboardMcpTools: McpToolDef[] = [
         warnings.push(`update_client: ${msg}`)
       }
 
+      // Trigger deploy hook so pages go live immediately
+      let deploy = 'manual'
+      if (landingPagesCount > 0 && env.CF_PAGES_DEPLOY_HOOK) {
+        try {
+          const resp = await fetch(env.CF_PAGES_DEPLOY_HOOK, { method: 'POST' })
+          deploy = resp.ok ? 'triggered' : `trigger_failed_${resp.status}`
+        } catch {
+          deploy = 'trigger_failed'
+        }
+      }
+
       const result: Record<string, unknown> = {
         ok: true,
         client: bizName,
@@ -598,6 +609,7 @@ export const onboardMcpTools: McpToolDef[] = [
         steps_completed: stepsCompleted,
         wiki_pages: wikiPages,
         landing_pages_count: landingPagesCount,
+        deploy,
         next_steps: [
           `Review content strategy at wiki:${bizSlug}-strategy`,
           'Check CRM for new contact',

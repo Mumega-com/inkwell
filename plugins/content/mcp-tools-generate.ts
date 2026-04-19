@@ -240,11 +240,23 @@ export const generateMcpTools: McpToolDef[] = [
           .run()
       }
 
+      // Trigger deploy hook if pages were written
+      let deploy = 'manual'
+      if (!dryRun && pages.length > 0 && env.CF_PAGES_DEPLOY_HOOK) {
+        try {
+          const resp = await fetch(env.CF_PAGES_DEPLOY_HOOK, { method: 'POST' })
+          deploy = resp.ok ? 'triggered' : `trigger_failed_${resp.status}`
+        } catch {
+          deploy = 'trigger_failed'
+        }
+      }
+
       return {
         ok: true,
         generated: pages.length,
         pages,
         dry_run: dryRun,
+        deploy,
       }
     },
   },

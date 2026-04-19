@@ -242,6 +242,15 @@ export const strategyMcpTools: McpToolDef[] = [
         status: 'published',
       }))
 
+      // Trigger deploy hook so strategy page goes live
+      if (env.CF_PAGES_DEPLOY_HOOK) {
+        try {
+          await fetch(env.CF_PAGES_DEPLOY_HOOK, { method: 'POST' })
+        } catch {
+          // deploy hook is best-effort
+        }
+      }
+
       return strategy
     },
   },
