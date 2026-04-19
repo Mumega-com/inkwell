@@ -1,6 +1,6 @@
 # Inkwell Roadmap
 
-Current: **v8.3.0** — Ship-ready platform, 23 plugins, 16 ports, 35 MCP tools, CF Zero Trust + Workflows
+Current: **v8.4.0** — Ship-ready platform, 23 plugins, 16 ports, 38 MCP tools, CF Zero Trust + Workflows + Intelligence
 
 ## v7.x — Shipped
 
@@ -66,14 +66,17 @@ Current: **v8.3.0** — Ship-ready platform, 23 plugins, 16 ports, 35 MCP tools,
 - [x] S6.3 — CF Access JWT signature verification (RS256, JWKS cached in KV)
 - [x] S6.4 — Automation plugin: 5-provider detection (CF Workflows > ToRivers > n8n > Zapier > webhook)
 
+### Sprint 7: Intelligence Layer (v8.4)
+
+- [x] S7.1 — `auto_tag_content` MCP tool (Workers AI text classification → suggested tags, persist to KV + D1)
+- [x] S7.2 — `generate_pages` MCP tool (template × variable matrix → scale SEO, up to 500 pages/call, dry_run mode)
+- [x] S7.3 — `prune_content` MCP tool (thin + stale content detection, report or auto-archive)
+
 ### Backlog
 
 - [ ] Anthropic Managed Agent API integration (provision call is stubbed)
 - [ ] Mirror tenant isolation (SOS v0.8.0)
 - [ ] Bus SSE streaming (SOS v0.8.x — poll-only for now)
 - [ ] Economy MCP tools (SOS v0.7.3 — using REST)
-- [ ] Auto-tags from content analysis (Workers AI)
-- [ ] Programmatic generation (template x variable matrix for scale SEO)
-- [ ] Content pruning (archive underperformers monthly)
 - [ ] B2B interoperability (cross-tenant transactions)
 - [ ] Video generation (Remotion renders posts as animated video)

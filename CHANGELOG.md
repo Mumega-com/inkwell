@@ -2,6 +2,16 @@
 
 All notable changes to Inkwell. Format: [Keep a Changelog](https://keepachangelog.com/).
 
+## [8.4.0] — 2026-04-19
+
+### Added
+- **`auto_tag_content` MCP tool** — Workers AI text classification via `@cf/meta/llama-3.1-8b-instruct`. Accepts slug (KV lookup) or raw text. Returns 3-8 suggested tags. Persists to KV meta + D1 content_index when slug provided. Graceful fallback parsing (JSON array → comma/newline split).
+- **`generate_pages` MCP tool** — programmatic scale SEO. Template with `{variable}` placeholders × cartesian product of variable arrays. Generates up to 500 pages per call. Stores in KV + D1 content_index. `dry_run` mode for previewing. Configurable slug/title templates, tags, status.
+- **`prune_content` MCP tool** — content hygiene. Detects thin content (below word count threshold) and stale content (no updates past age threshold). Report mode lists candidates with reasons. Archive mode sets status to archived in D1 + KV. Collection filter supported.
+
+### Changed
+- Content plugin version bumped to 1.2.0 — 38 total MCP tools (was 35)
+
 ## [8.3.0] — 2026-04-19
 
 ### Added

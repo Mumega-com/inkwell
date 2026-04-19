@@ -4,7 +4,7 @@
 Forkable SaaS microkernel on Astro 6 + Cloudflare Workers. Config-driven, agent-first. Works standalone (Cloudflare only) or integrates with SOS (Sovereign Operating System). Designed to be forked per customer — one config file, zero code changes.
 
 ## Version
-v8.3.0 — Ship-ready platform + CRM + automation + CF Zero Trust (16 ports, 23 plugins, 35 MCP tools)
+v8.4.0 — Ship-ready platform + CRM + automation + CF Zero Trust + Intelligence (16 ports, 23 plugins, 38 MCP tools)
 
 ## Architecture: Microkernel
 
@@ -130,10 +130,10 @@ Plugin declares `requiredRole: 'manager'` → only manager, admin, owner can acc
 | crm | member | CRM — contacts, pipeline, deals, outreach, reporting | — |
 | automation | manager | Automation bridge — n8n workflow trigger + list | — |
 
-## MCP Tools (35)
-`publish_content`, `get_dashboard`, `get_seo_data`, `get_leads`, `create_checkout`, `subscription_status`, `send_telegram`, `site_info`, `remember`, `recall`, `create_task`, `browse_marketplace`, `upload_media`, `describe_image`, `generate_image`, `search_media`, `seo_crawl_stats`, `manage_redirects`, `seo_audit`, `get_feedback_summary`, `trigger_survey`, `get_churn_signals`, `business_intake`, `post_social`, `content_strategy`, `create_contact`, `update_contact`, `list_contacts`, `manage_pipeline`, `log_activity`, `find_leads`, `run_outreach`, `marketing_report`, `trigger_workflow`, `list_workflows`
+## MCP Tools (38)
+`publish_content`, `get_dashboard`, `get_seo_data`, `get_leads`, `create_checkout`, `subscription_status`, `send_telegram`, `site_info`, `remember`, `recall`, `create_task`, `browse_marketplace`, `upload_media`, `describe_image`, `generate_image`, `search_media`, `seo_crawl_stats`, `manage_redirects`, `seo_audit`, `get_feedback_summary`, `trigger_survey`, `get_churn_signals`, `business_intake`, `post_social`, `content_strategy`, `create_contact`, `update_contact`, `list_contacts`, `manage_pipeline`, `log_activity`, `find_leads`, `run_outreach`, `marketing_report`, `trigger_workflow`, `list_workflows`, `auto_tag_content`, `generate_pages`, `prune_content`
 
-Last 4 of the first 12 are Network tools (require `NETWORK_API_URL` + `NETWORK_TOKEN` env vars). Media tools (4) require R2 + Workers AI bindings. SEO tools (3) require D1. Feedback tools (3) require D1. Marketing tools (3): `business_intake` builds customer wiki, `content_strategy` generates marketing plan, `post_social` posts via webhook (requires `SOCIAL_WEBHOOK_URL`). CRM tools (7): contacts CRUD, pipeline/deals, outreach sequences, lead enrichment. Automation tools (2): n8n workflow trigger + list (requires `N8N_API_URL` + `N8N_API_KEY`). Reporting (1): `marketing_report` cross-channel digest.
+Last 4 of the first 12 are Network tools (require `NETWORK_API_URL` + `NETWORK_TOKEN` env vars). Media tools (4) require R2 + Workers AI bindings. SEO tools (3) require D1. Feedback tools (3) require D1. Marketing tools (3): `business_intake` builds customer wiki, `content_strategy` generates marketing plan, `post_social` posts via webhook (requires `SOCIAL_WEBHOOK_URL`). CRM tools (7): contacts CRUD, pipeline/deals, outreach sequences, lead enrichment. Automation tools (2): n8n workflow trigger + list (requires `N8N_API_URL` + `N8N_API_KEY`). Reporting (1): `marketing_report` cross-channel digest. Intelligence tools (3): `auto_tag_content` (Workers AI classification, requires `[ai]` binding), `generate_pages` (template × variable matrix, scale SEO), `prune_content` (thin/stale detection + archive).
 
 ## Commands
 ```bash

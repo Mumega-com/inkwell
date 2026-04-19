@@ -7,13 +7,16 @@ import { contentMcpTools } from './mcp-tools'
 import { intakeMcpTools } from './mcp-tools-intake'
 import { socialMcpTools } from './mcp-tools-social'
 import { strategyMcpTools } from './mcp-tools-strategy'
+import { aiMcpTools } from './mcp-tools-ai'
+import { generateMcpTools } from './mcp-tools-generate'
+import { pruneMcpTools } from './mcp-tools-prune'
 
 const contentPlugin: PluginManifest = {
   name: 'content',
-  version: '1.1.0',
-  description: 'Content publishing — KV storage, D1 indexing, deploy hooks, business intake, social posting, strategy',
+  version: '1.2.0',
+  description: 'Content publishing — KV storage, D1 indexing, deploy hooks, intake, social, strategy, AI tags, programmatic generation, pruning',
   requiredRole: 'member',
-  mcpTools: [...contentMcpTools, ...intakeMcpTools, ...socialMcpTools, ...strategyMcpTools],
+  mcpTools: [...contentMcpTools, ...intakeMcpTools, ...socialMcpTools, ...strategyMcpTools, ...aiMcpTools, ...generateMcpTools, ...pruneMcpTools],
 
   mountRoutes: (app: HonoApp) => {
     app.route('/api', contentRoutes)
