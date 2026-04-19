@@ -2,6 +2,19 @@
 
 All notable changes to Inkwell. Format: [Keep a Changelog](https://keepachangelog.com/).
 
+## [8.5.0] — 2026-04-19
+
+### Added
+- **Agency plugin** (24th plugin) — client registry, full onboarding pipeline, cross-client dashboard, per-client reports. 3 MCP tools, 6 REST endpoints.
+- **`onboard_client` MCP tool** — orchestrates full agency onboarding in one call: registers client → creates wiki (7 pages) → generates marketing strategy → creates scale SEO landing pages (template × cities × services) → adds CRM contact → updates client record. Resilient — failures in any step don't block remaining steps.
+- **`client_dashboard` MCP tool** — cross-client agency dashboard. Aggregates content, leads, pipeline value across all clients. Health indicators per client (healthy, needs_content, needs_onboarding).
+- **`client_report` MCP tool** — per-client monthly performance report. Content published, SEO pages, leads, deals, activities, wiki pages. Summary and detailed formats with human-readable highlights.
+- **Agency REST API** — `GET/POST /api/agency/clients`, `GET/PUT/DELETE /api/agency/clients/:slug`, `GET /api/agency/clients/:slug/stats`
+- **`agency_clients` D1 table** — client registry with slug, name, industry, contact info, config JSON, pages_created, onboarded_at
+
+### Changed
+- 24 plugins active (was 23), 41 MCP tools (was 38)
+
 ## [8.4.0] — 2026-04-19
 
 ### Added

@@ -1,6 +1,6 @@
 # Inkwell Roadmap
 
-Current: **v8.4.0** — Ship-ready platform, 23 plugins, 16 ports, 38 MCP tools, CF Zero Trust + Workflows + Intelligence
+Current: **v8.5.0** — Ship-ready platform, 24 plugins, 16 ports, 41 MCP tools, Agency layer + Intelligence + CF Zero Trust
 
 ## v7.x — Shipped
 
@@ -71,6 +71,13 @@ Current: **v8.4.0** — Ship-ready platform, 23 plugins, 16 ports, 38 MCP tools,
 - [x] S7.1 — `auto_tag_content` MCP tool (Workers AI text classification → suggested tags, persist to KV + D1)
 - [x] S7.2 — `generate_pages` MCP tool (template × variable matrix → scale SEO, up to 500 pages/call, dry_run mode)
 - [x] S7.3 — `prune_content` MCP tool (thin + stale content detection, report or auto-archive)
+
+### Sprint 8: Agency Layer (v8.5)
+
+- [x] S8.1 — Agency plugin (24th) — client registry, REST API (6 endpoints), D1 table
+- [x] S8.2 — `onboard_client` MCP tool — full pipeline in one call (register → wiki → strategy → pages → CRM)
+- [x] S8.3 — `client_dashboard` MCP tool — cross-client metrics, health indicators
+- [x] S8.4 — `client_report` MCP tool — per-client monthly performance report
 
 ### Backlog
 
