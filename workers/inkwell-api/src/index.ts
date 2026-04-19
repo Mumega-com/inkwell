@@ -47,6 +47,9 @@ import { edgeSeoRedirects, edgeSeoCrawlLogger, dynamicRobotsTxt } from './middle
 import { utmMiddleware } from './middleware/utm'
 import { visitorProfileMiddleware } from './middleware/visitor-profile'
 import { scheduled } from './scheduled'
+import { trackerSnippet } from './snippets/tracker'
+import { feedbackTriggerSnippet } from './snippets/feedback-trigger'
+import { recommendationsSnippet } from './snippets/recommendations'
 import type { AppBindings } from './types'
 
 const app = new Hono<AppBindings>()
@@ -273,6 +276,19 @@ app.get('*', async (c) => {
         const noindexTag = '<meta name="robots" content="noindex, nofollow">'
         if (!content.includes('noindex') && content.includes('</head>')) {
           content = content.replace('</head>', `${noindexTag}\n</head>`)
+        }
+      }
+
+      // Inject client-side snippets into HTML pages (tracker, feedback, recommendations)
+      if (contentType === 'text/html; charset=utf-8' && !path.startsWith('dashboard')) {
+        const snippets = [
+          trackerSnippet(),
+          feedbackTriggerSnippet(config.feedback?.surveys ?? []),
+          recommendationsSnippet(),
+        ].filter(Boolean).join('\n')
+
+        if (snippets && content.includes('</body>')) {
+          content = content.replace('</body>', `${snippets}\n</body>`)
         }
       }
 
