@@ -4,7 +4,7 @@
 Forkable SaaS microkernel on Astro 6 + Cloudflare Workers. Config-driven, agent-first. Works standalone (Cloudflare only) or integrates with SOS (Sovereign Operating System). Designed to be forked per customer — one config file, zero code changes.
 
 ## Version
-v7.0.0 — The Superorganism (agents, transactions, discovery, marketplace)
+v7.2.1 — Media pipeline + dashboard auth (14 ports, 19 plugins, 16 MCP tools)
 
 ## Architecture: Microkernel
 
@@ -18,7 +18,7 @@ inkwell.config.ts          ← ALL configuration (one file)
     |   roles.ts           ← RBAC hierarchy + permission checks
     |   theme.ts           ← Config → CSS custom properties
         |
-    plugins/               ← 18 self-contained vertical modules
+    plugins/               ← 19 self-contained vertical modules
     |   {name}/manifest.ts ← Name, version, requiredRole, configDefaults
     |   {name}/routes.ts   ← Hono router (Worker backend)
     |   {name}/components/ ← React islands (client-side)
@@ -48,7 +48,7 @@ inkwell.config.ts          ← ALL configuration (one file)
 13. **Content** goes in `content/en/{type}/` as markdown with frontmatter.
 14. **Worker code** is Web API only — no Node.js built-ins.
 15. **Inkwell is forkable** — no Mumega/Digid/SOS-specific content in this repo. Generic examples only.
-16. **graphify-out/cache/ is gitignored.** Only `graph.json` and `GRAPH_REPORT.md` are committed.
+16. **graphify-out/ is gitignored.** Build artifacts, caches, and graph data are local only.
 
 ## Kernel Contracts
 
@@ -82,6 +82,7 @@ BusPort        // send(), broadcast(), subscribe(), inbox() — SOS or standalon
 MemoryPort     // remember(), recall(), search() — Mirror or standalone
 EconomyPort    // recordUsage(), getBalance(), charge(), transfer() — SOS or Stripe
 ContentSourcePort // list(), sync(since?) — Obsidian, GitHub, Notion, Google Drive (array of adapters)
+MediaPort      // upload(), describe(), transcribe(), transform(), generateImage(), search(), list(), delete()
 ```
 
 ### SOS Mode
@@ -101,23 +102,27 @@ SOS_ECONOMY_URL = "..."  // SOS Economy endpoint
 Plugin declares `requiredRole: 'manager'` → only manager, admin, owner can access.
 
 ## Plugins (19 active)
-| Plugin | Role | Lines | Components |
-|--------|------|-------|------------|
-| dashboard | viewer | 2630 | ArrowDashboard, TaskBoard, WalletView, SquadPanel, ConnectPanel, SettingsForm, AssistantChat |
-| commerce | (default) | 331 | — |
-| content | member | 589 | — |
-| mcp | admin | 781 | — |
-| contracts | manager | 445 | — |
-| telegram | (default) | 504 | — |
-| chat | (default) | 225 | — |
-| diagnostics | (default) | 230 | — |
-| discovery | (default) | 793 | — |
-| payments | owner | 645 | — |
-| onboarding | (default) | 542 | OnboardingWizard |
-| notifications | (default) | 237 | NotificationBell |
-| organism | admin | 700+ | — |
-| sync | admin | 97 | — |
-| media | member | 120 | — |
+| Plugin | Role | Description | Components |
+|--------|------|-------------|------------|
+| analytics | (default) | SEO + flywheel snapshots | — |
+| auth | (default) | OTP passwordless login (request-code → verify-code → session) | — |
+| dashboard | viewer | Home, leads, campaigns, SEO, calendar, tasks, squads, wallet, media, chat, settings | ArrowDashboard, TaskBoard, WalletView, SquadPanel, ConnectPanel, SettingsForm, AssistantChat, MediaLibrary |
+| commerce | (default) | Checkout, subscriptions | — |
+| content | member | MDX ingest, publish, graph | — |
+| mcp | admin | MCP tool endpoint | — |
+| contracts | manager | Contract management | — |
+| courses | (default) | Course content | — |
+| telegram | (default) | Telegram bot bridge | — |
+| chat | (default) | Real-time chat | — |
+| diagnostics | (default) | Health checks | — |
+| discovery | (default) | Network discovery + reputation | — |
+| payments | owner | Stripe payments + subscriptions | — |
+| questionnaire | (default) | Intake forms | — |
+| onboarding | (default) | First-run wizard | OnboardingWizard |
+| notifications | (default) | In-app notifications | NotificationBell |
+| organism | admin | Managed agent provisioning | — |
+| sync | admin | Content source sync (daily cron) | — |
+| media | member | AI media pipeline (upload, describe, transcribe, transform, generate) | MediaLibrary |
 
 ## MCP Tools (16)
 `publish_content`, `get_dashboard`, `get_seo_data`, `get_leads`, `create_checkout`, `subscription_status`, `send_telegram`, `site_info`, `remember`, `recall`, `create_task`, `browse_marketplace`, `upload_media`, `describe_image`, `generate_image`, `search_media`
@@ -134,11 +139,13 @@ npm run publish      # Ingest + build + commit + push
 ```
 
 ## Bindings (wrangler.toml)
-- `DB_CORE` — D1 (contracts, leads, subscriptions, content)
-- `MARKETING_DB` — D1 (campaigns, leads pipeline)
-- `ANALYTICS_DB` — D1 (flywheel snapshots, usage tracking)
-- `KV` / `CONTENT` — KV (sessions, tenant config, static pages)
-- `MEDIA` — R2 (file uploads, optional)
+- `DB_CORE` — D1 (contracts, leads, subscriptions, content, portal_accounts, media_assets)
+- `DB_MARKETING` — D1 (campaigns, leads pipeline)
+- `DB_ANALYTICS` — D1 (flywheel snapshots, usage tracking)
+- `CONTENT` — KV (static pages, tenant config)
+- `SESSIONS` — KV (session tokens, login codes)
+- `MEDIA` — R2 (file uploads, media assets)
+- `AI` — Workers AI (vision, whisper, flux)
 
 ## Secrets (never in wrangler.toml)
 ```bash
@@ -207,7 +214,18 @@ bash scripts/fork-smoke.sh  # Fork smoke test (build with config-only changes)
 - `POST /api/marketplace/publish` — publish plugin to network graph
 - `POST /api/marketplace/install` — install per-tenant
 
-## Known Gaps (v7.1+)
+## Auth Flow
+OTP passwordless login (no passwords, no OAuth required):
+1. `POST /api/auth/request-code` — sends 6-digit code via webhook (or returns testCode in dev)
+2. `POST /api/auth/verify-code` — verifies code, creates session, returns `sessionToken` + `role`
+3. Dashboard pages write `inkwell_auth_token`, `inkwell_user_role`, `inkwell_api_url`, `inkwell_onboarded` to localStorage
+4. RBAC middleware reads session cookie → resolves role → gates per-plugin access
+5. First account per tenant automatically gets `owner` role
+
+CF Access is optional — works as an additional auth layer when configured.
+
+## Known Gaps (v7.3+)
+- Port registry Step 1.4 — generated barrel has models not port interfaces (GH #29)
 - No GC/AWS adapter implementations yet (ports are ready, adapters are CF-only)
 - Anthropic Managed Agent API integration (provision call is stubbed — API not yet public)
 - Mirror tenant isolation (SOS v0.8.0 — using prefix workaround)

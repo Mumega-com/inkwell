@@ -23,7 +23,11 @@ Thumbs.db
 .idea/
 .claude/
 
-# Graphify cache (local build artifacts)
-graphify-out/cache/
+# Graphify (local build artifacts)
+graphify-out/
+.graphify_*.json
 .code-review-graph/
 .wrangler/
+
+# Build check artifacts
+.build-check/
