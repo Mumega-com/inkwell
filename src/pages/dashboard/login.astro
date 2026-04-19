@@ -350,6 +350,10 @@ const cssVars = generateCssVars()
 
           if (data.session) {
             localStorage.setItem('inkwell_tenant_slug', data.session.customerSlug)
+            localStorage.setItem('inkwell_auth_token', data.sessionToken)
+            localStorage.setItem('inkwell_user_role', data.session.role || 'viewer')
+            localStorage.setItem('inkwell_api_url', apiUrl)
+            localStorage.setItem('inkwell_onboarded', 'true')
           }
           window.location.href = '/dashboard'
         } catch (_) {

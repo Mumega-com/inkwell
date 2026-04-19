@@ -27,6 +27,7 @@ type PortalAccountRow = {
   full_name: string | null
   email: string | null
   phone: string | null
+  role: string | null
 }
 
 const authRoutes = new Hono<AppBindings>()
@@ -194,7 +195,7 @@ async function ensurePortalAccount(
   fullName: string | null,
 ): Promise<PortalAccountRow> {
   const existing = await db.queryOne<PortalAccountRow>(
-    `SELECT id, full_name, email, phone
+    `SELECT id, full_name, email, phone, role
      FROM portal_accounts
      WHERE customer_slug = ? AND identity_id = ?
      LIMIT 1`,
@@ -221,11 +222,12 @@ async function ensurePortalAccount(
       full_name: fullName ?? existing.full_name,
       email: email ?? existing.email,
       phone: phone ?? existing.phone,
+      role: existing.role,
     }
   }
 
   const purchaselessMatch = await db.queryOne<PortalAccountRow>(
-    `SELECT id, full_name, email, phone
+    `SELECT id, full_name, email, phone, role
      FROM portal_accounts
      WHERE customer_slug = ?
        AND identity_id IS NULL
@@ -251,6 +253,7 @@ async function ensurePortalAccount(
       full_name: fullName ?? purchaselessMatch.full_name,
       email: email ?? purchaselessMatch.email,
       phone: phone ?? purchaselessMatch.phone,
+      role: purchaselessMatch.role,
     }
   }
 
@@ -259,6 +262,7 @@ async function ensurePortalAccount(
     full_name: fullName,
     email,
     phone,
+    role: null,
   }
 
   await db.execute(
@@ -512,6 +516,22 @@ authRoutes.post('/verify-code', async (c) => {
   ])
 
   const portalAccount = await ensurePortalAccount(db, customerSlug, identity, fullName)
+
+  // Assign role: first account for this customer gets 'owner'
+  const accountCount = await db.queryOne<{ cnt: number }>(
+    'SELECT COUNT(*) as cnt FROM portal_accounts WHERE customer_slug = ?',
+    [customerSlug],
+  )
+  const role = (accountCount?.cnt ?? 0) <= 1 ? 'owner' : ((portalAccount as Record<string, unknown>).role as string | null) ?? 'member'
+
+  // Update role in DB if it's the first account
+  if (role === 'owner') {
+    await db.execute(
+      'UPDATE portal_accounts SET role = ? WHERE id = ?',
+      [role, portalAccount.id],
+    )
+  }
+
   const sessionTtlSeconds = getSessionTtlSeconds(c.env.AUTH_SESSION_TTL_SECONDS)
   const sessionToken = randomHex(24)
   const sessionId = crypto.randomUUID()
@@ -525,6 +545,7 @@ authRoutes.post('/verify-code', async (c) => {
     contactValue: identity.contact_value,
     contactNormalized,
     fullName: portalAccount.full_name,
+    role,
     createdAt: verifiedAt,
     expiresAt,
   }
@@ -540,8 +561,10 @@ authRoutes.post('/verify-code', async (c) => {
       contactValue: session.contactValue,
       portalAccountId: session.portalAccountId,
       fullName: session.fullName,
+      role,
       expiresAt: session.expiresAt,
     },
+    sessionToken,
   })
 })
 
@@ -559,6 +582,7 @@ authRoutes.get('/session', authSessionMiddleware, async (c) => {
       contactValue: session.contactValue,
       portalAccountId: session.portalAccountId,
       fullName: session.fullName,
+      role: session.role,
       createdAt: session.createdAt,
       expiresAt: session.expiresAt,
     },

@@ -301,7 +301,13 @@ const cssVars = generateCssVars()
           var data = await resp.json()
           if (!resp.ok) { showError(data.error === 'code_expired' ? 'Code expired. Go back and try again.' : data.error === 'invalid_code' ? 'Invalid code.' : data.error || 'Verification failed.'); return }
 
-          if (data.session) localStorage.setItem('inkwell_tenant_slug', data.session.customerSlug)
+          if (data.session) {
+            localStorage.setItem('inkwell_tenant_slug', data.session.customerSlug)
+            localStorage.setItem('inkwell_auth_token', data.sessionToken)
+            localStorage.setItem('inkwell_user_role', data.session.role || 'viewer')
+            localStorage.setItem('inkwell_api_url', apiUrl)
+            localStorage.setItem('inkwell_onboarded', 'true')
+          }
           showSuccess('Account created! Redirecting…')
           setTimeout(function() { window.location.href = '/dashboard' }, 800)
         } catch (_) {
