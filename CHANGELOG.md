@@ -2,6 +2,18 @@
 
 All notable changes to Inkwell. Format: [Keep a Changelog](https://keepachangelog.com/).
 
+## [7.2.1] — 2026-04-19
+
+### Fixed
+- **Dashboard OTP auth flow** — verify-code now assigns `owner` role to first account per tenant, returns `sessionToken` + `role` in response
+- **Login page** — writes `inkwell_auth_token`, `inkwell_user_role`, `inkwell_api_url`, `inkwell_onboarded` to localStorage after successful verify
+- **Signup page** — same localStorage writes, eliminates infinite onboarding redirect loop
+- **Migration 0013** — adds `role` column to `portal_accounts` table (default: `member`)
+
+### Added
+- **Port registry generated types** — 87 TypeScript modules in `kernel/ports/generated/` from SOS Pydantic models (via `json-schema-to-typescript`)
+- **Handoff doc** — `HANDOFF-PORTS-v0.9.0.md` — port registry integration guide from Codex
+
 ## [7.2.0] — 2026-04-18
 
 ### Added
