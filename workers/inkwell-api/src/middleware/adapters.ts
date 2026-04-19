@@ -47,6 +47,9 @@ import { CfMediaAdapter } from '../../../../kernel/adapters/cf-media'
 // ── SEO adapter ───────────────────────────────────────────────────────────
 import { CfSeoAdapter } from '../../../../kernel/adapters/cf-seo'
 
+// ── Feedback adapter ──────────────────────────────────────────────────────
+import { CfFeedbackAdapter } from '../../../../kernel/adapters/cf-feedback'
+
 // ── Content Source adapters ─────────────────────────────────────────────────
 import type { ContentSourcePort } from '../../../../kernel/types'
 import { GitHubContentSource } from '../../../../kernel/adapters/source-github'
@@ -192,6 +195,9 @@ export const adapterMiddleware: MiddlewareHandler<AppBindings> = async (c, next)
 
   // SEO port — crawl logs, redirects, meta overrides (always D1)
   c.set('seo', new CfSeoAdapter({ db: dbCore }))
+
+  // Feedback port — surveys, feature voting, classifications (uses DB_ANALYTICS)
+  c.set('feedback', new CfFeedbackAdapter({ db: new D1DatabaseAdapter(c.env.DB_ANALYTICS) }))
 
   // Media port — R2 + D1 + Workers AI
   if (r2) {

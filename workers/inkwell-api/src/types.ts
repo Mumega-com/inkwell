@@ -1,5 +1,5 @@
 import type { D1Database, KVNamespace } from '@cloudflare/workers-types'
-import type { DatabasePort, SessionPort, ContentPort, StoragePort, GraphPort, AgentPort, BusPort, MemoryPort, EconomyPort, MediaPort, SeoPort } from '../../../kernel/types'
+import type { DatabasePort, SessionPort, ContentPort, StoragePort, GraphPort, AgentPort, BusPort, MemoryPort, EconomyPort, MediaPort, SeoPort, FeedbackPort } from '../../../kernel/types'
 
 export interface Env {
   DB_ANALYTICS: D1Database
@@ -92,5 +92,6 @@ export type AppBindings = {
     economy: EconomyPort
     media: MediaPort
     seo: SeoPort
+    feedback: FeedbackPort
   }
 }

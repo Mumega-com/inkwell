@@ -114,6 +114,28 @@ export const config = {
     },
   },
 
+  // Feedback — customer surveys, NPS, feature voting.
+  // Forks configure their own surveys. Empty = no auto-surveys.
+  feedback: {
+    surveys: [] as Array<{
+      id: string
+      type: 'nps' | 'csat' | 'micro' | 'exit' | 'custom'
+      title: string
+      questions: Array<{
+        id: string
+        text: string
+        type: 'nps' | 'rating' | 'choice' | 'text' | 'boolean'
+        options?: string[]
+        required: boolean
+      }>
+      trigger?: string          // 'day-14', 'post-checkout', 'exit', 'manual'
+      targetPath?: string       // only show on this path pattern
+      active: boolean
+    }>,
+    votingEnabled: true,        // feature request voting board
+    classifyEnabled: false,     // LLM auto-classification (requires Workers AI)
+  },
+
   // Content sources — external systems that sync content into Inkwell.
   // Each entry creates a ContentSourcePort adapter. The sync plugin pulls from all.
   // Credentials come from env vars (NOTION_TOKEN, GITHUB_TOKEN, GDRIVE_TOKEN).
@@ -192,7 +214,7 @@ export const config = {
     'analytics', 'auth', 'dashboard', 'commerce', 'content', 'mcp',
     'contracts', 'courses', 'telegram', 'chat',
     'diagnostics', 'discovery', 'payments', 'questionnaire',
-    'onboarding', 'notifications', 'organism', 'sync', 'media', 'seo',
+    'onboarding', 'notifications', 'organism', 'sync', 'media', 'seo', 'feedback',
   ],
 
   // Adapters — which implementation to use for each port.

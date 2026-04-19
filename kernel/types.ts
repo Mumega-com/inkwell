@@ -489,3 +489,113 @@ export interface SeoPort {
   /** Delete a meta override */
   deleteMetaOverride(path: string, tenant?: string): Promise<void>
 }
+
+// ─── Feedback Port (v7.4) ─────────────────────────────────────────────────
+
+/** Survey type — what kind of feedback we're collecting */
+export type SurveyType = 'nps' | 'csat' | 'micro' | 'exit' | 'custom'
+
+/** A survey definition — configured in inkwell.config.ts or created via API */
+export interface SurveyDefinition {
+  id: string
+  type: SurveyType
+  title: string
+  questions: SurveyQuestion[]
+  trigger?: string            // when to show: 'day-14', 'post-checkout', 'exit', 'manual'
+  targetPath?: string         // only show on this path pattern
+  active: boolean
+  tenant?: string
+}
+
+/** A single question within a survey */
+export interface SurveyQuestion {
+  id: string
+  text: string
+  type: 'nps' | 'rating' | 'choice' | 'text' | 'boolean'
+  options?: string[]          // for 'choice' type
+  required: boolean
+}
+
+/** A submitted survey response */
+export interface SurveyResponse {
+  id: string
+  surveyId: string
+  visitorHash: string         // anonymous, SHA-256 of IP+salt
+  answers: Record<string, string | number | boolean>
+  score?: number              // NPS/CSAT score extracted from answers
+  freetext?: string           // optional open-ended follow-up
+  path: string                // page where survey was shown
+  tenant?: string
+  createdAt: string
+}
+
+/** A feature vote — users upvote feature requests */
+export interface FeatureVote {
+  id: string
+  featureId: string
+  title: string
+  description?: string
+  visitorHash: string
+  tenant?: string
+  createdAt: string
+}
+
+/** A feature with aggregated vote count */
+export interface FeatureRequest {
+  id: string
+  title: string
+  description?: string
+  status: 'open' | 'planned' | 'shipped' | 'declined'
+  voteCount: number
+  tenant?: string
+  createdAt: string
+}
+
+/** Classification result from LLM analysis */
+export interface FeedbackClassification {
+  responseId: string
+  category: 'bug' | 'friction' | 'feature_request' | 'praise' | 'other'
+  sentiment: 'positive' | 'neutral' | 'negative'
+  confidence: number          // 0.0-1.0
+  summary: string             // one-line LLM summary
+  classifiedAt: string
+}
+
+/**
+ * Feedback port — structured feedback collection, feature voting, insights.
+ * Privacy-first: all responses anonymous via visitor hash. No PII stored.
+ */
+export interface FeedbackPort {
+  /** Submit a survey response */
+  submitResponse(response: Omit<SurveyResponse, 'id' | 'createdAt'>): Promise<SurveyResponse>
+  /** Get responses for a survey, optionally filtered by tenant and date range */
+  getResponses(surveyId: string, tenant?: string, since?: string): Promise<SurveyResponse[]>
+  /** Get aggregate stats for a survey (avg score, response count, score distribution) */
+  getAggregates(surveyId: string, tenant?: string): Promise<{
+    responseCount: number
+    avgScore: number | null
+    scoreDistribution: Record<number, number>
+    promoters: number       // NPS: 9-10
+    passives: number        // NPS: 7-8
+    detractors: number      // NPS: 0-6
+    npsScore: number | null // (promoters - detractors) / total * 100
+  }>
+  /** Submit a vote for a feature request (creates feature if new) */
+  submitVote(vote: Omit<FeatureVote, 'id' | 'createdAt'>): Promise<FeatureVote>
+  /** List feature requests sorted by vote count */
+  listFeatures(tenant?: string, status?: FeatureRequest['status']): Promise<FeatureRequest[]>
+  /** Update feature request status */
+  updateFeatureStatus(featureId: string, status: FeatureRequest['status']): Promise<void>
+  /** Store a classification result from LLM analysis */
+  storeClassification(classification: FeedbackClassification): Promise<void>
+  /** Get unclassified responses (for the flywheel to process) */
+  getUnclassified(limit?: number): Promise<SurveyResponse[]>
+  /** Get feedback insights — top issues, sentiment trends, category breakdown */
+  getInsights(tenant?: string, days?: number): Promise<{
+    totalResponses: number
+    avgSentiment: number
+    categoryBreakdown: Record<string, number>
+    topIssues: Array<{ summary: string; count: number; category: string }>
+    trend: Array<{ date: string; responses: number; avgScore: number }>
+  }>
+}

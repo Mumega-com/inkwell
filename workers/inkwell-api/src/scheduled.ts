@@ -17,6 +17,8 @@ import { compileMdx } from '../../../kernel/processors/mdx-compiler'
 import { D1DatabaseAdapter } from '../../../kernel/adapters/d1'
 import { D1GraphAdapter } from '../../../kernel/adapters/d1-graph'
 import { KVContentAdapter } from '../../../kernel/adapters/kv-content'
+import { CfFeedbackAdapter } from '../../../kernel/adapters/cf-feedback'
+import { config } from '../../../inkwell.config'
 
 interface NormalizedMetric {
   source: string
@@ -344,6 +346,71 @@ export async function scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionC
     console.error('[flywheel] Content sync failed:', e)
   }
 
+  // ── Feedback classification — LLM-powered auto-tagging ──────────────
+  let feedbackDigest = ''
+  const fbConfig = (config as Record<string, unknown>).feedback as
+    | { classifyEnabled?: boolean }
+    | undefined
+
+  if (fbConfig?.classifyEnabled && env.AI) {
+    try {
+      const dbAnalytics = new D1DatabaseAdapter(env.DB_ANALYTICS)
+      const feedbackAdapter = new CfFeedbackAdapter({ db: dbAnalytics })
+      const unclassified = await feedbackAdapter.getUnclassified(20)
+
+      if (unclassified.length > 0) {
+        let classified = 0
+        for (const response of unclassified) {
+          const text = response.freetext || JSON.stringify(response.answers)
+          if (!text || text.length < 5) continue
+
+          try {
+            const result = await (env.AI as { run(model: string, inputs: Record<string, unknown>): Promise<{ response?: string }> }).run(
+              '@cf/meta/llama-3.1-8b-instruct',
+              {
+                messages: [
+                  {
+                    role: 'system',
+                    content: 'Classify this customer feedback. Respond with ONLY valid JSON: {"category":"bug|friction|feature_request|praise|other","sentiment":"positive|neutral|negative","confidence":0.0-1.0,"summary":"one line summary"}',
+                  },
+                  { role: 'user', content: text },
+                ],
+                max_tokens: 100,
+              }
+            )
+
+            const raw = result?.response ?? ''
+            const jsonMatch = raw.match(/\{[^}]+\}/)
+            if (jsonMatch) {
+              const parsed = JSON.parse(jsonMatch[0]) as {
+                category: string
+                sentiment: string
+                confidence: number
+                summary: string
+              }
+
+              await feedbackAdapter.storeClassification({
+                responseId: response.id,
+                category: parsed.category as 'bug' | 'friction' | 'feature_request' | 'praise' | 'other',
+                sentiment: parsed.sentiment as 'positive' | 'neutral' | 'negative',
+                confidence: parsed.confidence,
+                summary: parsed.summary,
+                classifiedAt: new Date().toISOString(),
+              })
+              classified++
+            }
+          } catch {
+            // Individual classification failure — continue with rest
+          }
+        }
+        feedbackDigest = `Feedback: ${classified}/${unclassified.length} classified`
+        console.log(`[flywheel] ${feedbackDigest}`)
+      }
+    } catch (e) {
+      console.error('[flywheel] Feedback classification failed:', e)
+    }
+  }
+
   // Log the run
   try {
     await env.DB_MARKETING.prepare(
@@ -365,7 +432,7 @@ export async function scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionC
             name: 'send',
             arguments: {
               to: recipient,
-              text: `[Flywheel Daily Report]\n${score}\nGA4: ${ga4Metrics.find(m => m.metric === 'sessions')?.value || '?'} sessions\nStored: ${stored} snapshots`,
+              text: `[Flywheel Daily Report]\n${score}\nGA4: ${ga4Metrics.find(m => m.metric === 'sessions')?.value || '?'} sessions\nStored: ${stored} snapshots${feedbackDigest ? `\n${feedbackDigest}` : ''}`,
             },
           },
         }),

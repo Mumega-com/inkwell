@@ -2,6 +2,22 @@
 
 All notable changes to Inkwell. Format: [Keep a Changelog](https://keepachangelog.com/).
 
+## [7.4.0] — 2026-04-19
+
+### Added
+- **FeedbackPort** — 16th hexagonal port: submitResponse(), getResponses(), getAggregates(), submitVote(), listFeatures(), updateFeatureStatus(), storeClassification(), getUnclassified(), getInsights()
+- **CfFeedbackAdapter** — D1 implementation (survey_responses, feature_requests, feature_votes, feedback_classifications tables)
+- **Feedback plugin** — 21st plugin: 10 API routes (survey response submission, feature voting, NPS aggregates, insights, churn signals)
+- **FeedbackWidget** — React island: contextual multi-question micro-survey (NPS/rating/choice/text/boolean), step-through UX, public submission
+- **NpsWidget** — React island: standalone 0-10 NPS scale with optional follow-up text, localStorage dedup
+- **FeatureVoteBoard** — React island: feature request voting board with upvotes, status badges, submit form
+- **LLM feedback classification** — flywheel integration: auto-classify freetext as bug/friction/feature_request/praise via Workers AI (Llama 3.1)
+- **Churn signal scoring** — computed from sentiment trends + friction/bug rates
+- **3 MCP tools** — get_feedback_summary, trigger_survey, get_churn_signals
+- **Migration 0005** — survey_responses, feature_requests, feature_votes, feedback_classifications tables with indexes
+- **27 kernel tests** — full FeedbackPort contract coverage (MockFeedbackAdapter)
+- **Feedback config** — inkwell.config.ts feedback.surveys[], votingEnabled, classifyEnabled
+
 ## [7.3.0] — 2026-04-19
 
 ### Added
