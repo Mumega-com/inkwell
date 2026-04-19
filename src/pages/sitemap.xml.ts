@@ -40,7 +40,15 @@ export const GET: APIRoute = async () => {
     ...docs.map((d) => ({ url: d.id === 'index' ? '/docs' : `/docs/${d.id}`, priority: '0.8', changefreq: 'weekly' as const })),
   ]
 
-  const allPages = [...staticPages, ...dynamicPages]
+  const geoPages = config.seo.geo?.enabled
+    ? config.seo.geo.locations.map((loc) => ({
+        url: `${config.seo.geo!.basePath}/${loc.slug}`,
+        priority: '0.8',
+        changefreq: 'monthly' as const,
+      }))
+    : []
+
+  const allPages = [...staticPages, ...dynamicPages, ...geoPages]
   const today = new Date().toISOString().split('T')[0]
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>

@@ -428,3 +428,64 @@ export interface MediaPort {
   /** Generate an image from a text prompt using Workers AI */
   generateImage(prompt: string, tenant?: string): Promise<MediaAsset>
 }
+
+// ─── SEO Port (v7.3) ──────────────────────────────────────────────────────
+
+/** A crawl log entry — one row per bot visit */
+export interface CrawlLogEntry {
+  id: string
+  path: string
+  userAgent: string
+  botName: string           // 'googlebot' | 'bingbot' | 'gptbot' | 'claudebot' | 'perplexitybot' | 'other'
+  statusCode: number
+  tenant?: string
+  timestamp: string
+}
+
+/** A redirect rule — managed via API or config */
+export interface RedirectRule {
+  id: string
+  fromPath: string
+  toPath: string
+  statusCode: 301 | 302 | 307 | 308
+  tenant?: string
+  createdAt: string
+}
+
+/** Per-path meta tag overrides */
+export interface MetaOverride {
+  path: string
+  title?: string
+  description?: string
+  ogImage?: string
+  robots?: string           // e.g. 'noindex,nofollow'
+  canonical?: string
+  tenant?: string
+}
+
+/**
+ * SEO port — crawl intelligence, redirect engine, meta overrides.
+ * Runs at the edge via Worker middleware. Data stored in D1.
+ */
+export interface SeoPort {
+  /** Log a bot crawl event */
+  logCrawl(entry: Omit<CrawlLogEntry, 'id'>): Promise<void>
+  /** Get crawl stats for a tenant (bot visits grouped by bot, path, status) */
+  getCrawlStats(tenant?: string, days?: number): Promise<Array<{ botName: string; path: string; hits: number; lastSeen: string }>>
+  /** Add or update a redirect rule */
+  upsertRedirect(rule: Omit<RedirectRule, 'id' | 'createdAt'>): Promise<RedirectRule>
+  /** List all redirect rules for a tenant */
+  listRedirects(tenant?: string): Promise<RedirectRule[]>
+  /** Delete a redirect rule */
+  deleteRedirect(id: string): Promise<void>
+  /** Match a path against redirect rules — returns the matching rule or null */
+  matchRedirect(path: string, tenant?: string): Promise<RedirectRule | null>
+  /** Set a meta override for a specific path */
+  setMetaOverride(override: MetaOverride): Promise<void>
+  /** Get meta override for a path, or null */
+  getMetaOverride(path: string, tenant?: string): Promise<MetaOverride | null>
+  /** List all meta overrides */
+  listMetaOverrides(tenant?: string): Promise<MetaOverride[]>
+  /** Delete a meta override */
+  deleteMetaOverride(path: string, tenant?: string): Promise<void>
+}

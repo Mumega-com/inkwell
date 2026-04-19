@@ -4,14 +4,14 @@
 Forkable SaaS microkernel on Astro 6 + Cloudflare Workers. Config-driven, agent-first. Works standalone (Cloudflare only) or integrates with SOS (Sovereign Operating System). Designed to be forked per customer — one config file, zero code changes.
 
 ## Version
-v7.2.1 — Media pipeline + dashboard auth (14 ports, 19 plugins, 16 MCP tools)
+v7.3.0 — SEO Autopilot + media pipeline + dashboard auth (15 ports, 20 plugins, 19 MCP tools)
 
 ## Architecture: Microkernel
 
 ```
 inkwell.config.ts          ← ALL configuration (one file)
         |
-    kernel/                ← Contracts only (430 lines, 5 files)
+    kernel/                ← Contracts only (490 lines, 5 files)
     |   types.ts           ← PluginManifest, McpToolDef, Port interfaces, RBAC
     |   plugin-loader.ts   ← Registry, mount routes, collect MCP tools
     |   adapter-registry.ts← Hexagonal ports (database, auth, CRM, search)
@@ -83,6 +83,7 @@ MemoryPort     // remember(), recall(), search() — Mirror or standalone
 EconomyPort    // recordUsage(), getBalance(), charge(), transfer() — SOS or Stripe
 ContentSourcePort // list(), sync(since?) — Obsidian, GitHub, Notion, Google Drive (array of adapters)
 MediaPort      // upload(), describe(), transcribe(), transform(), generateImage(), search(), list(), delete()
+SeoPort        // logCrawl(), getCrawlStats(), upsertRedirect(), matchRedirect(), setMetaOverride(), listMetaOverrides()
 ```
 
 ### SOS Mode
@@ -101,7 +102,7 @@ SOS_ECONOMY_URL = "..."  // SOS Economy endpoint
 
 Plugin declares `requiredRole: 'manager'` → only manager, admin, owner can access.
 
-## Plugins (19 active)
+## Plugins (20 active)
 | Plugin | Role | Description | Components |
 |--------|------|-------------|------------|
 | analytics | (default) | SEO + flywheel snapshots | — |
@@ -123,11 +124,12 @@ Plugin declares `requiredRole: 'manager'` → only manager, admin, owner can acc
 | organism | admin | Managed agent provisioning | — |
 | sync | admin | Content source sync (daily cron) | — |
 | media | member | AI media pipeline (upload, describe, transcribe, transform, generate) | MediaLibrary |
+| seo | manager | SEO autopilot — crawl analytics, redirects, meta overrides, geo pages, llms.txt | — |
 
-## MCP Tools (16)
-`publish_content`, `get_dashboard`, `get_seo_data`, `get_leads`, `create_checkout`, `subscription_status`, `send_telegram`, `site_info`, `remember`, `recall`, `create_task`, `browse_marketplace`, `upload_media`, `describe_image`, `generate_image`, `search_media`
+## MCP Tools (19)
+`publish_content`, `get_dashboard`, `get_seo_data`, `get_leads`, `create_checkout`, `subscription_status`, `send_telegram`, `site_info`, `remember`, `recall`, `create_task`, `browse_marketplace`, `upload_media`, `describe_image`, `generate_image`, `search_media`, `seo_crawl_stats`, `manage_redirects`, `seo_audit`
 
-Last 4 of the first 12 are Network tools (require `NETWORK_API_URL` + `NETWORK_TOKEN` env vars). Media tools (last 4) require R2 + Workers AI bindings.
+Last 4 of the first 12 are Network tools (require `NETWORK_API_URL` + `NETWORK_TOKEN` env vars). Media tools (4) require R2 + Workers AI bindings. SEO tools (last 3) require D1.
 
 ## Commands
 ```bash

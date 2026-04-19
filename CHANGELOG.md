@@ -2,6 +2,21 @@
 
 All notable changes to Inkwell. Format: [Keep a Changelog](https://keepachangelog.com/).
 
+## [7.3.0] — 2026-04-19
+
+### Added
+- **SeoPort** — 15th hexagonal port: logCrawl(), getCrawlStats(), upsertRedirect(), listRedirects(), deleteRedirect(), matchRedirect(), setMetaOverride(), getMetaOverride(), listMetaOverrides(), deleteMetaOverride()
+- **CfSeoAdapter** — D1 implementation of SeoPort (crawl logs, redirect engine, meta overrides)
+- **Edge SEO middleware** — dynamic robots.txt, bot detection (13 UA patterns → 6 canonical names), fire-and-forget crawl logging via waitUntil, redirect engine
+- **SEO plugin** — 20th plugin: /api/seo/* routes (crawl stats, redirect CRUD, meta override CRUD, llms.txt)
+- **Remark autolink** — Wikipedia-style entity linking via knowledge graph (max 3 links per 500 words, first-mention-only, case-insensitive, word boundary checking)
+- **llms.txt + llms-full.txt** — machine-readable site summaries for AI crawlers (GEO/AEO optimization)
+- **Programmatic geo pages** — Astro getStaticPaths() from config, LocalBusiness + ServiceArea JSON-LD schema, breadcrumbs, nearby location links
+- **Geo sitemap** — geo pages auto-added to sitemap.xml when config.seo.geo.enabled is true
+- **Migration 0014** — crawl_logs, seo_redirects, seo_meta_overrides tables with indexes
+- **3 MCP tools** — seo_crawl_stats, manage_redirects, seo_audit
+- **18 kernel tests** — full SeoPort contract coverage (MockSeoAdapter)
+
 ## [7.2.1] — 2026-04-19
 
 ### Fixed

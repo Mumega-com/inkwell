@@ -96,6 +96,22 @@ export const config = {
       ],
     },
     defaultAuthor: { name: 'Inkwell', url: 'https://inkwell.dev' },
+
+    // Geo SEO — programmatic city/service pages
+    geo: {
+      enabled: false,        // Forks set to true + populate locations
+      serviceType: '',       // e.g. 'Moving Company', 'Dental Clinic'
+      basePath: '/locations', // URL prefix for geo pages
+      locations: [] as Array<{
+        city: string
+        region: string       // state/province
+        country: string
+        slug: string         // URL-safe: 'toronto-on'
+        coords?: { lat: number; lng: number }
+        phone?: string
+        address?: string
+      }>,
+    },
   },
 
   // Content sources — external systems that sync content into Inkwell.
@@ -176,7 +192,7 @@ export const config = {
     'analytics', 'auth', 'dashboard', 'commerce', 'content', 'mcp',
     'contracts', 'courses', 'telegram', 'chat',
     'diagnostics', 'discovery', 'payments', 'questionnaire',
-    'onboarding', 'notifications', 'organism', 'sync', 'media',
+    'onboarding', 'notifications', 'organism', 'sync', 'media', 'seo',
   ],
 
   // Adapters — which implementation to use for each port.

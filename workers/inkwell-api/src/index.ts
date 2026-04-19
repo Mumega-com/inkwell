@@ -23,6 +23,7 @@ import notificationsManifest from '../../../plugins/notifications/manifest'
 import organismManifest from '../../../plugins/organism/manifest'
 import syncManifest from '../../../plugins/sync/manifest'
 import mediaManifest from '../../../plugins/media/manifest'
+import seoManifest from '../../../plugins/seo/manifest'
 
 // Register all available plugins
 const allPlugins = [
@@ -30,7 +31,7 @@ const allPlugins = [
   contentManifest, mcpManifest, contractsManifest, coursesManifest,
   telegramManifest, chatManifest, diagnosticsManifest, discoveryManifest,
   paymentsManifest, questionnaireManifest, onboardingManifest, notificationsManifest,
-  organismManifest, syncManifest, mediaManifest,
+  organismManifest, syncManifest, mediaManifest, seoManifest,
 ]
 for (const manifest of allPlugins) {
   registerPlugin(manifest)
@@ -41,6 +42,7 @@ import { usageTracker } from './middleware/usage'
 import { authSessionMiddleware } from './middleware/auth'
 import { requireRole } from './middleware/rbac'
 import { adapterMiddleware } from './middleware/adapters'
+import { edgeSeoRedirects, edgeSeoCrawlLogger, dynamicRobotsTxt } from './middleware/edge-seo'
 import { scheduled } from './scheduled'
 import type { AppBindings } from './types'
 
@@ -144,6 +146,11 @@ app.use('*', usageTracker())
 
 // Session resolution (non-blocking: null = unauthenticated)
 app.use('*', authSessionMiddleware)
+
+// Edge SEO — dynamic robots.txt, redirect engine, crawl logging
+app.use('*', dynamicRobotsTxt)
+app.use('*', edgeSeoRedirects)
+app.use('*', edgeSeoCrawlLogger)
 
 app.get('/health', (c) => c.json({ status: 'ok', ts: Date.now(), tenant: c.get('tenant_slug') }))
 

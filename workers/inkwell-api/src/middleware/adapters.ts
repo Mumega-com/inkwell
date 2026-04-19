@@ -44,6 +44,9 @@ import { SOSEconomyAdapter } from '../../../../kernel/adapters/sos-economy'
 // ── Media adapter ──────────────────────────────────────────────────────────
 import { CfMediaAdapter } from '../../../../kernel/adapters/cf-media'
 
+// ── SEO adapter ───────────────────────────────────────────────────────────
+import { CfSeoAdapter } from '../../../../kernel/adapters/cf-seo'
+
 // ── Content Source adapters ─────────────────────────────────────────────────
 import type { ContentSourcePort } from '../../../../kernel/types'
 import { GitHubContentSource } from '../../../../kernel/adapters/source-github'
@@ -186,6 +189,9 @@ export const adapterMiddleware: MiddlewareHandler<AppBindings> = async (c, next)
   c.set('bus', createBusAdapter(resolveAdapterType('bus', c.env), c.env, tenant))
   c.set('memory', createMemoryAdapter(resolveAdapterType('memory', c.env), c.env, tenant))
   c.set('economy', createEconomyAdapter(resolveAdapterType('economy', c.env), c.env))
+
+  // SEO port — crawl logs, redirects, meta overrides (always D1)
+  c.set('seo', new CfSeoAdapter({ db: dbCore }))
 
   // Media port — R2 + D1 + Workers AI
   if (r2) {
