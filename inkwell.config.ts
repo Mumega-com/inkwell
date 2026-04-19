@@ -157,7 +157,7 @@ export const config = {
     busTarget: 'owner',            // Default bus recipient for system messages
   },
 
-  workerUrl: '',
+  workerUrl: 'https://api.mumega.com',
 
   publish: {
     inbox: true,
