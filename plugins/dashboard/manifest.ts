@@ -12,6 +12,7 @@ const dashboardPlugin: PluginManifest = {
 
   dashboardWidgets: [
     'ArrowDashboard',
+    'AdminOverview',
     'TaskBoard',
     'WalletView',
     'SquadPanel',
