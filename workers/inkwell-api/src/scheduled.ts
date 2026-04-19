@@ -440,6 +440,47 @@ export async function scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionC
     } catch { /* non-critical */ }
   }
 
+  // ── Auto-Publish — publish scheduled content whose time has come ─────
+  try {
+    const dbAnalytics = new D1DatabaseAdapter(env.DB_ANALYTICS)
+    const contentKv = new KVContentAdapter(env.CONTENT)
+    const now = new Date().toISOString()
+
+    const scheduled = await dbAnalytics.query<{ slug: string; title: string; tenant_slug: string | null }>(
+      `SELECT slug, title, tenant_slug FROM content_index
+       WHERE status = 'scheduled' AND scheduled_at IS NOT NULL AND scheduled_at <= ?`,
+      [now],
+    )
+
+    for (const entry of scheduled) {
+      await dbAnalytics.execute(
+        `UPDATE content_index SET status = 'published', published_at = datetime('now'), scheduled_at = NULL, updated_at = datetime('now')
+         WHERE slug = ?`,
+        [entry.slug],
+      )
+
+      // Update KV metadata status
+      const metaKey = entry.tenant_slug ? `${entry.tenant_slug}:meta:${entry.slug}` : `meta:${entry.slug}`
+      const metaRaw = await contentKv.getPage(metaKey)
+      if (metaRaw) {
+        try {
+          const meta = JSON.parse(metaRaw) as Record<string, unknown>
+          meta.status = 'published'
+          meta.published_at = now
+          await contentKv.putPage(metaKey, JSON.stringify(meta))
+        } catch { /* meta parse failed — non-critical */ }
+      }
+
+      console.log(`[auto-publish] Published: ${entry.title} (${entry.slug})`)
+    }
+
+    if (scheduled.length > 0) {
+      console.log(`[auto-publish] ${scheduled.length} entries published`)
+    }
+  } catch (e) {
+    console.error('[auto-publish] Failed:', e)
+  }
+
   // ── Event Aggregates — daily rollup ──────────────────────────────────
   try {
     const dbAnalytics = new D1DatabaseAdapter(env.DB_ANALYTICS)

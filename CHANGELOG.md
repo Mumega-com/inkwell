@@ -2,6 +2,21 @@
 
 All notable changes to Inkwell. Format: [Keep a Changelog](https://keepachangelog.com/).
 
+## [7.6.0] — 2026-04-19
+
+### Added
+- **Editorial content calendar** — full publishing pipeline replacing static seasonal calendar
+- **Content workflow states** — idea, draft, review, scheduled, published, archived, killed — with validated transitions
+- **Auto-publish cron** — scheduled content auto-publishes when `scheduled_at <= now` (runs every 6h)
+- **Calendar API** — `GET /api/content/calendar` (date range + filters), `GET /api/content/pipeline` (kanban grouped by status)
+- **Status transitions** — `PATCH /api/content/:slug/status` with from/to validation
+- **Bulk operations** — `POST /api/content/bulk` — bulk create ideas, bulk schedule, bulk status change (up to 50-100 items)
+- **Duplicate-and-shift** — `POST /api/content/duplicate` — clone entries and shift dates for template weeks
+- **Campaign tracking** — `GET /api/content/campaigns` — list campaigns with entry counts
+- **CalendarView** — React island: month grid view (entries by day, color-coded by status) + pipeline kanban view with one-click status advancement
+- **Extended publish** — `POST /api/publish` now accepts scheduled_at, channel, campaign_id, priority, seo_keyword, assignee
+- **Migration 0007** — status, scheduled_at, channel, campaign_id, priority, seo_keyword, assignee columns + 4 indexes
+
 ## [7.5.0] — 2026-04-19
 
 ### Added

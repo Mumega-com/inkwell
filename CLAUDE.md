@@ -4,7 +4,7 @@
 Forkable SaaS microkernel on Astro 6 + Cloudflare Workers. Config-driven, agent-first. Works standalone (Cloudflare only) or integrates with SOS (Sovereign Operating System). Designed to be forked per customer — one config file, zero code changes.
 
 ## Version
-v7.5.0 — First-party data collection + Feedback + SEO Autopilot + media pipeline (16 ports, 21 plugins, 22 MCP tools)
+v7.6.0 — Editorial calendar + First-party data + Feedback + SEO Autopilot + media pipeline (16 ports, 21 plugins, 22 MCP tools)
 
 ## Architecture: Microkernel
 
@@ -110,7 +110,7 @@ Plugin declares `requiredRole: 'manager'` → only manager, admin, owner can acc
 | auth | (default) | OTP passwordless login (request-code → verify-code → session) | — |
 | dashboard | viewer | Home, leads, campaigns, SEO, calendar, tasks, squads, wallet, media, analytics, feedback, chat, settings | ArrowDashboard, TaskBoard, WalletView, SquadPanel, ConnectPanel, SettingsForm, AssistantChat, MediaLibrary |
 | commerce | (default) | Checkout, subscriptions | — |
-| content | member | MDX ingest, publish, graph | — |
+| content | member | MDX ingest, publish, graph, editorial calendar, bulk planning | CalendarView |
 | mcp | admin | MCP tool endpoint | — |
 | contracts | manager | Contract management | — |
 | courses | (default) | Course content | — |

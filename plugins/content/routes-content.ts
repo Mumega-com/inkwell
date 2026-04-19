@@ -5,7 +5,7 @@ import { compileMdx } from '../../kernel/processors/mdx-compiler'
 
 const contentRoutes = new Hono<AppBindings>()
 
-const allowedPublishStatuses = new Set(['draft', 'published', 'archived'])
+const allowedPublishStatuses = new Set(['idea', 'draft', 'review', 'scheduled', 'published', 'archived', 'killed'])
 
 function isNonEmptyString(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0
@@ -40,8 +40,14 @@ function parseTags(value: unknown): string[] {
   return tags.slice(0, 12)
 }
 
+interface PublishValue {
+  title: string; content: string; slug?: string; author: string; tags: string[]; description: string
+  status: string; overwrite: boolean
+  scheduled_at?: string; channel?: string; campaign_id?: string; priority?: string; seo_keyword?: string; assignee?: string
+}
+
 function parsePublishPayload(body: unknown):
-  | { ok: true; value: { title: string; content: string; slug?: string; author: string; tags: string[]; description: string; status: 'draft' | 'published' | 'archived'; overwrite: boolean } }
+  | { ok: true; value: PublishValue }
   | { ok: false; status: number; error: string; details?: unknown } {
   if (!body || typeof body !== 'object') {
     return { ok: false, status: 400, error: 'invalid_json' }
@@ -65,18 +71,26 @@ function parsePublishPayload(body: unknown):
   const description = isNonEmptyString(payload.description)
     ? cleanText(payload.description, 220)
     : cleanText(content.replace(/```[\s\S]*?```/g, ' ').replace(/[#*_>\-\[\]`]/g, ' '), 220)
-  let status: 'draft' | 'published' | 'archived' = 'published'
+  let status = 'published'
   if (isNonEmptyString(payload.status)) {
     if (!allowedPublishStatuses.has(payload.status)) {
       return { ok: false, status: 400, error: 'invalid_status' }
     }
-    status = payload.status as 'draft' | 'published' | 'archived'
+    status = payload.status
   }
   const overwrite = payload.overwrite === true
 
+  // Calendar fields (optional)
+  const scheduled_at = isNonEmptyString(payload.scheduled_at) ? payload.scheduled_at : undefined
+  const channel = isNonEmptyString(payload.channel) ? payload.channel : undefined
+  const campaign_id = isNonEmptyString(payload.campaign_id) ? payload.campaign_id : undefined
+  const priority = isNonEmptyString(payload.priority) ? payload.priority : undefined
+  const seo_keyword = isNonEmptyString(payload.seo_keyword) ? payload.seo_keyword : undefined
+  const assignee = isNonEmptyString(payload.assignee) ? payload.assignee : undefined
+
   return {
     ok: true,
-    value: { title, content, slug, author, tags, description, status, overwrite },
+    value: { title, content, slug, author, tags, description, status, overwrite, scheduled_at, channel, campaign_id, priority, seo_keyword, assignee },
   }
 }
 
@@ -102,7 +116,7 @@ contentRoutes.post('/publish', async (c) => {
     return c.json({ error: parsed.error, details: parsed.details }, parsed.status as any)
   }
 
-  const { title, content, slug: providedSlug, author, tags, description, status, overwrite } = parsed.value
+  const { title, content, slug: providedSlug, author, tags, description, status, overwrite, scheduled_at, channel, campaign_id, priority, seo_keyword, assignee } = parsed.value
   const slug = providedSlug || normalizeSlug(title)
   if (!slug) {
     return c.json({ error: 'invalid_slug' }, 400)
@@ -149,17 +163,15 @@ contentRoutes.post('/publish', async (c) => {
 
   // Index in D1 (tenant-scoped)
   const tf = tenantFilter(tenantSlug)
-  if (tf.clause) {
-    await c.get('db_analytics').execute(
-      'INSERT OR REPLACE INTO content_index (slug, title, type, lang, author, tags, description, published_at, updated_at, word_count, tenant_slug) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [slug, title, 'blog', 'en', author, JSON.stringify(tags), description, date, date, content.split(/\s+/).length, tenantSlug]
-    )
-  } else {
-    await c.get('db_analytics').execute(
-      'INSERT OR REPLACE INTO content_index (slug, title, type, lang, author, tags, description, published_at, updated_at, word_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [slug, title, 'blog', 'en', author, JSON.stringify(tags), description, date, date, content.split(/\s+/).length]
-    )
-  }
+  const wordCount = content.split(/\s+/).length
+  await c.get('db_analytics').execute(
+    `INSERT OR REPLACE INTO content_index
+     (slug, title, type, lang, author, tags, description, published_at, updated_at, word_count, tenant_slug,
+      status, scheduled_at, channel, campaign_id, priority, seo_keyword, assignee)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [slug, title, 'blog', 'en', author, JSON.stringify(tags), description, date, date, wordCount, tenantSlug,
+     status, scheduled_at ?? null, channel ?? 'blog', campaign_id ?? null, priority ?? 'medium', seo_keyword ?? null, assignee ?? null],
+  )
 
   // Graph ingestion — extract wikilinks and build graph edges
   try {
