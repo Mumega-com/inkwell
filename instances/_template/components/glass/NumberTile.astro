@@ -1,0 +1,48 @@
+---
+interface Props {
+  title: string
+  value: number
+  label: string
+}
+
+const { title, value, label } = Astro.props
+---
+
+<div class="glass-tile glass-tile--number">
+  <span class="glass-tile-title">{title}</span>
+  <div class="glass-number">{value.toLocaleString()}</div>
+  <div class="glass-label">{label}</div>
+</div>
+
+<style>
+  .glass-tile {
+    background: var(--ink-surface);
+    border: 1px solid var(--ink-border);
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .glass-tile-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-muted);
+  }
+
+  .glass-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--ink-text);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .glass-label {
+    font-size: 0.85rem;
+    color: var(--ink-muted);
+  }
+</style>

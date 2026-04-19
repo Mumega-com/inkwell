@@ -1,0 +1,63 @@
+---
+/**
+ * PlaceholderTile — shown when a tile fetch fails (404, 501, network error).
+ * The dashboard catches GlassTileError per-tile and renders this instead.
+ */
+interface Props {
+  title: string
+  errorStatus?: number
+}
+
+const { title, errorStatus } = Astro.props
+
+const reason =
+  errorStatus === 404 ? 'Tile not found'
+  : errorStatus === 501 ? 'Query not yet implemented'
+  : 'Data unavailable'
+---
+
+<div class="glass-tile glass-tile--placeholder" aria-label={`${title} — ${reason}`}>
+  <span class="glass-tile-title">{title}</span>
+  <div class="glass-placeholder-body">
+    <span class="glass-placeholder-icon" aria-hidden="true">—</span>
+    <span class="glass-placeholder-reason">{reason}</span>
+  </div>
+</div>
+
+<style>
+  .glass-tile {
+    background: var(--ink-surface);
+    border: 1px dashed var(--ink-border);
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    opacity: 0.6;
+  }
+
+  .glass-tile-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-muted);
+  }
+
+  .glass-placeholder-body {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .glass-placeholder-icon {
+    font-size: 1.2rem;
+    color: var(--ink-muted);
+  }
+
+  .glass-placeholder-reason {
+    font-size: 0.85rem;
+    color: var(--ink-muted);
+    font-style: italic;
+  }
+</style>

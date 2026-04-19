@@ -1,0 +1,196 @@
+---
+/**
+ * Glass layer dashboard — Phase 6.
+ *
+ * Reads tile definitions from glass.json (seeded by `sos init` Step F).
+ * For each tile, fetches a TilePayload from the Glass service at SSR request
+ * time using createSosGlassAdapter. Dispatches on tile.template to render
+ * one of the six stateless tile components under components/glass/.
+ *
+ * On GlassTileError (404, 501, or network failure) the tile renders as a
+ * PlaceholderTile — the page always returns 200, never partial.
+ */
+import DashboardLayout from '../../../src/layouts/Dashboard.astro'
+import { config } from '../inkwell.config'
+import glassConfig from '../glass.json'
+import {
+  createSosGlassAdapter,
+  GlassTileError,
+  type TilePayload,
+  type TileTemplate,
+} from '../../../kernel/adapters/glass/sos'
+
+import NumberTile from '../components/glass/NumberTile.astro'
+import SparklineTile from '../components/glass/SparklineTile.astro'
+import ProgressBarTile from '../components/glass/ProgressBarTile.astro'
+import EventLogTile from '../components/glass/EventLogTile.astro'
+import StatusLightTile from '../components/glass/StatusLightTile.astro'
+import ChartTile from '../components/glass/ChartTile.astro'
+import PlaceholderTile from '../components/glass/PlaceholderTile.astro'
+
+// ─── Types ──────────────────────────────────────────────────────────────────
+
+interface GlassEntry {
+  id: string
+  title: string
+}
+
+interface ResolvedTile {
+  id: string
+  title: string
+  template: TileTemplate | null
+  payload: TilePayload | null
+  errorStatus: number | undefined
+}
+
+// ─── Fetch payloads at request time (SSR) ───────────────────────────────────
+
+// The tenant slug comes from this instance's inkwell.config.ts.
+// config.network.busTarget is the canonical slug set at `sos init` time.
+const tenant: string = config.network.busTarget
+
+// Glass service URL: use the worker URL from config, with /glass prefix handled
+// by the Glass service running at api.<domain> or dev override.
+const glassBases: Record<string, string> = {
+  development: 'http://localhost:8092',
+}
+const baseUrl: string =
+  (import.meta.env.GLASS_BASE_URL as string | undefined) ??
+  glassBases[import.meta.env.MODE ?? ''] ??
+  `${config.workerUrl}`
+
+const adapter = createSosGlassAdapter({ baseUrl })
+
+const tiles: GlassEntry[] = (glassConfig as { version: string; tiles: GlassEntry[] }).tiles
+
+const resolved: ResolvedTile[] = await Promise.all(
+  tiles.map(async (entry): Promise<ResolvedTile> => {
+    try {
+      const payload = await adapter.fetchTile(tenant, entry.id)
+      // The glass service includes template in listTiles, but the payload
+      // endpoint doesn't. We detect template from the data shape for basic
+      // cases; for full template routing, the dashboard calls listTiles once
+      // at startup. For Phase 6, we use a lightweight heuristic on data keys
+      // and fall back to listTiles if available (see below).
+      return {
+        id: entry.id,
+        title: entry.title,
+        template: null,  // resolved below via listTiles
+        payload,
+        errorStatus: undefined,
+      }
+    } catch (err) {
+      if (err instanceof GlassTileError) {
+        return { id: entry.id, title: entry.title, template: null, payload: null, errorStatus: err.status }
+      }
+      return { id: entry.id, title: entry.title, template: null, payload: null, errorStatus: undefined }
+    }
+  }),
+)
+
+// Enrich with template kind from listTiles (single call, not per-tile)
+let templateMap: Map<string, TileTemplate> = new Map()
+try {
+  const remoteTiles = await adapter.listTiles(tenant)
+  for (const t of remoteTiles) {
+    templateMap.set(t.id, t.template)
+  }
+} catch {
+  // listTiles failure is non-fatal — tiles without a template use placeholder
+}
+
+// Merge template info into resolved tiles
+const enriched: ResolvedTile[] = resolved.map(r => ({
+  ...r,
+  template: templateMap.get(r.id) ?? null,
+}))
+---
+
+<DashboardLayout title="Glass Dashboard" active="dashboard">
+  <div class="glass-grid">
+    {enriched.map(tile => {
+      // Render placeholder for any failed tile
+      if (tile.payload === null || tile.template === null) {
+        return (
+          <PlaceholderTile
+            title={tile.title}
+            errorStatus={tile.errorStatus}
+          />
+        )
+      }
+
+      const data = tile.payload.data
+
+      switch (tile.template) {
+        case 'number':
+          return (
+            <NumberTile
+              title={tile.title}
+              value={(data.value as number) ?? 0}
+              label={(data.label as string) ?? ''}
+            />
+          )
+
+        case 'sparkline':
+          return (
+            <SparklineTile
+              title={tile.title}
+              points={(data.points as Array<{ ts: string; value: number }>) ?? []}
+            />
+          )
+
+        case 'progress_bar':
+          return (
+            <ProgressBarTile
+              title={tile.title}
+              current={(data.current as number) ?? 0}
+              target={(data.target as number) ?? 100}
+              unit={(data.unit as string) ?? ''}
+            />
+          )
+
+        case 'event_log':
+          return (
+            <EventLogTile
+              title={tile.title}
+              entries={(data.entries as Array<{ ts: string; message: string }>) ?? []}
+            />
+          )
+
+        case 'status_light':
+          return (
+            <StatusLightTile
+              title={tile.title}
+              status={(data.status as 'green' | 'yellow' | 'red') ?? 'yellow'}
+              text={(data.text as string) ?? ''}
+            />
+          )
+
+        case 'chart':
+          return <ChartTile title={tile.title} />
+
+        default:
+          return (
+            <PlaceholderTile
+              title={tile.title}
+              errorStatus={undefined}
+            />
+          )
+      }
+    })}
+  </div>
+</DashboardLayout>
+
+<style>
+  .glass-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+  }
+
+  @media (max-width: 600px) {
+    .glass-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
