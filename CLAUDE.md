@@ -4,7 +4,7 @@
 Forkable SaaS microkernel on Astro 6 + Cloudflare Workers. Config-driven, agent-first. Works standalone (Cloudflare only) or integrates with SOS (Sovereign Operating System). Designed to be forked per customer — one config file, zero code changes.
 
 ## Version
-v8.1.0 — Ship-ready platform + provider-agnostic adapters + marketing toolkit (16 ports, 21 plugins, 25 MCP tools)
+v8.2.0 — Ship-ready platform + CRM + automation + outreach (16 ports, 23 plugins, 35 MCP tools)
 
 ## Architecture: Microkernel
 
@@ -103,7 +103,7 @@ SOS_ECONOMY_URL = "..."  // SOS Economy endpoint
 
 Plugin declares `requiredRole: 'manager'` → only manager, admin, owner can access.
 
-## Plugins (21 active)
+## Plugins (23 active)
 | Plugin | Role | Description | Components |
 |--------|------|-------------|------------|
 | analytics | (default) | SEO + flywheel + event tracking + funnels + cohorts + recommendations | FunnelChart, CohortTable |
@@ -127,11 +127,13 @@ Plugin declares `requiredRole: 'manager'` → only manager, admin, owner can acc
 | media | member | AI media pipeline (upload, describe, transcribe, transform, generate) | MediaLibrary |
 | seo | manager | SEO autopilot — crawl analytics, redirects, meta overrides, geo pages, llms.txt | — |
 | feedback | viewer | Customer feedback — NPS/CSAT surveys, micro-surveys, feature voting, LLM classification | FeedbackWidget, NpsWidget, FeatureVoteBoard |
+| crm | member | CRM — contacts, pipeline, deals, outreach, reporting | — |
+| automation | manager | Automation bridge — n8n workflow trigger + list | — |
 
-## MCP Tools (25)
-`publish_content`, `get_dashboard`, `get_seo_data`, `get_leads`, `create_checkout`, `subscription_status`, `send_telegram`, `site_info`, `remember`, `recall`, `create_task`, `browse_marketplace`, `upload_media`, `describe_image`, `generate_image`, `search_media`, `seo_crawl_stats`, `manage_redirects`, `seo_audit`, `get_feedback_summary`, `trigger_survey`, `get_churn_signals`, `business_intake`, `post_social`, `content_strategy`
+## MCP Tools (35)
+`publish_content`, `get_dashboard`, `get_seo_data`, `get_leads`, `create_checkout`, `subscription_status`, `send_telegram`, `site_info`, `remember`, `recall`, `create_task`, `browse_marketplace`, `upload_media`, `describe_image`, `generate_image`, `search_media`, `seo_crawl_stats`, `manage_redirects`, `seo_audit`, `get_feedback_summary`, `trigger_survey`, `get_churn_signals`, `business_intake`, `post_social`, `content_strategy`, `create_contact`, `update_contact`, `list_contacts`, `manage_pipeline`, `log_activity`, `find_leads`, `run_outreach`, `marketing_report`, `trigger_workflow`, `list_workflows`
 
-Last 4 of the first 12 are Network tools (require `NETWORK_API_URL` + `NETWORK_TOKEN` env vars). Media tools (4) require R2 + Workers AI bindings. SEO tools (3) require D1. Feedback tools (3) require D1. Marketing tools (3): `business_intake` builds customer wiki, `content_strategy` generates marketing plan, `post_social` posts via webhook (requires `SOCIAL_WEBHOOK_URL`).
+Last 4 of the first 12 are Network tools (require `NETWORK_API_URL` + `NETWORK_TOKEN` env vars). Media tools (4) require R2 + Workers AI bindings. SEO tools (3) require D1. Feedback tools (3) require D1. Marketing tools (3): `business_intake` builds customer wiki, `content_strategy` generates marketing plan, `post_social` posts via webhook (requires `SOCIAL_WEBHOOK_URL`). CRM tools (7): contacts CRUD, pipeline/deals, outreach sequences, lead enrichment. Automation tools (2): n8n workflow trigger + list (requires `N8N_API_URL` + `N8N_API_KEY`). Reporting (1): `marketing_report` cross-channel digest.
 
 ## Commands
 ```bash

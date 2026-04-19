@@ -1,6 +1,6 @@
 # Inkwell Roadmap
 
-Current: **v8.1.0** — Ship-ready platform, 21 plugins, 16 ports, 25 MCP tools
+Current: **v8.2.0** — Ship-ready platform, 23 plugins, 16 ports, 35 MCP tools
 
 ## v7.x — Shipped
 
@@ -50,6 +50,14 @@ Current: **v8.1.0** — Ship-ready platform, 21 plugins, 16 ports, 25 MCP tools
 - [x] S4.1 — `business_intake` MCP tool (structured wiki from customer data — 7 interlinked pages)
 - [x] S4.2 — `post_social` MCP tool (webhook-based social posting — Twitter, LinkedIn, Instagram, Facebook, YouTube, TikTok, Threads)
 - [x] S4.3 — `content_strategy` MCP tool (prioritized marketing plan from wiki — SEO, content, social, ads)
+
+### Sprint 5: CRM + Automation + Outreach (v8.2)
+
+- [x] S5.1 — CRM plugin (contacts, pipeline, deals, activities — 5 MCP tools + 9 REST endpoints)
+- [x] S5.2 — Automation plugin (trigger_workflow, list_workflows — n8n bridge via webhook + API)
+- [x] S5.3 — Outreach tools (find_leads with enrichment webhook, run_outreach with n8n trigger)
+- [x] S5.4 — marketing_report MCP tool (cross-channel digest: contacts, deals, content, social, outreach)
+- [x] S5.5 — Wire plugins, compile migrations, tests pass (48/48)
 
 ### Backlog
 

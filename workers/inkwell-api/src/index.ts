@@ -25,6 +25,8 @@ import syncManifest from '../../../plugins/sync/manifest'
 import mediaManifest from '../../../plugins/media/manifest'
 import seoManifest from '../../../plugins/seo/manifest'
 import feedbackManifest from '../../../plugins/feedback/manifest'
+import crmManifest from '../../../plugins/crm/manifest'
+import automationManifest from '../../../plugins/automation/manifest'
 
 // Register all available plugins
 const allPlugins = [
@@ -33,6 +35,7 @@ const allPlugins = [
   telegramManifest, chatManifest, diagnosticsManifest, discoveryManifest,
   paymentsManifest, questionnaireManifest, onboardingManifest, notificationsManifest,
   organismManifest, syncManifest, mediaManifest, seoManifest, feedbackManifest,
+  crmManifest, automationManifest,
 ]
 for (const manifest of allPlugins) {
   registerPlugin(manifest)

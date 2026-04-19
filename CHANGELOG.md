@@ -2,6 +2,18 @@
 
 All notable changes to Inkwell. Format: [Keep a Changelog](https://keepachangelog.com/).
 
+## [8.2.0] — 2026-04-19
+
+### Added
+- **CRM plugin** (22nd plugin) — contacts, pipeline stages, deals, activities. 5 MCP tools: `create_contact`, `update_contact`, `list_contacts`, `manage_pipeline`, `log_activity`. 9 REST endpoints under `/api/crm/`. D1 tables: contacts, pipeline_stages, deals, activities.
+- **Automation plugin** (23rd plugin) — n8n workflow bridge. 2 MCP tools: `trigger_workflow` (webhook + API modes), `list_workflows`. Connects to n8n via `N8N_API_URL` + `N8N_API_KEY`.
+- **Outreach tools** — 2 MCP tools in CRM plugin: `find_leads` (search + enrichment webhook), `run_outreach` (sequence creation + n8n trigger). D1 tables: outreach_sequences, outreach_steps.
+- **Marketing report** — `marketing_report` MCP tool: cross-channel digest (contacts, deals, activities, content, social, outreach) with human-readable highlights. Periods: 7d, 30d, 90d.
+
+### Changed
+- 23 plugins active (was 21), 35 MCP tools (was 25)
+- 2 new D1 migrations: 0016_crm.sql (4 tables), 0017_outreach.sql (2 tables)
+
 ## [8.1.0] — 2026-04-19
 
 ### Added
