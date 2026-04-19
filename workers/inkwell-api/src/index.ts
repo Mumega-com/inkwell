@@ -44,6 +44,8 @@ import { authSessionMiddleware } from './middleware/auth'
 import { requireRole } from './middleware/rbac'
 import { adapterMiddleware } from './middleware/adapters'
 import { edgeSeoRedirects, edgeSeoCrawlLogger, dynamicRobotsTxt } from './middleware/edge-seo'
+import { utmMiddleware } from './middleware/utm'
+import { visitorProfileMiddleware } from './middleware/visitor-profile'
 import { scheduled } from './scheduled'
 import type { AppBindings } from './types'
 
@@ -147,6 +149,12 @@ app.use('*', usageTracker())
 
 // Session resolution (non-blocking: null = unauthenticated)
 app.use('*', authSessionMiddleware)
+
+// UTM attribution parsing
+app.use('*', utmMiddleware)
+
+// Visitor profile — first-party identity (fire-and-forget, after auth for stitching)
+app.use('*', visitorProfileMiddleware)
 
 // Edge SEO — dynamic robots.txt, redirect engine, crawl logging
 app.use('*', dynamicRobotsTxt)

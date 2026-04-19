@@ -93,5 +93,8 @@ export type AppBindings = {
     media: MediaPort
     seo: SeoPort
     feedback: FeedbackPort
+    // First-party data collection
+    utm: { source: string | null; medium: string | null; campaign: string | null; content: string | null; term: string | null; clickId: string | null; clickSource: string | null } | null
+    visitor_hash: string | null
   }
 }

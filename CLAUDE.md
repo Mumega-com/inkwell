@@ -4,7 +4,7 @@
 Forkable SaaS microkernel on Astro 6 + Cloudflare Workers. Config-driven, agent-first. Works standalone (Cloudflare only) or integrates with SOS (Sovereign Operating System). Designed to be forked per customer — one config file, zero code changes.
 
 ## Version
-v7.4.0 — Feedback system + SEO Autopilot + media pipeline (16 ports, 21 plugins, 22 MCP tools)
+v7.5.0 — First-party data collection + Feedback + SEO Autopilot + media pipeline (16 ports, 21 plugins, 22 MCP tools)
 
 ## Architecture: Microkernel
 
@@ -106,7 +106,7 @@ Plugin declares `requiredRole: 'manager'` → only manager, admin, owner can acc
 ## Plugins (21 active)
 | Plugin | Role | Description | Components |
 |--------|------|-------------|------------|
-| analytics | (default) | SEO + flywheel snapshots | — |
+| analytics | (default) | SEO + flywheel + event tracking + funnels + cohorts + recommendations | — |
 | auth | (default) | OTP passwordless login (request-code → verify-code → session) | — |
 | dashboard | viewer | Home, leads, campaigns, SEO, calendar, tasks, squads, wallet, media, chat, settings | ArrowDashboard, TaskBoard, WalletView, SquadPanel, ConnectPanel, SettingsForm, AssistantChat, MediaLibrary |
 | commerce | (default) | Checkout, subscriptions | — |
@@ -178,7 +178,7 @@ All from config → CSS vars: `--ink-primary`, `--ink-secondary`, `--ink-bg`, `-
 
 ## Testing
 ```bash
-npm test              # Kernel tests (123 tests, 12 files)
+npm test              # Kernel tests (186 tests, 15 files)
 npm run test:worker   # Worker integration tests (Cloudflare pool)
 bash scripts/fork-smoke.sh  # Fork smoke test (build with config-only changes)
 ```

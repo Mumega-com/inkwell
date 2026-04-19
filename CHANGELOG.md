@@ -2,6 +2,24 @@
 
 All notable changes to Inkwell. Format: [Keep a Changelog](https://keepachangelog.com/).
 
+## [7.5.0] — 2026-04-19
+
+### Added
+- **Event tracking** — `POST /api/analytics/event` public endpoint: append-only event stream with SHA-256 visitor hashing, UTM capture, session IDs, geo/device detection
+- **Funnel analysis** — `GET /api/analytics/funnel?steps=Page Viewed,Form Started,Form Submitted&days=30` with conversion rates and dropoff
+- **Behavioral cohorts** — `GET /api/analytics/cohorts` groups visitors by engagement (power users, new, returning, at-risk) + UTM source attribution
+- **Content recommendations** — `GET /api/analytics/recommendations/:slug` via knowledge graph + engagement weighting
+- **UTM middleware** — parses utm_source/medium/campaign/content/term + gclid/fbclid from query strings on every request
+- **Visitor profile middleware** — first-party identity stitching: anonymous visitor_hash (daily SHA-256 salt) linked to portal_account_id on auth, fire-and-forget via waitUntil
+- **Event aggregate rollups** — flywheel-driven daily rollups into event_aggregates table
+- **Migration 0006** — events, visitor_profiles, event_aggregates tables with 8 indexes
+- **17 kernel tests** — visitor hash determinism, UTM parsing (6 scenarios), funnel calculation (5 scenarios), event structure, visitor profile stitching
+
+### Design Decisions
+- No new port — events/UTMs/profiles are analytics plugin concerns, not a new capability abstraction. Kernel stays lean.
+- Server-side only — no cookies, no fingerprinting, no third-party scripts. Privacy-first collection.
+- Daily hash salt — gives session-level stitching (same IP = same hash within a day) without persistent tracking.
+
 ## [7.4.0] — 2026-04-19
 
 ### Added

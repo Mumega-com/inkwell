@@ -440,6 +440,44 @@ export async function scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionC
     } catch { /* non-critical */ }
   }
 
+  // ── Event Aggregates — daily rollup ──────────────────────────────────
+  try {
+    const dbAnalytics = new D1DatabaseAdapter(env.DB_ANALYTICS)
+    const today = new Date().toISOString().split('T')[0]
+
+    // Aggregate events by name for today
+    const eventCounts = await dbAnalytics.query<{
+      event_name: string
+      tenant: string | null
+      count: number
+      unique_visitors: number
+    }>(
+      `SELECT event_name, tenant, COUNT(*) as count, COUNT(DISTINCT visitor_hash) as unique_visitors
+       FROM events WHERE DATE(created_at) = ?
+       GROUP BY event_name, tenant`,
+      [today]
+    )
+
+    let aggregated = 0
+    for (const row of eventCounts) {
+      await dbAnalytics.execute(
+        `INSERT INTO event_aggregates (date, event_name, tenant, count, unique_visitors)
+         VALUES (?, ?, ?, ?, ?)
+         ON CONFLICT(date, event_name, tenant) DO UPDATE SET
+           count = excluded.count,
+           unique_visitors = excluded.unique_visitors`,
+        [today, row.event_name, row.tenant ?? '', row.count, row.unique_visitors]
+      )
+      aggregated++
+    }
+
+    if (aggregated > 0) {
+      console.log(`[flywheel] Event aggregates: ${aggregated} event types rolled up for ${today}`)
+    }
+  } catch (e) {
+    console.error('[flywheel] Event aggregation failed:', e)
+  }
+
   // ── Glass: publish daily snapshot to KV ──────────────────────────────
   try {
     const today = new Date().toISOString().split('T')[0]
