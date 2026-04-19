@@ -2,6 +2,59 @@
 
 All notable changes to Inkwell. Format: [Keep a Changelog](https://keepachangelog.com/).
 
+## [8.1.0] — 2026-04-19
+
+### Added
+- **`business_intake` MCP tool** — structured business intelligence gathering. Accepts name, industry, services, competitors, audience, brand voice, social accounts, goals, budget. Creates 7 interlinked wiki pages (overview, services, audience, competitors, brand, channels, goals) with [[wikilinks]]. Stored in KV + indexed in D1.
+- **`post_social` MCP tool** — webhook-based social media posting. Supports Twitter/X, LinkedIn, Instagram, Facebook, YouTube, TikTok, Threads. Scheduling, campaign tracking, hashtags. Compatible with Make.com, Zapier, n8n, or direct APIs.
+- **`content_strategy` MCP tool** — reads business wiki from `business_intake` and generates prioritized marketing strategy. SEO keyword targets, content calendar, social cadence, ads allocation. Focus filter (seo/social/content/ads/all), timeframe (30d/60d/90d). Stores strategy as wiki page.
+
+### Changed
+- Content plugin version bumped to 1.1.0 — now includes 3 marketing MCP tools (25 total tools)
+
+## [8.0.0] — 2026-04-19
+
+### Added
+- **Per-tenant MCP tokens** — create, list, revoke tokens per tenant. KV-cached lookup, automatic expiry. `POST/GET/DELETE /mcp/tokens`
+- **Auto-migrate D1** — compiled migrations run on first request (cold start). No more manual `wrangler d1 migrations apply`
+- **Postgres adapter** — `PostgresDatabaseAdapter` implements DatabasePort. Accepts any PgClient interface (Neon, pg, postgres). Auto-converts `?` to `$N` placeholders
+- **S3 adapter** — `S3StorageAdapter` implements StoragePort. Works with AWS S3, MinIO, DigitalOcean Spaces, Backblaze B2
+- **Redis adapter** — `RedisSessionAdapter` implements SessionPort. Works with ioredis, @upstash/redis, redis, KeyDB, DragonflyDB
+- **File adapter** — `FileContentAdapter` implements ContentPort. Filesystem-backed for Node.js/Deno/Bun environments
+- **Provider auto-detection** — adapter middleware auto-selects D1/Postgres, KV/Redis, R2/S3 from env bindings
+- **`npx create-inkwell`** — CLI scaffold: clone, configure, init git, generate wrangler.toml with your domain
+- **Insecure token blocklist** — RBAC middleware rejects known-weak tokens (`test-publish-token`, `changeme`, etc.)
+
+### Changed
+- FORK-GUIDE.md rewritten for v8 (create-inkwell, provider-agnostic, MCP tokens)
+- ROADMAP.md replaced stale v3 roadmap with v8 sprint tracking
+- MCP auth now supports three token types: global INKWELL_MCP_TOKEN, system tokens (PUBLISH_TOKEN), and per-tenant tokens
+- Adapter middleware uses factory functions instead of direct D1/KV/R2 constructors
+- `predeploy` script compiles migrations into TypeScript module before `wrangler deploy`
+
+### Security
+- PUBLISH_TOKEN removed from wrangler.toml `[vars]` — must be set via `wrangler secret put`
+- `isSecureToken()` guard: rejects tokens shorter than 16 chars or in known-weak list
+- Per-tenant tokens stored in DB_CORE with KV cache, auto-expire, revocation support
+
+## [7.7.0] — 2026-04-19
+
+### Added
+- **Full dashboard coverage** — 5 new plugin dashboard pages: commerce, contracts, diagnostics, courses, questionnaire
+- **RevenueOverview** — Commerce dashboard: period selector, gross/net/fees KPIs, breakdown by transaction type, transaction table
+- **ContractList** — Contracts dashboard: status filter (draft/sent/viewed/signed/delivered), KPIs, sign rate
+- **HealthPanel** — Diagnostics dashboard: squad health cards with MetricBar (conductance/force/coherence), severity badges, alerts
+- **CourseOverview** — Courses dashboard: SVG ProgressRing, enrollment status, lesson list with drip lock indicators
+- **QuestionnairePanel** — Check-In dashboard: today's question highlight, response rate KPIs, Q&A history
+- **AdminOverview** — Admin command center (Shadcn UI): system health strip, alert banner, 5 MiniKPIs, 5 tabbed sections (Squad/Content/Revenue/Contracts/Check-In), admin action links
+- **Contracts list endpoint** — `GET /api/contracts` with status filter and pagination
+- **Dashboard nav** — 6 new sidebar/bottom-nav items with RBAC roles
+- **Wrangler deploy** — wrangler.toml wired with real Cloudflare resource IDs, deployed to production
+
+### Changed
+- Dashboard layout `active` prop extended with 6 new page keys
+- 6 plugin manifests updated with `dashboardWidgets` arrays
+
 ## [7.6.0] — 2026-04-19
 
 ### Added

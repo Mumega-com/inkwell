@@ -4,7 +4,7 @@
 Forkable SaaS microkernel on Astro 6 + Cloudflare Workers. Config-driven, agent-first. Works standalone (Cloudflare only) or integrates with SOS (Sovereign Operating System). Designed to be forked per customer — one config file, zero code changes.
 
 ## Version
-v7.7.0 — Full dashboard coverage + Editorial calendar + First-party data + Feedback + SEO Autopilot + media pipeline (16 ports, 21 plugins, 22 MCP tools)
+v8.1.0 — Ship-ready platform + provider-agnostic adapters + marketing toolkit (16 ports, 21 plugins, 25 MCP tools)
 
 ## Architecture: Microkernel
 
@@ -128,10 +128,10 @@ Plugin declares `requiredRole: 'manager'` → only manager, admin, owner can acc
 | seo | manager | SEO autopilot — crawl analytics, redirects, meta overrides, geo pages, llms.txt | — |
 | feedback | viewer | Customer feedback — NPS/CSAT surveys, micro-surveys, feature voting, LLM classification | FeedbackWidget, NpsWidget, FeatureVoteBoard |
 
-## MCP Tools (22)
-`publish_content`, `get_dashboard`, `get_seo_data`, `get_leads`, `create_checkout`, `subscription_status`, `send_telegram`, `site_info`, `remember`, `recall`, `create_task`, `browse_marketplace`, `upload_media`, `describe_image`, `generate_image`, `search_media`, `seo_crawl_stats`, `manage_redirects`, `seo_audit`, `get_feedback_summary`, `trigger_survey`, `get_churn_signals`
+## MCP Tools (25)
+`publish_content`, `get_dashboard`, `get_seo_data`, `get_leads`, `create_checkout`, `subscription_status`, `send_telegram`, `site_info`, `remember`, `recall`, `create_task`, `browse_marketplace`, `upload_media`, `describe_image`, `generate_image`, `search_media`, `seo_crawl_stats`, `manage_redirects`, `seo_audit`, `get_feedback_summary`, `trigger_survey`, `get_churn_signals`, `business_intake`, `post_social`, `content_strategy`
 
-Last 4 of the first 12 are Network tools (require `NETWORK_API_URL` + `NETWORK_TOKEN` env vars). Media tools (4) require R2 + Workers AI bindings. SEO tools (3) require D1. Feedback tools (3) require D1.
+Last 4 of the first 12 are Network tools (require `NETWORK_API_URL` + `NETWORK_TOKEN` env vars). Media tools (4) require R2 + Workers AI bindings. SEO tools (3) require D1. Feedback tools (3) require D1. Marketing tools (3): `business_intake` builds customer wiki, `content_strategy` generates marketing plan, `post_social` posts via webhook (requires `SOCIAL_WEBHOOK_URL`).
 
 ## Commands
 ```bash

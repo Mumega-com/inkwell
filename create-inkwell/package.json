@@ -1,0 +1,16 @@
+{
+  "name": "create-inkwell",
+  "version": "0.1.0",
+  "description": "Scaffold an Inkwell project — forkable SaaS microkernel",
+  "bin": {
+    "create-inkwell": "./bin/create-inkwell.mjs"
+  },
+  "type": "module",
+  "license": "MIT",
+  "keywords": ["inkwell", "cms", "mcp", "cloudflare", "saas"],
+  "files": ["bin/", "templates/"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/servathadi/inkwell"
+  }
+}

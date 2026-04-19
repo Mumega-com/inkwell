@@ -3,41 +3,43 @@
 name = "inkwell-api"
 main = "src/index.ts"
 compatibility_date = "2024-12-01"
-account_id = "YOUR_ACCOUNT_ID"
+account_id = "e39eaf94f33092c4efd029d94ae1e9dd"
 
 [vars]
 # Set to your domain
-SITE_URL = "https://example.com"
+SITE_URL = "https://mumega.com"
 # SaaS origin for tenant resolution (subdomains → tenant config)
 SOS_SAAS_URL = ""
-# System token for CI / test — RBAC bypass (override with a real secret in production)
-PUBLISH_TOKEN = "test-publish-token"
+# PUBLISH_TOKEN — set via: npx wrangler secret put PUBLISH_TOKEN
+# Do NOT put a real token here. Use wrangler secrets for production.
+# Dev/test token below is overridden by wrangler secret in production.
+PUBLISH_TOKEN = "dev-inkwell-local-test-token-do-not-use-in-prod"
 
 [[d1_databases]]
 binding = "DB_ANALYTICS"
 database_name = "inkwell-analytics"
-database_id = "YOUR_D1_DATABASE_ID"
+database_id = "40e442df-13d1-4ce5-a081-491962fe8e59"
 migrations_dir = "migrations/analytics"
 
 [[d1_databases]]
 binding = "DB_CORE"
 database_name = "inkwell-core"
-database_id = "YOUR_D1_DATABASE_ID"
+database_id = "abd1fc3e-2bd8-411a-bec8-2686ea9a51f5"
 migrations_dir = "migrations/core"
 
 [[d1_databases]]
 binding = "DB_MARKETING"
 database_name = "inkwell-marketing"
-database_id = "YOUR_D1_DATABASE_ID"
+database_id = "e4010c8f-5f61-4c04-aa14-cf42d1afc481"
 migrations_dir = "migrations/marketing"
 
 [[kv_namespaces]]
 binding = "CONTENT"
-id = "YOUR_KV_NAMESPACE_ID"
+id = "c303003bd718427c97f978773fce4f3a"
 
 [[kv_namespaces]]
 binding = "SESSIONS"
-id = "YOUR_KV_NAMESPACE_ID"
+id = "512331050ea04a35b23843b28af75c2c"
 
 # R2 bucket for media uploads (images, videos, files)
 [[r2_buckets]]
@@ -54,5 +56,5 @@ crons = ["0 6 * * *"]
 
 # Wildcard subdomain routing for tenant sites
 [[routes]]
-pattern = "*.YOUR_DOMAIN/*"
-zone_name = "YOUR_DOMAIN"
+pattern = "*.mumega.com/*"
+zone_name = "mumega.com"

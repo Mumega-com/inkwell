@@ -165,18 +165,25 @@ function StepConnectAI({ onNext, onSkip }: { onNext: () => void; onSkip: () => v
       return
     }
 
-    fetch(`${apiUrl}/my/connect`, {
+    fetch(`${apiUrl}/mcp/connect`, {
       headers: { Authorization: `Bearer ${authToken}` },
     })
       .then((r) => r.json())
       .then((d: Record<string, unknown>) => {
-        const mcpUrl = typeof d.mcp_url === 'string' ? d.mcp_url : `${apiUrl}/mcp`
-        setMcpConfig(
-          JSON.stringify({ mcpServers: { inkwell: { url: mcpUrl } } }, null, 2)
-        )
+        // Use the Claude Code config from the server (includes token + correct URL)
+        const platforms = d.platforms as Array<{ platform: string; config: string }> | undefined
+        const claudeConfig = platforms?.find(p => p.platform === 'claude_code')
+        if (claudeConfig) {
+          setMcpConfig(claudeConfig.config)
+        } else {
+          const mcpUrl = typeof d.mcp_url === 'string' ? d.mcp_url : `${apiUrl}/mcp`
+          setMcpConfig(
+            JSON.stringify({ mcpServers: { inkwell: { type: 'streamable-http', url: mcpUrl } } }, null, 2)
+          )
+        }
       })
       .catch(() => {
-        setMcpConfig(JSON.stringify({ mcpServers: { inkwell: { url: `${apiUrl}/mcp` } } }, null, 2))
+        setMcpConfig(JSON.stringify({ mcpServers: { inkwell: { type: 'streamable-http', url: `${apiUrl}/mcp` } } }, null, 2))
       })
       .finally(() => setLoading(false))
   }, [])

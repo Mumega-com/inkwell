@@ -14,14 +14,18 @@
  */
 import type { MiddlewareHandler } from 'hono'
 import type { AppBindings } from '../types'
-import type { BusPort, MemoryPort, EconomyPort, AgentPort, GraphPort, MediaPort } from '../../../../kernel/types'
+import type { BusPort, MemoryPort, EconomyPort, AgentPort, GraphPort, MediaPort, DatabasePort, SessionPort, ContentPort, StoragePort } from '../../../../kernel/types'
 import { config } from '../../../../inkwell.config'
 
-// ── Infrastructure adapters (always D1/KV/R2 on Cloudflare) ─────────────────
+// ── Infrastructure adapters ─────────────────────────────────────────────────
 import { D1DatabaseAdapter } from '../../../../kernel/adapters/d1'
+import { PostgresDatabaseAdapter } from '../../../../kernel/adapters/postgres'
 import { KVSessionAdapter } from '../../../../kernel/adapters/kv-session'
+import { RedisSessionAdapter } from '../../../../kernel/adapters/redis-session'
 import { KVContentAdapter } from '../../../../kernel/adapters/kv-content'
+import { FileContentAdapter } from '../../../../kernel/adapters/file-content'
 import { R2StorageAdapter } from '../../../../kernel/adapters/r2-storage'
+import { S3StorageAdapter } from '../../../../kernel/adapters/s3-storage'
 
 // ── Graph adapters ──────────────────────────────────────────────────────────
 import { D1GraphAdapter } from '../../../../kernel/adapters/d1-graph'
@@ -96,11 +100,61 @@ export function createContentSources(env: Env): ContentSourcePort[] {
   return sources
 }
 
-// ── Adapter Factories ───────────────────────────────────────────────────────
-// Each factory takes the env and returns the adapter instance.
-// To add a new implementation, add a case here.
+// ── Infrastructure Adapter Factories ────────────────────────────────────────
+// Auto-detect provider from env: D1 bindings → Cloudflare, DATABASE_URL → Postgres, etc.
 
 type Env = AppBindings['Bindings']
+
+function createDatabaseAdapter(env: Env, binding: 'DB_CORE' | 'DB_ANALYTICS' | 'DB_MARKETING'): DatabasePort {
+  const d1 = env[binding]
+  if (d1) return new D1DatabaseAdapter(d1)
+
+  // Postgres fallback — check for DATABASE_URL or binding-specific URL
+  const pgUrl = (env as Record<string, string>)[`${binding}_URL`] ?? (env as Record<string, string>)['DATABASE_URL']
+  if (pgUrl) {
+    // Lazy-import: callers must provide a PgClient that works in their runtime.
+    // For Workers: @neondatabase/serverless. For Node: pg or postgres.
+    // The adapter middleware can't create the client itself because the pg library
+    // varies by runtime. Instead, check for a pre-created client on env.
+    const client = (env as Record<string, unknown>)[`${binding}_CLIENT`]
+    if (client) return new PostgresDatabaseAdapter(client as never)
+  }
+
+  throw new Error(`No database adapter for ${binding}: set D1 binding or ${binding}_URL + ${binding}_CLIENT`)
+}
+
+function createSessionAdapter(env: Env): SessionPort {
+  if (env.SESSIONS) return new KVSessionAdapter(env.SESSIONS)
+
+  const redisClient = (env as Record<string, unknown>)['REDIS_CLIENT']
+  if (redisClient) return new RedisSessionAdapter(redisClient as never)
+
+  throw new Error('No session adapter: set SESSIONS KV binding or REDIS_CLIENT')
+}
+
+function createContentAdapter(env: Env): ContentPort {
+  if (env.CONTENT) return new KVContentAdapter(env.CONTENT)
+
+  const fsClient = (env as Record<string, unknown>)['FS_CLIENT']
+  const contentDir = (env as Record<string, string>)['CONTENT_DIR'] ?? './content'
+  if (fsClient) return new FileContentAdapter(fsClient as never, contentDir)
+
+  throw new Error('No content adapter: set CONTENT KV binding or FS_CLIENT + CONTENT_DIR')
+}
+
+function createStorageAdapter(env: Env): StoragePort | undefined {
+  const r2 = (env as Record<string, unknown>)['MEDIA']
+  if (r2) return new R2StorageAdapter(r2 as never)
+
+  const s3Client = (env as Record<string, unknown>)['S3_CLIENT']
+  if (s3Client) return new S3StorageAdapter(s3Client as never)
+
+  return undefined
+}
+
+// ── Config-Driven Adapter Factories ─────────────────────────────────────────
+// Each factory takes the env and returns the adapter instance.
+// To add a new implementation, add a case here.
 
 function createBusAdapter(type: string, env: Env, tenant: string): BusPort {
   switch (type) {
@@ -171,18 +225,16 @@ function resolveAdapterType(port: string, env: Env): string {
 // ── Middleware ───────────────────────────────────────────────────────────────
 
 export const adapterMiddleware: MiddlewareHandler<AppBindings> = async (c, next) => {
-  // Infrastructure ports (always Cloudflare bindings — swap these for GC/AWS)
-  const dbCore = new D1DatabaseAdapter(c.env.DB_CORE)
+  // Infrastructure ports — auto-detect from env bindings
+  const dbCore = createDatabaseAdapter(c.env, 'DB_CORE')
   c.set('db_core', dbCore)
-  c.set('db_analytics', new D1DatabaseAdapter(c.env.DB_ANALYTICS))
-  c.set('db_marketing', new D1DatabaseAdapter(c.env.DB_MARKETING))
-  c.set('sessions', new KVSessionAdapter(c.env.SESSIONS))
-  c.set('content', new KVContentAdapter(c.env.CONTENT))
+  c.set('db_analytics', createDatabaseAdapter(c.env, 'DB_ANALYTICS'))
+  c.set('db_marketing', createDatabaseAdapter(c.env, 'DB_MARKETING'))
+  c.set('sessions', createSessionAdapter(c.env))
+  c.set('content', createContentAdapter(c.env))
 
-  const r2 = (c.env as Record<string, unknown>)['MEDIA']
-  if (r2) {
-    c.set('storage', new R2StorageAdapter(r2 as never))
-  }
+  const storage = createStorageAdapter(c.env)
+  if (storage) c.set('storage', storage)
 
   // Config-driven ports — resolved from inkwell.config.ts + env overrides
   const tenant = c.get('tenant_slug') ?? 'default'
@@ -199,7 +251,8 @@ export const adapterMiddleware: MiddlewareHandler<AppBindings> = async (c, next)
   // Feedback port — surveys, feature voting, classifications (uses DB_ANALYTICS)
   c.set('feedback', new CfFeedbackAdapter({ db: new D1DatabaseAdapter(c.env.DB_ANALYTICS) }))
 
-  // Media port — R2 + D1 + Workers AI
+  // Media port — R2 + D1 + Workers AI (Cloudflare-specific, requires R2 binding)
+  const r2 = (c.env as Record<string, unknown>)['MEDIA']
   if (r2) {
     c.set('media', new CfMediaAdapter({
       r2: r2 as never,

@@ -38,6 +38,7 @@ for (const manifest of allPlugins) {
   registerPlugin(manifest)
 }
 
+import { autoMigrate } from './middleware/auto-migrate'
 import { tenantResolver } from './middleware/tenant'
 import { usageTracker } from './middleware/usage'
 import { authSessionMiddleware } from './middleware/auth'
@@ -140,6 +141,9 @@ app.use('*', cors({
   allowMethods: ['GET', 'POST', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization'],
 }))
+
+// Auto-migrate — apply D1 migrations on first request (cold start only)
+app.use('*', autoMigrate)
 
 // Adapters — plugins use c.get('db_core'), c.get('sessions'), c.get('content') instead of c.env.*
 app.use('*', adapterMiddleware)

@@ -1,5 +1,9 @@
-import { describe, it, expect } from 'vitest'
-import { request } from './helpers'
+import { describe, it, expect, beforeAll } from 'vitest'
+import { request, seedTables } from './helpers'
+
+beforeAll(async () => {
+  await seedTables()
+})
 
 describe('Health endpoint', () => {
   it('GET /health returns 200 with status ok', async () => {

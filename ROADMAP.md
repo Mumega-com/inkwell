@@ -1,98 +1,64 @@
-# Inkwell v3 Roadmap
+# Inkwell Roadmap
 
-## P1 — Core CMS (the CMS doesn't work without these)
+Current: **v8.1.0** — Ship-ready platform, 21 plugins, 16 ports, 25 MCP tools
 
-- [x] **Wikilinks** — remark-wikilinks.ts parses [[page]] and [[page|text]]
-- [x] **Backlinks** — reverse index built by wikilinks plugin
-- [x] **:: block rendering** — remark-blocks.ts renders 8 block types
-- [x] **Inline charts** — ::chart blocks output data attributes for Recharts
-- [x] **TOC in post layout** — 220px sticky sidebar, hidden on mobile
-- [x] **JSON-LD verified** — BlogPosting + Organization + WebSite schemas
-- [x] **Reading time** — calculated from actual word count in post header
-- [x] **Analytics injection** — GA, GTM, Clarity, Hotjar, Plausible conditional on config
+## v7.x — Shipped
 
-## P2 — Product (makes it usable by others)
+- [x] Microkernel architecture (600-line kernel, plugin contracts)
+- [x] 21 plugins: analytics, auth, dashboard, commerce, content, mcp, contracts, courses, telegram, chat, diagnostics, discovery, payments, questionnaire, onboarding, notifications, organism, sync, media, seo, feedback
+- [x] 16 hexagonal port interfaces (Database, Auth, CRM, Search, Session, Content, Storage, Graph, Agent, Bus, Memory, Economy, ContentSource, Media, Seo, Feedback)
+- [x] 22 MCP tools via Streamable HTTP transport
+- [x] RBAC hierarchy (owner > admin > manager > member > viewer)
+- [x] OTP passwordless auth
+- [x] MDX knowledge engine (wikilinks, backlinks, 14 block types, graph API)
+- [x] Editorial calendar with bulk content planning
+- [x] First-party data collection (UTM, visitor profiles, events, funnels, cohorts)
+- [x] NPS/CSAT surveys, feature voting, LLM auto-classification
+- [x] AI media pipeline (upload, describe, transcribe, transform, generate)
+- [x] SEO autopilot (crawl analytics, redirects, meta overrides, dynamic robots.txt)
+- [x] Glass Commerce (transactions, royalties, metering, Stripe Connect)
+- [x] E-signature contracts with SMS/email delivery
+- [x] Course enrollment, progress tracking, drip lessons
+- [x] Organism API (managed agent provisioning, usage budgets)
+- [x] Multi-tenant via subdomain routing
+- [x] SOS integration (bus, memory, economy) — optional
 
-- [x] **Search** — Pagefind static search, /search page, dark themed
-- [x] **Command palette** — Cmd+K wired in Base.astro with nav links
-- [ ] **Video hero** — Video-first page layout with chapters (needs video content)
-- [x] **API publish** — inkwell-api Worker with view, reaction, subscribe endpoints
-- [x] **OG image generation** — Playwright script (npm run generate:og)
-- [x] **D1 analytics** — Worker wired to inkwell-analytics D1 (page_views, reactions, subscribers)
-- [x] **Feature flags** — Config toggles gate ReadingProgress, Reactions, ShareButtons, NewsletterCTA
-- [x] **Mermaid diagrams** — ::mermaid blocks with CDN lazy-load, dark theme
-- [x] **Twitter Card meta** — summary_large_image verified in Base.astro
-- [x] **Auto-description** — Ingest generates from first sentence if missing
-- [x] **Live Feedback** — POST /api/feedback endpoint + two-stage React component
+## v8.0 — Ship-Ready Platform
 
-## P2.5 — Documentation (Stripe-Quality)
+### Sprint 1: Security & DevX (in progress)
 
-- [x] **Integrated Docs** — New `docs` collection with hierarchical navigation
-- [x] **10+ High-Fidelity Guides** — Getting Started, Architecture, API, Schemas, etc.
-- [x] **Perfect Interconnectedness** — Complete semantic web of [[wikilinks]] across all collections
-- [x] **Developer Reference** — Documentation of core internal abstractions
-- [x] **Agentic entry point** — Optimized `llms.txt` for external AI legibility
-- [x] **Strategy Manuals** — Market Positioning, Content Strategy, and Roadmap guides
+- [x] S1.1 — Secure PUBLISH_TOKEN default (insecure token blocklist)
+- [x] S1.2 — Per-tenant MCP token provisioning (create, list, revoke, KV-cached lookup)
+- [x] S1.3 — Auto-migrate D1 on first request (compiled migrations, zero manual setup)
+- [x] S1.4 — Update ROADMAP.md for v8
 
-## P3 — Differentiators (what no other CMS does)
+### Sprint 2: Provider-Agnostic Adapters
 
-- [x] **i18n routing** — Astro built-in, RTL support, hreflang tags, language switcher
-- [x] **RTL support** — dir="rtl" from config.i18n.rtl
-- [x] **Hreflang tags** — self-ref + x-default, expandable
-- [x] **Annotations API** — Generic interface + Astro component, pluggable auth
-- [x] **Content flywheel** — scripts/flywheel.ts monitors HN RSS, scores by tags
-- [x] **KV edge cache** — lib/kv-cache.ts + scripts/cache-to-kv.ts
-- [x] **R2 media pipeline** — scripts/upload-media.ts
-- [x] **Social proof bar** — SocialProofBar.tsx fetches live D1 stats
-- [x] **KaTeX math** — remark-math + rehype-katex
-- [ ] **Auto-tags** — Suggest tags from content analysis (deferred to P4, needs AI)
+- [x] S2.1 — Postgres adapter for DatabasePort
+- [x] S2.2 — S3 adapter for StoragePort
+- [x] S2.3 — Redis adapter for SessionPort
+- [x] S2.4 — File adapter for ContentPort
+- [x] S2.5 — Provider auto-detection (env sniffing → correct adapter set)
 
-## P4 — Organism (the system that improves itself)
+### Sprint 3: Fork & Distribution
 
-- [x] **Adaptive pages** — A/B variants on Cloudflare edge (KV), significance testing, agent optimization loop.
-- [x] **A/B testing** — KV variant configs, serve different versions with deterministic chi-squared logic.
-- [ ] **Video generation** — Remotion renders posts as animated video
-- [ ] **Schema predator** — Read competitor SERPs, generate richer structured data
-- [ ] **Content as context** — Vectorize all posts, derive opinions from body of work
-- [ ] **Programmatic generation** — Template × Variable matrix for scale SEO
-- [ ] **Content pruning** — Archive underperformers monthly
-- [ ] **Referral program** — Subscribers recruit subscribers
+- [x] S3.1 — `npx create-inkwell` CLI (scaffold, configure, deploy)
+- [x] S3.2 — FORK-GUIDE.md rewrite for v8
 
-## P5 — Autonomous Business Engine (v4.1 / v5)
+### Sprint 4: Marketing Customer Toolkit (v8.1)
 
-- [x] **FMAAP Gate** — Systemic safety layer checking Flow, Metabolism, Alignment, Autonomy, and Physics.
-- [x] **Glass Commerce Engine** — Deterministic D1 ledger (transactions, royalties, metering), Stripe Connect integration for native digital product sales.
-- [x] **Transparent Diagnostics Engine** — Translates `dG/dt` physics into human-readable, template-based health narratives on the dashboard.
-- [x] **Mirror Memory** — Cross-tenant learning pushed to global memory so all Inkwell instances optimize together.
-- [ ] **B2B Interoperability** — Squads negotiate and execute cross-tenant transactions autonomously.
+- [x] S4.1 — `business_intake` MCP tool (structured wiki from customer data — 7 interlinked pages)
+- [x] S4.2 — `post_social` MCP tool (webhook-based social posting — Twitter, LinkedIn, Instagram, Facebook, YouTube, TikTok, Threads)
+- [x] S4.3 — `content_strategy` MCP tool (prioritized marketing plan from wiki — SEO, content, social, ads)
 
-## Done
+### Backlog
 
-- [x] Astro scaffold with content collections (Zod schemas)
-- [x] Config-driven theme (inkwell.config.ts → CSS custom properties)
-- [x] Dark/light/system toggle in header
-- [x] 9 Astro server components (Header, Footer, Callout, PullQuote, Tldr, Figure, StatsBar, AuthorCard, JsonLd)
-- [x] 8 React islands (Reactions, ShareButtons, NewsletterCTA, ReadingProgress, CommandPalette, TOC, KnowledgeGraph, VideoHero)
-- [x] Blog listing + individual post pages
-- [x] Explore page with knowledge graph
-- [x] RSS feed + sitemap
-- [x] 404 page
-- [x] Ingest script (content/inbox/ → content/en/)
-- [x] Publishing skill (inkwell-publish)
-- [x] Content strategy document
-- [x] 14 blog posts
-- [x] Deployed to Cloudflare Pages
-- [x] Cloudflare D1 + R2 + KV created
-- [x] Screenshots captured (Playwright)
-
-## Backlog — Optional Integrations
-
-These features depend on external systems and are NOT part of the forkable Inkwell core. They can be added as plugins/integrations when a fork needs them.
-
-- [ ] **Bus publish** — MCP message → content published
-- [ ] **MCP server** — Agents connect and publish via MCP protocol
-- [ ] **Agent annotations** — authenticated agents annotate posts (corrections, additions)
-- [ ] **Reward attribution** — Track rewards earned per post in frontmatter
-- [ ] **Live stats** — Homepage pulls live counts from an external service
-- [ ] **Agent profiles** — /team pages pull real data from a registry
-- [ ] **Task-to-content pipeline** — Completed task auto-publishes result as blog post
+- [ ] Anthropic Managed Agent API integration (provision call is stubbed)
+- [ ] Mirror tenant isolation (SOS v0.8.0)
+- [ ] Bus SSE streaming (SOS v0.8.x — poll-only for now)
+- [ ] Economy MCP tools (SOS v0.7.3 — using REST)
+- [ ] Auto-tags from content analysis (Workers AI)
+- [ ] Programmatic generation (template x variable matrix for scale SEO)
+- [ ] Content pruning (archive underperformers monthly)
+- [ ] B2B interoperability (cross-tenant transactions)
+- [ ] Video generation (Remotion renders posts as animated video)

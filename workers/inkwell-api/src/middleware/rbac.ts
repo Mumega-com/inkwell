@@ -16,6 +16,22 @@ import type { InkwellRole } from '../../../../kernel/types'
 import { hasRole } from '../../../../kernel/types'
 import { resolveRole } from '../../../../kernel/roles'
 
+// Tokens that are known-insecure defaults — never accept in production
+const INSECURE_TOKENS = new Set([
+  'test-publish-token',
+  'dev-local-token',
+  'changeme',
+  'secret',
+  'password',
+])
+
+function isSecureToken(token: string | undefined): boolean {
+  if (!token) return false
+  if (INSECURE_TOKENS.has(token)) return false
+  if (token.length < 16) return false
+  return true
+}
+
 export function requireRole(requiredRole: InkwellRole): MiddlewareHandler<AppBindings> {
   return async (c, next) => {
     // System tokens bypass RBAC
@@ -23,9 +39,9 @@ export function requireRole(requiredRole: InkwellRole): MiddlewareHandler<AppBin
     if (auth?.startsWith('Bearer ')) {
       const token = auth.slice(7)
       if (
-        (c.env.PUBLISH_TOKEN && token === c.env.PUBLISH_TOKEN) ||
-        (c.env.INKWELL_MCP_TOKEN && token === c.env.INKWELL_MCP_TOKEN) ||
-        (c.env.CONTRACT_AUTH_TOKEN && token === c.env.CONTRACT_AUTH_TOKEN)
+        (c.env.PUBLISH_TOKEN && isSecureToken(c.env.PUBLISH_TOKEN) && token === c.env.PUBLISH_TOKEN) ||
+        (c.env.INKWELL_MCP_TOKEN && isSecureToken(c.env.INKWELL_MCP_TOKEN) && token === c.env.INKWELL_MCP_TOKEN) ||
+        (c.env.CONTRACT_AUTH_TOKEN && isSecureToken(c.env.CONTRACT_AUTH_TOKEN) && token === c.env.CONTRACT_AUTH_TOKEN)
       ) {
         return next()
       }
