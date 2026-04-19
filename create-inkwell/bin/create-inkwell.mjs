@@ -154,7 +154,8 @@ async function main() {
     defaultAuthor: { name: 'Author', url: 'https://${domain}' },
   },
 
-  workerUrl: 'https://${projectName}.workers.dev',
+  // Phase 4 v0.9.3 — single-ingress: api.mumega.com routes all tenants.
+  workerUrl: 'https://api.mumega.com',
 
   publish: {
     inbox: true,
