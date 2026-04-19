@@ -143,7 +143,13 @@ npm run build        # Production build
 npm run deploy       # Build + deploy to Cloudflare Pages
 npm run ingest       # Process content/inbox/ → content/en/
 npm run publish      # Ingest + build + commit + push
+
+# Worker deploy (MUST use --config to avoid Astro's wrangler.json redirect)
+cd workers/inkwell-api && npx wrangler deploy --config wrangler.toml
 ```
+
+## Auto-Publishing
+All content-creating MCP tools (`publish_content`, `business_intake`, `content_strategy`, `generate_pages`, `onboard_client`) auto-trigger `CF_PAGES_DEPLOY_HOOK` after writing pages. Set the deploy hook secret via `npx wrangler secret put CF_PAGES_DEPLOY_HOOK` and pages go live without manual builds.
 
 ## Bindings (wrangler.toml)
 - `DB_CORE` — D1 (contracts, leads, subscriptions, content, portal_accounts, media_assets)
