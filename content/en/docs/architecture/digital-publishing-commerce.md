@@ -228,7 +228,7 @@ The implementation should be tracked as:
 
 ## Operating Rule
 
-Do not put Mumega-specific brands, books, or workflows into the Inkwell core.
+Do not put fork-specific brands, books, or workflows into the Inkwell core.
 
 The product should describe generic publishing-commerce behavior:
 

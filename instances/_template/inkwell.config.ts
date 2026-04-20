@@ -19,9 +19,8 @@ export const config = {
 
   network: {
     ...base.network,
-    // Phase 4 v0.9.3 — all Inkwell instances share the single-ingress
-    // edge Worker at api.mumega.com. Tenant is identified via Bearer token.
-    apiUrl: 'https://api.mumega.com',
+    // Set to your SOS/network API URL. Tenant is identified via Bearer token.
+    apiUrl: '',
     storageKeyPrefix: '{{SLUG}}',
     brandName: '{{LABEL}}',
     poweredByUrl: 'https://{{DOMAIN}}',
@@ -47,5 +46,5 @@ export const config = {
     defaultAuthor: { name: '{{LABEL}}', url: 'https://{{DOMAIN}}' },
   },
 
-  workerUrl: 'https://api.mumega.com',
+  workerUrl: '',  // Set to your Inkwell Worker URL (e.g. 'https://api.yourdomain.com')
 } as const

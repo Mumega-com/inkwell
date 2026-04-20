@@ -54,7 +54,24 @@ export async function readSessionFromRequest(
   c: { req: { header(name: string): string | undefined }; env: AppBindings['Bindings']; get: (key: 'sessions') => import('../../../../kernel/types').SessionPort },
 ): Promise<{ token: string | null; session: AuthSession | null }> {
   const cookieName = getAuthCookieName(c)
-  const token = getSessionTokenFromCookieHeader(c.req.header('Cookie'), cookieName)
+
+  // Try cookie first, fall back to Bearer token (for API clients that can't set cookies)
+  let token = getSessionTokenFromCookieHeader(c.req.header('Cookie'), cookieName)
+  if (!token) {
+    const auth = c.req.header('Authorization')
+    if (auth?.startsWith('Bearer ')) {
+      const candidate = auth.slice(7)
+      // Only treat as session token if it's not a known system token env var
+      const isSystemToken =
+        (c.env.PUBLISH_TOKEN && candidate === c.env.PUBLISH_TOKEN) ||
+        (c.env.INKWELL_MCP_TOKEN && candidate === c.env.INKWELL_MCP_TOKEN) ||
+        (c.env.CONTRACT_AUTH_TOKEN && candidate === c.env.CONTRACT_AUTH_TOKEN)
+      if (!isSystemToken) {
+        token = candidate
+      }
+    }
+  }
+
   if (!token) {
     return { token: null, session: null }
   }

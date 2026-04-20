@@ -262,20 +262,34 @@ async function resolveMcpToken(
   if (cached === '__revoked__') return { authorized: false, tenant_slug: null }
   if (cached) return { authorized: true, tenant_slug: cached }
 
-  // DB lookup
+  // DB lookup for dedicated MCP tokens
   const row = await env.DB_CORE.prepare(
     'SELECT tenant_slug FROM mcp_tokens WHERE token = ? AND revoked_at IS NULL AND (expires_at IS NULL OR expires_at > datetime(\'now\'))',
   ).bind(token).first<{ tenant_slug: string }>()
 
-  if (!row) {
-    // Cache negative result briefly (5 min) to avoid DB hammering
-    await env.SESSIONS.put(cacheKey, '__revoked__', { expirationTtl: 300 })
-    return { authorized: false, tenant_slug: null }
+  if (row) {
+    // Cache positive result (1 hour)
+    await env.SESSIONS.put(cacheKey, row.tenant_slug, { expirationTtl: 3600 })
+    return { authorized: true, tenant_slug: row.tenant_slug }
   }
 
-  // Cache positive result (1 hour)
-  await env.SESSIONS.put(cacheKey, row.tenant_slug, { expirationTtl: 3600 })
-  return { authorized: true, tenant_slug: row.tenant_slug }
+  // Fall back to session token — allow admin/owner sessions to use MCP tools
+  const sessionRaw = await env.SESSIONS.get(`session:${token}`)
+  if (sessionRaw) {
+    try {
+      const session = JSON.parse(sessionRaw) as { role?: string; customerSlug?: string }
+      const adminRoles = new Set(['owner', 'admin'])
+      if (session.role && adminRoles.has(session.role)) {
+        return { authorized: true, tenant_slug: session.customerSlug ?? null }
+      }
+    } catch {
+      // malformed session — fall through
+    }
+  }
+
+  // Cache negative result briefly (5 min) to avoid DB hammering
+  await env.SESSIONS.put(cacheKey, '__revoked__', { expirationTtl: 300 })
+  return { authorized: false, tenant_slug: null }
 }
 
 mcpRoutes.post('/', async (c) => {

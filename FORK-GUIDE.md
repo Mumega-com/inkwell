@@ -28,7 +28,7 @@ This clones Inkwell, generates your config, and initializes a fresh git repo. Sk
 ### 2. Fork & Clone
 
 ```bash
-git clone https://github.com/servathadi/inkwell
+git clone https://github.com/Mumega-com/inkwell
 cd inkwell
 npm install
 ```

@@ -6,7 +6,7 @@
  *   GET /glass/tiles/{tenant}             → { tiles: Tile[], count: number }
  *
  * Dev URL:  http://localhost:8092
- * Prod URL: https://api.mumega.com
+ * Prod URL: set via GLASS_API_URL env var in your fork's wrangler.toml
  *
  * Caching: if a KV binding is provided, payloads are cached using the
  * cache_ttl_s value from the response. The adapter is KV-optional so it
@@ -68,7 +68,7 @@ interface KVBinding {
 // ─── Factory ─────────────────────────────────────────────────────────────────
 
 export function createSosGlassAdapter(config: {
-  /** Base URL of the Glass service, e.g. "https://api.mumega.com" or "http://localhost:8092" */
+  /** Base URL of the Glass service, e.g. "https://api.yoursite.com" or "http://localhost:8092" */
   baseUrl: string
   /** Cloudflare KV namespace for caching — optional; omit in Node test environments */
   kv?: KVBinding
