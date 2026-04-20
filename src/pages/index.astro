@@ -4,6 +4,7 @@ import Header from '../components/layout/Header.astro'
 import Footer from '../components/layout/Footer.astro'
 import JsonLd from '../components/seo/JsonLd.astro'
 import { NetworkHero } from '../components/visualization/NetworkHero'
+import { OrganismAnimation } from '../components/visualization/OrganismAnimation'
 import { getCollection } from 'astro:content'
 import { config } from '../lib/config'
 
@@ -66,6 +67,17 @@ const squads = [
           <a href="/about" class="hero-cta-secondary">How it works</a>
         </div>
         <p class="hero-compat">Works with Claude, ChatGPT, Cursor, and any MCP tool</p>
+      </div>
+    </section>
+
+    {/* ── Organism Animation ── */}
+    <section class="anim-section">
+      <div class="anim-label-bar">
+        <span class="anim-label">ORGANISM RUNTIME</span>
+        <span class="anim-sub">How Mumega operates a customer end-to-end</span>
+      </div>
+      <div class="anim-stage">
+        <OrganismAnimation client:visible height="100%" />
       </div>
     </section>
 
@@ -253,6 +265,38 @@ const squads = [
 
 <style>
   main { padding-top: 3.5rem; }
+
+  /* ── Organism Animation ── */
+  .anim-section {
+    margin: 0 auto var(--space-3xl);
+    max-width: var(--page-width);
+    padding: 0 var(--space-lg);
+  }
+  .anim-label-bar {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-md);
+    padding: var(--space-sm) var(--space-md);
+    background: rgba(212,160,23,0.06);
+    border: 1px solid rgba(212,160,23,0.18);
+    border-bottom: none;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .anim-label {
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    color: var(--ink-primary);
+  }
+  .anim-sub {
+    font-size: 0.75rem;
+    color: var(--ink-muted);
+  }
+  .anim-stage {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #060810;
+    border: 1px solid rgba(212,160,23,0.18);
+  }
 
   /* ── Hero ── */
   .hero {
