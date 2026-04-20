@@ -1,0 +1,198 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   Inkwell Design System — Colors & Type
+   Source: Mumega-com/inkwell — inkwell.config.ts + src/styles/base.css
+   Dark-first. All tokens mirror real CSS custom properties used in the
+   Astro site (prefix: --ink-*). Swap the root class for theme.
+   ───────────────────────────────────────────────────────────────────────── */
+
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+/* ── Base tokens (theme-agnostic) ─────────────────────────────────────── */
+:root {
+  /* Brand core (from inkwell.config.ts → theme.colors) */
+  --ink-primary:   #D4A017;   /* ink gold — brand, CTAs, emphasis */
+  --ink-secondary: #06B6D4;   /* cyan — accent, links in charts */
+  --ink-accent:    #10B981;   /* emerald — success, positive trend */
+  --ink-danger:    #EF4444;   /* red — destructive, negative trend */
+
+  /* Chart / extended palette (seen in components) */
+  --ink-chart-1: #D4A017;
+  --ink-chart-2: #06B6D4;
+  --ink-chart-3: #10B981;
+  --ink-chart-4: #8B5CF6;
+  --ink-chart-5: #F59E0B;
+  --ink-chart-6: #EC4899;
+
+  /* Typography stack */
+  --ink-font-display: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --ink-font-body:    system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --ink-font-mono:    'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Shape / layout */
+  --ink-radius:         6px;   /* canonical radius from config */
+  --ink-radius-sm:      4px;
+  --ink-radius-lg:      8px;
+  --ink-radius-pill:  9999px;
+  --ink-content-width: 680px;
+  --ink-page-width:   1200px;
+
+  /* Spacing scale (derived from component usage) */
+  --ink-space-1: 4px;
+  --ink-space-2: 8px;
+  --ink-space-3: 12px;
+  --ink-space-4: 16px;
+  --ink-space-5: 20px;
+  --ink-space-6: 24px;
+  --ink-space-8: 32px;
+  --ink-space-10: 40px;
+
+  /* Shadow system (from ChatWidget + palette patterns) */
+  --ink-shadow-sm: 0 1px 2px rgba(0,0,0,0.08);
+  --ink-shadow-md: 0 4px 16px rgba(0,0,0,0.40);
+  --ink-shadow-lg: 0 25px 50px -12px rgba(0,0,0,0.50);
+
+  /* Motion */
+  --ink-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ink-dur-fast:   150ms;
+  --ink-dur-normal: 200ms;
+  --ink-dur-slow:   300ms;
+}
+
+/* ── Light theme (default) ────────────────────────────────────────────── */
+:root, :root.light {
+  --ink-bg:      #FAFBFC;
+  --ink-surface: #FFFFFF;
+  --ink-text:    #1A1D23;
+  --ink-muted:   rgba(0,0,0,0.55);
+  --ink-dim:     rgba(0,0,0,0.35);
+  --ink-border:  rgba(0,0,0,0.10);
+  --ink-surface-hover: rgba(0,0,0,0.04);
+  --ink-primary-muted: rgba(212, 160, 23, 0.10);
+  --ink-text-muted: var(--ink-muted);
+  --ink-text-dim:   var(--ink-dim);
+}
+
+/* ── Dark theme (darkFirst: true in config) ───────────────────────────── */
+:root.dark {
+  --ink-bg:      #0A0A10;
+  --ink-surface: #151519;
+  --ink-text:    #EDEDF0;
+  --ink-muted:   rgba(255,255,255,0.55);
+  --ink-dim:     rgba(255,255,255,0.35);
+  --ink-border:  rgba(255,255,255,0.10);
+  --ink-surface-hover: rgba(255,255,255,0.06);
+  --ink-primary-muted: rgba(212, 160, 23, 0.10);
+  --ink-text-muted: var(--ink-muted);
+  --ink-text-dim:   var(--ink-dim);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    --ink-bg:      #0A0A10;
+    --ink-surface: #151519;
+    --ink-text:    #EDEDF0;
+    --ink-muted:   rgba(255,255,255,0.55);
+    --ink-dim:     rgba(255,255,255,0.35);
+    --ink-border:  rgba(255,255,255,0.10);
+    --ink-surface-hover: rgba(255,255,255,0.06);
+  }
+}
+
+/* ── Semantic typography classes ──────────────────────────────────────── */
+/* Display (mono): used for H1–H4, metrics, titles, labels.
+   Body (system): used for paragraph / UI text.
+   Mono: used for code, captions, buttons, meta. */
+
+.ink-display-1,
+.ink-h1 {
+  font-family: var(--ink-font-display);
+  font-size: 2.25rem;      /* 36px */
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--ink-text);
+}
+
+.ink-display-2,
+.ink-h2 {
+  font-family: var(--ink-font-display);
+  font-size: 1.75rem;      /* 28px */
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--ink-text);
+}
+
+.ink-h3 {
+  font-family: var(--ink-font-display);
+  font-size: 1.375rem;     /* 22px */
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+  color: var(--ink-text);
+}
+
+.ink-h4 {
+  font-family: var(--ink-font-display);
+  font-size: 1.125rem;     /* 18px */
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--ink-text);
+}
+
+.ink-lead {
+  font-family: var(--ink-font-body);
+  font-size: 1.125rem;
+  line-height: 1.6;
+  color: var(--ink-muted);
+}
+
+.ink-body,
+.ink-p {
+  font-family: var(--ink-font-body);
+  font-size: 1rem;         /* 16px */
+  line-height: 1.8;
+  color: var(--ink-text);
+}
+
+.ink-small {
+  font-family: var(--ink-font-body);
+  font-size: 0.875rem;     /* 14px */
+  line-height: 1.55;
+  color: var(--ink-muted);
+}
+
+.ink-caption,
+.ink-mono-caption {
+  font-family: var(--ink-font-mono);
+  font-size: 0.75rem;      /* 12px */
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--ink-muted);
+}
+
+.ink-eyebrow {
+  font-family: var(--ink-font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-muted);
+}
+
+.ink-code {
+  font-family: var(--ink-font-mono);
+  font-size: 0.875em;
+  background: var(--ink-surface);
+  padding: 0.15em 0.4em;
+  border-radius: var(--ink-radius-sm);
+  color: var(--ink-text);
+}
+
+.ink-metric-value {
+  font-family: var(--ink-font-display);
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--ink-primary);
+}

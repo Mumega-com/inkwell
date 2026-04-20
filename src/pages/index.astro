@@ -3,30 +3,12 @@ import Base from '../layouts/Base.astro'
 import Header from '../components/layout/Header.astro'
 import Footer from '../components/layout/Footer.astro'
 import JsonLd from '../components/seo/JsonLd.astro'
-import { NetworkHero } from '../components/visualization/NetworkHero'
+import { KernelAnimation } from '../components/visualization/KernelAnimation'
 import { getCollection } from 'astro:content'
 import { config } from '../lib/config'
 
-const allTopics = await getCollection('topics', (t) => t.data.status === 'active')
-const topics = allTopics.sort((a, b) => b.data.weight - a.data.weight).slice(0, 3)
-
-const allLabs = await getCollection('labs', (l) => l.data.status !== 'archived')
-const labs = allLabs.sort((a, b) => b.data.weight - a.data.weight)
-
-const allTools = await getCollection('tools')
-const tools = allTools.sort((a, b) => b.data.weight - a.data.weight)
-
 const allPosts = await getCollection('blog', (p) => p.data.status === 'published')
-const posts = allPosts.sort((a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime()).slice(0, 5)
-
-const allTeam = await getCollection('team', (m) => m.data.status !== 'dormant')
-const team = allTeam.sort((a, b) => {
-  const o = { human: 0, agent: 1 } as Record<string, number>
-  return (o[a.data.type] ?? 1) - (o[b.data.type] ?? 1)
-})
-
-const allProducts = await getCollection('products', (p) => p.data.status !== 'discontinued')
-const products = allProducts.sort((a, b) => b.data.weight - a.data.weight)
+const posts = allPosts.sort((a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime()).slice(0, 4)
 
 function timeAgo(date: Date): string {
   const diff = Date.now() - date.getTime()
@@ -37,198 +19,250 @@ function timeAgo(date: Date): string {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-const squads = [
-  { name: 'Publishing', desc: 'Markdown, MDX, inbox ingest, deploys', agents: 'Content, Workflow', icon: '>' },
-  { name: 'Design', desc: 'Layouts, theme tokens, visual polish', agents: 'UI, Theme', icon: '~' },
-  { name: 'Search', desc: 'Pagefind, tags, graph, discovery', agents: 'Index, Query', icon: '^' },
-  { name: 'Integrations', desc: 'Workers, APIs, webhooks, MCP', agents: 'Edge, Sync', icon: '#' },
-  { name: 'Growth', desc: 'SEO, social, newsletters, analytics', agents: 'Audience, Metrics', icon: '@' },
-  { name: 'Ops', desc: 'Monitoring, deploys, security, incidents', agents: 'Infra, Alerts', icon: '!' },
+// Plugin categories matching what's actually in the kernel
+const pluginSurface = ['content', 'dashboard', 'commerce', 'auth', 'contracts', 'courses', 'onboarding', 'questionnaire', 'feedback']
+const pluginService = ['payments', 'notifications', 'sync', 'analytics', 'seo', 'media', 'crm', 'discovery', 'diagnostics', 'organism']
+const pluginAI      = ['mcp', 'chat', 'telegram', 'agency', 'automation']
+
+const ports = [
+  { name: 'DatabasePort',      swap: 'D1 → Postgres, PlanetScale, Neon' },
+  { name: 'AuthPort',          swap: 'CF Access → Auth.js, SOS tokens' },
+  { name: 'StoragePort',       swap: 'R2 → S3, GCS, any blob store' },
+  { name: 'MediaPort',         swap: 'Workers AI → OpenAI, Replicate' },
+  { name: 'BusPort',           swap: 'No-op → SOS Redis bus' },
+  { name: 'MemoryPort',        swap: 'KV → Mirror vectors, Pinecone' },
+  { name: 'AgentPort',         swap: 'Stub → Anthropic Managed Agents' },
+  { name: 'EconomyPort',       swap: 'No-op → SOS Economy, Stripe' },
+]
+
+const mcpTools = [
+  { group: 'Content', tools: ['publish_content', 'content_strategy', 'auto_tag_content', 'generate_pages', 'prune_content'] },
+  { group: 'CRM',     tools: ['create_contact', 'update_contact', 'list_contacts', 'manage_pipeline', 'find_leads', 'run_outreach'] },
+  { group: 'SEO',     tools: ['seo_crawl_stats', 'manage_redirects', 'seo_audit'] },
+  { group: 'Media',   tools: ['upload_media', 'describe_image', 'generate_image', 'search_media'] },
+  { group: 'Agency',  tools: ['onboard_client', 'client_dashboard', 'client_report'] },
+  { group: 'Ops',     tools: ['get_dashboard', 'trigger_workflow', 'list_workflows', 'subscription_status', 'get_feedback_summary'] },
 ]
 ---
 
-<Base title={`${config.name} — Forkable CMS for agent-first publishing`} description="Config-driven content, static search, optional Worker APIs, and publishing flows that agents can use without custom code.">
+<Base title={`${config.name} — Fork once. One config. Agents operate it.`} description="Inkwell is a forkable SaaS microkernel — Astro 6 + Cloudflare Workers. 24 plugins, 16 swappable ports, 41 MCP tools. Ship a full SaaS by editing one config file.">
   <JsonLd siteOnly />
   <Header />
 
   <main>
+
     {/* ── Hero ── */}
     <section class="hero">
-      <div class="hero-canvas">
-        <NetworkHero client:load />
-      </div>
       <div class="hero-content">
-        <h1 class="hero-title">{config.name}</h1>
-        <div class="hero-two">
-          <div class="hero-card">
-            <span class="hero-label">For publishers</span>
-            <p class="hero-pitch">Content comes from files, not custom CMS code.</p>
-            <span class="hero-sub">Markdown, MDX, and optional publish APIs in one stack.</span>
-          </div>
-          <div class="hero-card">
-            <span class="hero-label">For builders</span>
-            <p class="hero-pitch">Your CMS is ready to fork.</p>
-            <span class="hero-sub">Replace the config, swap the content, keep the system.</span>
-          </div>
+        <div class="hero-eyebrow">
+          <span class="badge">v8.5</span>
+          <span class="badge badge-dim">Astro 6 · Cloudflare Workers · ~430 LOC kernel</span>
+        </div>
+        <h1 class="hero-title">Fork once.<br/>One config file.<br/>Agents operate it.</h1>
+        <p class="hero-sub">
+          Inkwell is a SaaS microkernel — 24 plugins, 16 swappable ports, 41 MCP tools.
+          Ship contracts, CRM, courses, commerce, SEO, and media by editing <code>inkwell.config.ts</code>.
+          Claude runs the whole stack via MCP.
+        </p>
+        <div class="hero-actions">
+          <a href="/docs" class="btn-primary">Read the docs</a>
+          <a href="/dashboard" class="btn-secondary">Open dashboard</a>
+        </div>
+        <div class="hero-stats">
+          <div class="stat"><span class="stat-n">24</span><span class="stat-l">plugins</span></div>
+          <div class="stat-sep"></div>
+          <div class="stat"><span class="stat-n">16</span><span class="stat-l">hex ports</span></div>
+          <div class="stat-sep"></div>
+          <div class="stat"><span class="stat-n">41</span><span class="stat-l">MCP tools</span></div>
+          <div class="stat-sep"></div>
+          <div class="stat"><span class="stat-n">430</span><span class="stat-l">LOC kernel</span></div>
         </div>
       </div>
     </section>
 
-    {/* ── Capabilities ── */}
+    {/* ── Kernel Animation ── */}
+    <section class="anim-section">
+      <div class="anim-label">
+        <span class="anim-tag">LIVE DEMO</span>
+        <span class="anim-caption">Watch the kernel boot, load plugins, bind ports, route requests, fan out events, and hot-swap an adapter — 48 seconds, 7 scenes.</span>
+      </div>
+      <div class="anim-stage">
+        <KernelAnimation client:visible height="100%" />
+      </div>
+      <div class="anim-legend">
+        <span class="legend-dot orange"></span> surface plugins &nbsp;
+        <span class="legend-dot cyan"></span> service plugins &nbsp;
+        <span class="legend-dot green"></span> AI plugins &nbsp;·&nbsp;
+        space to pause · ←→ seek · 0 reset
+      </div>
+    </section>
+
+    {/* ── Architecture strip ── */}
+    <section class="arch-strip">
+      <div class="arch-inner">
+        <div class="arch-block">
+          <div class="arch-block-label">KERNEL</div>
+          <div class="arch-block-n">~430 LOC</div>
+          <div class="arch-block-desc">Contracts only — types, plugin loader, adapter registry, RBAC, theme. Zero business logic.</div>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-block">
+          <div class="arch-block-label">24 PLUGINS</div>
+          <div class="arch-block-n">self-contained</div>
+          <div class="arch-block-desc">Each plugin owns routes, widgets, MCP tools, and migrations. No cross-plugin imports.</div>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-block">
+          <div class="arch-block-label">16 PORTS</div>
+          <div class="arch-block-n">hexagonal</div>
+          <div class="arch-block-desc">Every infra concern is a swappable adapter. Cloudflare → Postgres in one config line.</div>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-block">
+          <div class="arch-block-label">41 MCP TOOLS</div>
+          <div class="arch-block-n">RBAC-gated</div>
+          <div class="arch-block-desc">Claude calls typed tools to publish, query CRM, run SEO audits, and onboard clients — no custom code.</div>
+        </div>
+      </div>
+    </section>
+
+    {/* ── Plugins ── */}
     <section class="section">
       <div class="section-inner">
         <div class="section-header">
           <div>
-            <h2 class="section-title">Capabilities</h2>
-            <p class="section-desc">The pieces that make the CMS usable on day one.</p>
+            <h2 class="section-title">24 plugins, ready to fork</h2>
+            <p class="section-desc">Surface (user-facing), Service (backend), AI (agent-native). All declared in one config array.</p>
+          </div>
+          <a href="/docs" class="section-link">Plugin manifest →</a>
+        </div>
+        <div class="plugin-columns">
+          <div class="plugin-col">
+            <div class="plugin-col-header orange">surface</div>
+            {pluginSurface.map(p => <div class="plugin-chip orange">{p}</div>)}
+          </div>
+          <div class="plugin-col">
+            <div class="plugin-col-header cyan">service</div>
+            {pluginService.map(p => <div class="plugin-chip cyan">{p}</div>)}
+          </div>
+          <div class="plugin-col">
+            <div class="plugin-col-header green">ai</div>
+            {pluginAI.map(p => <div class="plugin-chip green">{p}</div>)}
           </div>
         </div>
-        <div class="squad-grid">
-          {squads.map((sq) => (
-            <div class="squad-card">
-              <span class="squad-icon">{sq.icon}</span>
-              <div class="squad-info">
-                <h3 class="squad-name">{sq.name}</h3>
-                <p class="squad-desc">{sq.desc}</p>
-                <span class="squad-agents">{sq.agents}</span>
-              </div>
-            </div>
-          ))}
-        </div>
+        <p class="plugin-note">
+          Enabled by listing in <code>config.plugins[]</code>. Not in the list → doesn't load. Period.
+        </p>
       </div>
     </section>
 
-    {/* ── What we're building ── */}
+    {/* ── Ports ── */}
     <section class="section alt">
       <div class="section-inner">
         <div class="section-header">
           <div>
-            <h2 class="section-title">What ships with the CMS</h2>
-            <p class="section-desc">A content system, not a blank starter.</p>
+            <h2 class="section-title">16 hexagonal ports</h2>
+            <p class="section-desc">Change infra without touching plugin code. Every adapter is a single config key.</p>
           </div>
-          <a href="/labs" class="section-link">All labs &rarr;</a>
         </div>
-        <div class="equip-grid">
-          {labs.map((lab) => (
-            <a href={`/labs/${lab.id}`} class="equip-card large">
-              <span class="equip-status" style={`color: ${lab.data.status === 'shipped' ? '#10B981' : '#D4A017'}`}>{lab.data.status}</span>
-              <h3 class="equip-title">{lab.data.title}</h3>
-              {lab.data.role_in_ecosystem && <p class="equip-role">{lab.data.role_in_ecosystem}</p>}
-              <div class="equip-stack">
-                {lab.data.stack.slice(0, 4).map((t) => <span class="tag">{t}</span>)}
-              </div>
-            </a>
+        <div class="ports-grid">
+          {ports.map(p => (
+            <div class="port-card">
+              <div class="port-name">{p.name}</div>
+              <div class="port-swap">{p.swap}</div>
+            </div>
           ))}
-          {tools.map((tool) => (
-            <a href={`/tools/${tool.id}`} class="equip-card">
-              <span class="equip-type">{tool.data.type}</span>
-              <h3 class="equip-title">{tool.data.title}</h3>
-              <p class="equip-desc">{tool.data.description}</p>
-            </a>
-          ))}
+        </div>
+        <div class="port-example">
+          <pre><code>{`// inkwell.config.ts
+adapters: {
+  storage:  "cloudflare.d1",   // → swap to "postgres" with zero plugin changes
+  media:    "cloudflare.r2",
+  session:  "cloudflare.kv",
+  agent:    "anthropic.sonnet",
+}`}</code></pre>
         </div>
       </div>
     </section>
 
-    {/* ── Products ── */}
-    {products.length > 0 && (
-      <section class="section">
-        <div class="section-inner">
-          <div class="section-header">
-            <div>
-              <h2 class="section-title">Example offerings</h2>
-              <p class="section-desc">Optional product pages and integrations for forks.</p>
-            </div>
-            <a href="/products" class="section-link">All products &rarr;</a>
-          </div>
-          <div class="products-grid">
-            {products.map((p) => (
-              <a href={`/products/${p.id}`} class="product-card">
-                <div class="product-top">
-                  {p.data.marketplace && <span class="product-market">{p.data.marketplace}</span>}
-                  {p.data.price && <span class="product-price">{p.data.price}</span>}
-                </div>
-                <h3 class="product-title">{p.data.title}</h3>
-                <p class="product-desc">{p.data.description}</p>
-                <ul class="product-feats">
-                  {p.data.features.slice(0, 3).map((f) => <li>{f}</li>)}
-                </ul>
-              </a>
-            ))}
+    {/* ── MCP Tools ── */}
+    <section class="section">
+      <div class="section-inner">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">41 MCP tools — Claude operates the stack</h2>
+            <p class="section-desc">Every tool is RBAC-gated. Agents call tools. Plugins respond. No custom prompt engineering.</p>
           </div>
         </div>
-      </section>
-    )}
+        <div class="mcp-groups">
+          {mcpTools.map(g => (
+            <div class="mcp-group">
+              <div class="mcp-group-label">{g.group}</div>
+              <div class="mcp-tools">
+                {g.tools.map(t => <code class="mcp-tool">{t}</code>)}
+              </div>
+            </div>
+          ))}
+        </div>
+        <div class="mcp-note">
+          Connect via <code>npx wrangler deploy</code> + set <code>NETWORK_TOKEN</code>.
+          Claude calls <code>GET /api/mcp</code> — the kernel routes, RBAC checks, plugin responds.
+        </div>
+      </div>
+    </section>
 
-    {/* ── Who builds this ── */}
+    {/* ── Fork guide ── */}
     <section class="section alt">
       <div class="section-inner">
         <div class="section-header">
           <div>
-            <h2 class="section-title">Example contributors</h2>
-            <p class="section-desc">{team.length} maintainers, authors, and sample agents.</p>
+            <h2 class="section-title">Fork in 4 steps</h2>
+            <p class="section-desc">From zero to a live SaaS for a customer.</p>
           </div>
-          <a href="/team" class="section-link">Full team &rarr;</a>
         </div>
-        <div class="team-grid">
-          {team.map((m) => (
-            <a href={`/team/${m.id}`} class="team-card">
-              <div class="team-top">
-                <span class="team-dot" style={`background: ${m.data.status === 'active' ? '#10B981' : '#555'}`}></span>
-                <span class="team-type">{m.data.type}</span>
-                {m.data.squad && <span class="team-squad">{m.data.squad}</span>}
-              </div>
-              <span class="team-name">{m.data.title}</span>
-              <span class="team-role">{m.data.role}</span>
-            </a>
-          ))}
+        <div class="steps">
+          <div class="step">
+            <div class="step-n">01</div>
+            <div class="step-body">
+              <div class="step-title">Fork the repo</div>
+              <div class="step-desc">One repo per customer. No subdomains, no multi-tenant shared infra unless you want it.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-n">02</div>
+            <div class="step-body">
+              <div class="step-title">Edit <code>inkwell.config.ts</code></div>
+              <div class="step-desc">Name, domain, theme, plugins, adapters — every customer config lives in one file.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-n">03</div>
+            <div class="step-body">
+              <div class="step-title">Deploy to Cloudflare</div>
+              <div class="step-desc"><code>npx wrangler deploy</code> — the Worker registers plugins, mounts routes, collects MCP tools. Live in seconds.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-n">04</div>
+            <div class="step-body">
+              <div class="step-title">Connect Claude</div>
+              <div class="step-desc">Point Claude at <code>/api/mcp</code>. It discovers 41 tools. Your customer's stack is now agent-operated.</div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
-    {/* ── What we're tracking ── */}
-    {topics.length > 0 && (
-      <section class="section">
-        <div class="section-inner">
-          <div class="section-header">
-            <div>
-              <h2 class="section-title">Topics</h2>
-              <p class="section-desc">Living knowledge pages, curated and updated as the site grows.</p>
-            </div>
-            <a href="/topics" class="section-link">All topics &rarr;</a>
-          </div>
-          <div class="topic-list">
-            {topics.map((t) => (
-              <a href={`/topics/${t.id}`} class="topic-item">
-                <div class="topic-status">
-                  <span class="topic-dot"></span>
-                  <span class="topic-label">{t.data.status}</span>
-                </div>
-                <div class="topic-info">
-                  <h3 class="topic-title">{t.data.title}</h3>
-                  <p class="topic-desc">{t.data.description}</p>
-                </div>
-                <div class="topic-stats">
-                  <span>{t.data.sources.length} sources</span>
-                  <span>{t.data.voices.length} voices</span>
-                </div>
-              </a>
-            ))}
-          </div>
-        </div>
-      </section>
-    )}
-
-    {/* ── Latest from the network ── */}
+    {/* ── Latest posts ── */}
     {posts.length > 0 && (
-      <section class="section alt">
+      <section class="section">
         <div class="section-inner">
           <div class="section-header">
             <div>
-              <h2 class="section-title">Latest posts</h2>
-              <p class="section-desc">Build journals, experiments, and lessons from the reference implementation.</p>
+              <h2 class="section-title">Build journal</h2>
+              <p class="section-desc">What's shipping, what changed, what broke.</p>
             </div>
-            <a href="/blog" class="section-link">All posts &rarr;</a>
+            <a href="/blog" class="section-link">All posts →</a>
           </div>
           <div class="feed">
             {posts.map((post) => (
@@ -243,15 +277,17 @@ const squads = [
       </section>
     )}
 
-    {/* ── Deeper ── */}
+    {/* ── Footer nav ── */}
     <section class="lore">
       <div class="lore-inner">
-        <a href="/docs" class="lore-link">Documentation &rarr;</a>
-        <a href="/vision" class="lore-link">Vision &rarr;</a>
-        <a href="/about" class="lore-link">About &rarr;</a>
-        <a href="/explore" class="lore-link">Knowledge graph &rarr;</a>
+        <a href="/docs" class="lore-link">Documentation →</a>
+        <a href="/vision" class="lore-link">Vision →</a>
+        <a href="/about" class="lore-link">About →</a>
+        <a href="/explore" class="lore-link">Knowledge graph →</a>
+        <a href="/dashboard" class="lore-link">Dashboard →</a>
       </div>
     </section>
+
   </main>
 
   <Footer />
@@ -262,67 +298,191 @@ const squads = [
 
   /* ── Hero ── */
   .hero {
-    position: relative;
-    min-height: 60vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-  }
-  .hero-canvas { position: absolute; inset: 0; }
-  .hero-content {
-    position: relative;
-    z-index: 1;
+    padding: 5rem 1.5rem 4rem;
     text-align: center;
-    padding: 4rem 1.5rem;
-    width: 100%;
-    max-width: var(--ink-page-width);
+    border-bottom: 1px solid var(--ink-border);
   }
+  .hero-content { max-width: 720px; margin: 0 auto; }
+
+  .hero-eyebrow {
+    display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 1.75rem; flex-wrap: wrap;
+  }
+  .badge {
+    font-family: var(--ink-font-mono);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.625rem;
+    border-radius: calc(var(--ink-radius) - 2px);
+    background: var(--ink-primary);
+    color: #000;
+  }
+  .badge-dim {
+    background: transparent;
+    border: 1px solid var(--ink-border);
+    color: var(--ink-dim);
+  }
+
   .hero-title {
     font-family: var(--ink-font-display);
-    font-size: clamp(2.5rem, 7vw, 4rem);
+    font-size: clamp(2.5rem, 6vw, 4rem);
     font-weight: 700;
     color: var(--ink-text);
     letter-spacing: -0.04em;
-    margin: 0 0 2.5rem;
-  }
-  .hero-two {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-    max-width: 680px;
-    margin: 0 auto;
-  }
-  .hero-card {
-    padding: 1.5rem;
-    background: color-mix(in srgb, var(--ink-surface) 80%, transparent);
-    border: 1px solid var(--ink-border);
-    border-radius: var(--ink-radius);
-    backdrop-filter: blur(8px);
-    text-align: left;
-  }
-  .hero-label {
-    font-family: var(--ink-font-mono);
-    font-size: 0.625rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--ink-primary);
-    font-weight: 600;
-  }
-  .hero-pitch {
-    font-family: var(--ink-font-display);
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--ink-text);
-    margin: 0.5rem 0 0.375rem;
-    letter-spacing: -0.02em;
-    line-height: 1.2;
+    line-height: 1.05;
+    margin: 0 0 1.5rem;
   }
   .hero-sub {
-    font-size: 0.8125rem;
+    font-size: 1.0625rem;
     color: var(--ink-muted);
-    line-height: 1.4;
-    margin: 0;
+    line-height: 1.65;
+    margin: 0 0 2rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .hero-sub code {
+    font-family: var(--ink-font-mono);
+    font-size: 0.875em;
+    color: var(--ink-primary);
+    background: color-mix(in srgb, var(--ink-primary) 12%, transparent);
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+  }
+
+  .hero-actions {
+    display: flex; justify-content: center; gap: 0.75rem; margin-bottom: 2.5rem;
+  }
+  .btn-primary {
+    font-family: var(--ink-font-display);
+    font-weight: 700; font-size: 0.9375rem;
+    padding: 0.625rem 1.5rem;
+    background: var(--ink-primary); color: #000;
+    border-radius: var(--ink-radius);
+    text-decoration: none;
+    transition: opacity 0.15s;
+  }
+  .btn-primary:hover { opacity: 0.88; }
+  .btn-secondary {
+    font-family: var(--ink-font-display);
+    font-weight: 600; font-size: 0.9375rem;
+    padding: 0.625rem 1.5rem;
+    border: 1px solid var(--ink-border);
+    border-radius: var(--ink-radius);
+    color: var(--ink-text);
+    text-decoration: none;
+    transition: border-color 0.15s;
+  }
+  .btn-secondary:hover { border-color: var(--ink-primary); }
+
+  .hero-stats {
+    display: flex; justify-content: center; align-items: center; gap: 1.25rem;
+  }
+  .stat { display: flex; flex-direction: column; align-items: center; gap: 0.125rem; }
+  .stat-n {
+    font-family: var(--ink-font-display);
+    font-size: 1.75rem; font-weight: 700;
+    color: var(--ink-primary); line-height: 1;
+  }
+  .stat-l {
+    font-family: var(--ink-font-mono);
+    font-size: 0.625rem; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--ink-dim);
+  }
+  .stat-sep { width: 1px; height: 2rem; background: var(--ink-border); }
+
+  /* ── Animation ── */
+  .anim-section {
+    background: #0a0604;
+    border-bottom: 1px solid #ff7a1a33;
+  }
+  .anim-label {
+    display: flex; align-items: center; gap: 1rem;
+    padding: 0.75rem 1.5rem;
+    border-bottom: 1px solid #ff7a1a22;
+  }
+  .anim-tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.625rem; letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.5rem;
+    border: 1px solid #ff7a1a;
+    color: #ff7a1a;
+    flex-shrink: 0;
+  }
+  .anim-caption {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem; color: #b8520f;
+    letter-spacing: 0.04em;
+  }
+  .anim-stage {
+    width: 100%;
+    height: min(56vw, 700px);
+    min-height: 360px;
+  }
+  .anim-legend {
+    padding: 0.5rem 1.5rem;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.6875rem;
+    color: #b8520f;
+    letter-spacing: 0.06em;
+    border-top: 1px solid #ff7a1a22;
+  }
+  .legend-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 1px;
+    vertical-align: middle;
+    margin-right: 4px;
+  }
+  .legend-dot.orange { background: #ffa04d; }
+  .legend-dot.cyan   { background: #3de3ff; }
+  .legend-dot.green  { background: #4dff9f; }
+
+  /* ── Architecture strip ── */
+  .arch-strip {
+    background: var(--ink-surface);
+    border-bottom: 1px solid var(--ink-border);
+    padding: 2rem 1.5rem;
+  }
+  .arch-inner {
+    max-width: var(--ink-page-width);
+    margin: 0 auto;
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    overflow-x: auto;
+  }
+  .arch-block {
+    flex: 1; min-width: 160px; padding: 0 1.25rem;
+  }
+  .arch-block:first-child { padding-left: 0; }
+  .arch-block-label {
+    font-family: var(--ink-font-mono);
+    font-size: 0.625rem; letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-primary);
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+  }
+  .arch-block-n {
+    font-family: var(--ink-font-display);
+    font-size: 1rem; font-weight: 700;
+    color: var(--ink-text);
+    margin-bottom: 0.5rem;
+  }
+  .arch-block-desc {
+    font-size: 0.8125rem; color: var(--ink-muted); line-height: 1.45;
+  }
+  .arch-arrow {
+    font-family: var(--ink-font-mono);
+    color: var(--ink-border);
+    font-size: 1.25rem;
+    padding-top: 0.25rem;
+    flex-shrink: 0;
+    align-self: flex-start;
+    margin-top: 0.375rem;
   }
 
   /* ── Sections ── */
@@ -330,143 +490,157 @@ const squads = [
   .section.alt { background: var(--ink-surface); }
   .section-inner { max-width: var(--ink-page-width); margin: 0 auto; }
   .section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 2rem;
-    gap: 1rem;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 2rem; gap: 1rem;
   }
   .section-title {
     font-family: var(--ink-font-display);
-    font-size: 1.75rem;
-    font-weight: 700;
+    font-size: 1.75rem; font-weight: 700;
     color: var(--ink-text);
-    letter-spacing: -0.02em;
-    margin: 0 0 0.25rem;
+    letter-spacing: -0.02em; margin: 0 0 0.25rem;
   }
   .section-desc { font-size: 0.9375rem; color: var(--ink-muted); margin: 0; }
   .section-link {
-    font-family: var(--ink-font-mono);
-    font-size: 0.8125rem;
-    color: var(--ink-primary);
-    text-decoration: none;
-    font-weight: 600;
-    white-space: nowrap;
-    margin-top: 0.25rem;
+    font-family: var(--ink-font-mono); font-size: 0.8125rem;
+    color: var(--ink-primary); text-decoration: none; font-weight: 600;
+    white-space: nowrap; margin-top: 0.25rem;
   }
   .section-link:hover { text-decoration: underline; }
 
-  /* ── Squads ── */
-  .squad-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
+  /* ── Plugins ── */
+  .plugin-columns {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;
   }
-  .squad-card {
-    display: flex;
-    gap: 1rem;
-    padding: 1.25rem;
-    background: var(--ink-surface);
-    border: 1px solid var(--ink-border);
-    border-radius: var(--ink-radius);
-    transition: border-color 0.15s;
+  .plugin-col {
+    display: flex; flex-direction: column; gap: 0.375rem;
   }
-  .squad-card:hover { border-color: var(--ink-primary); }
-  .squad-icon {
+  .plugin-col-header {
     font-family: var(--ink-font-mono);
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--ink-primary);
-    line-height: 1;
-    flex-shrink: 0;
-    width: 2rem;
-    text-align: center;
+    font-size: 0.625rem; letter-spacing: 0.15em;
+    text-transform: uppercase; font-weight: 700;
+    margin-bottom: 0.375rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid currentColor;
   }
-  .squad-info { display: flex; flex-direction: column; gap: 0.25rem; }
-  .squad-name {
-    font-family: var(--ink-font-display);
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--ink-text);
-    margin: 0;
-  }
-  .squad-desc { font-size: 0.8125rem; color: var(--ink-muted); margin: 0; line-height: 1.4; }
-  .squad-agents { font-family: var(--ink-font-mono); font-size: 0.6875rem; color: var(--ink-dim); }
+  .plugin-col-header.orange { color: #ffa04d; border-color: #ffa04d44; }
+  .plugin-col-header.cyan   { color: var(--ink-secondary); border-color: color-mix(in srgb, var(--ink-secondary) 30%, transparent); }
+  .plugin-col-header.green  { color: var(--ink-accent); border-color: color-mix(in srgb, var(--ink-accent) 30%, transparent); }
 
-  /* ── Equipment ── */
-  .equip-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 1rem;
+  .plugin-chip {
+    font-family: var(--ink-font-mono);
+    font-size: 0.8125rem; letter-spacing: 0.03em;
+    padding: 0.375rem 0.625rem;
+    border: 1px solid var(--ink-border);
+    border-radius: calc(var(--ink-radius) - 2px);
+    color: var(--ink-muted);
+    transition: border-color 0.12s, color 0.12s;
   }
-  .equip-card {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    padding: 1.25rem;
+  .plugin-chip.orange:hover { border-color: #ffa04d; color: #ffa04d; }
+  .plugin-chip.cyan:hover   { border-color: var(--ink-secondary); color: var(--ink-secondary); }
+  .plugin-chip.green:hover  { border-color: var(--ink-accent); color: var(--ink-accent); }
+
+  .plugin-note {
+    margin-top: 1.5rem; font-size: 0.875rem; color: var(--ink-dim);
+  }
+  .plugin-note code {
+    font-family: var(--ink-font-mono); font-size: 0.8125em;
+    color: var(--ink-primary);
+    background: color-mix(in srgb, var(--ink-primary) 10%, transparent);
+    padding: 0.1em 0.35em; border-radius: 3px;
+  }
+
+  /* ── Ports ── */
+  .ports-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.75rem;
+    margin-bottom: 2rem;
+  }
+  .port-card {
+    padding: 1rem 1.25rem;
     background: var(--ink-bg);
     border: 1px solid var(--ink-border);
     border-radius: var(--ink-radius);
-    text-decoration: none;
-    transition: border-color 0.15s;
+    border-left: 2px solid var(--ink-secondary);
   }
-  .equip-card:hover { border-color: var(--ink-primary); }
-  .equip-card.large { grid-column: span 1; }
-  .equip-status { font-family: var(--ink-font-mono); font-size: 0.625rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
-  .equip-type { font-family: var(--ink-font-mono); font-size: 0.625rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-secondary); font-weight: 600; }
-  .equip-title { font-family: var(--ink-font-display); font-size: 1.0625rem; font-weight: 700; color: var(--ink-text); margin: 0; }
-  .equip-role { font-size: 0.8125rem; color: var(--ink-primary); font-style: italic; margin: 0; }
-  .equip-desc { font-size: 0.8125rem; color: var(--ink-muted); line-height: 1.4; margin: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-  .equip-stack { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: auto; }
-  .tag { font-family: var(--ink-font-mono); font-size: 0.625rem; padding: 0.0625rem 0.375rem; border: 1px solid var(--ink-border); border-radius: calc(var(--ink-radius) - 2px); color: var(--ink-dim); }
+  .port-name {
+    font-family: var(--ink-font-display); font-size: 0.9375rem; font-weight: 700;
+    color: var(--ink-text); margin-bottom: 0.25rem;
+  }
+  .port-swap { font-family: var(--ink-font-mono); font-size: 0.75rem; color: var(--ink-muted); }
 
-  /* ── Products ── */
-  .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
-  .product-card {
-    display: flex; flex-direction: column; gap: 0.75rem; padding: 2rem;
-    background: var(--ink-surface); border: 1px solid var(--ink-border); border-radius: var(--ink-radius);
-    text-decoration: none; transition: border-color 0.15s;
+  .port-example pre {
+    background: var(--ink-bg);
+    border: 1px solid var(--ink-border);
+    border-radius: var(--ink-radius);
+    padding: 1.25rem 1.5rem;
+    overflow-x: auto;
+    margin: 0;
   }
-  .product-card:hover { border-color: var(--ink-primary); }
-  .product-top { display: flex; justify-content: space-between; align-items: center; }
-  .product-market { font-family: var(--ink-font-mono); font-size: 0.625rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-secondary); font-weight: 600; }
-  .product-price { font-family: var(--ink-font-display); font-size: 1.25rem; font-weight: 700; color: var(--ink-primary); }
-  .product-title { font-family: var(--ink-font-display); font-size: 1.25rem; font-weight: 700; color: var(--ink-text); margin: 0; }
-  .product-desc { font-size: 0.875rem; color: var(--ink-muted); line-height: 1.5; margin: 0; }
-  .product-feats { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.375rem; }
-  .product-feats li { font-size: 0.8125rem; color: var(--ink-text); padding-left: 1rem; position: relative; }
-  .product-feats li::before { content: ''; position: absolute; left: 0; top: 0.5em; width: 5px; height: 5px; border-radius: 50%; background: var(--ink-accent); }
+  .port-example code {
+    font-family: var(--ink-font-mono);
+    font-size: 0.8125rem;
+    color: var(--ink-text);
+    line-height: 1.6;
+  }
 
-  /* ── Guild ── */
-  .team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 0.75rem; }
-  .team-card {
-    display: flex; flex-direction: column; gap: 0.125rem; padding: 1rem;
-    background: var(--ink-bg); border: 1px solid var(--ink-border); border-radius: var(--ink-radius);
-    text-decoration: none; transition: border-color 0.15s;
+  /* ── MCP Tools ── */
+  .mcp-groups {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.25rem;
+    margin-bottom: 1.5rem;
   }
-  .team-card:hover { border-color: var(--ink-primary); }
-  .team-top { display: flex; align-items: center; gap: 0.375rem; margin-bottom: 0.25rem; }
-  .team-dot { width: 6px; height: 6px; border-radius: 50%; }
-  .team-type { font-family: var(--ink-font-mono); font-size: 0.5625rem; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 0.05em; }
-  .team-squad { font-family: var(--ink-font-mono); font-size: 0.5625rem; color: var(--ink-secondary); }
-  .team-name { font-weight: 700; font-size: 0.9375rem; color: var(--ink-text); }
-  .team-role { font-size: 0.75rem; color: var(--ink-muted); }
+  .mcp-group { display: flex; flex-direction: column; gap: 0.375rem; }
+  .mcp-group-label {
+    font-family: var(--ink-font-mono); font-size: 0.625rem;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--ink-primary); font-weight: 700; margin-bottom: 0.25rem;
+  }
+  .mcp-tools { display: flex; flex-direction: column; gap: 0.25rem; }
+  .mcp-tool {
+    font-family: var(--ink-font-mono); font-size: 0.8125rem;
+    color: var(--ink-muted); line-height: 1.5;
+    background: none;
+  }
+  .mcp-note {
+    font-size: 0.875rem; color: var(--ink-dim); line-height: 1.5;
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--ink-border);
+    border-radius: var(--ink-radius);
+    border-left: 2px solid var(--ink-primary);
+  }
+  .mcp-note code {
+    font-family: var(--ink-font-mono); font-size: 0.8125em;
+    color: var(--ink-primary);
+    background: color-mix(in srgb, var(--ink-primary) 10%, transparent);
+    padding: 0.1em 0.35em; border-radius: 3px;
+  }
 
-  /* ── Quests ── */
-  .topic-list { display: flex; flex-direction: column; }
-  .topic-item {
-    display: flex; align-items: center; gap: 1.5rem; padding: 1.25rem 0;
-    border-bottom: 1px solid var(--ink-border); text-decoration: none; transition: opacity 0.15s;
+  /* ── Steps ── */
+  .steps { display: flex; flex-direction: column; }
+  .step {
+    display: flex; align-items: flex-start; gap: 2rem; padding: 1.5rem 0;
+    border-bottom: 1px solid var(--ink-border);
   }
-  .topic-item:first-child { border-top: 1px solid var(--ink-border); }
-  .topic-item:hover { opacity: 0.8; }
-  .topic-status { display: flex; align-items: center; gap: 0.5rem; min-width: 5rem; }
-  .topic-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-accent); }
-  .topic-label { font-family: var(--ink-font-mono); font-size: 0.6875rem; color: var(--ink-accent); text-transform: uppercase; letter-spacing: 0.06em; }
-  .topic-info { flex: 1; }
-  .topic-title { font-family: var(--ink-font-display); font-size: 1.0625rem; font-weight: 700; color: var(--ink-text); margin: 0; }
-  .topic-desc { font-size: 0.8125rem; color: var(--ink-muted); margin: 0.25rem 0 0; }
-  .topic-stats { display: flex; gap: 1rem; font-family: var(--ink-font-mono); font-size: 0.6875rem; color: var(--ink-dim); flex-shrink: 0; }
+  .step:first-child { border-top: 1px solid var(--ink-border); }
+  .step-n {
+    font-family: var(--ink-font-display); font-size: 2rem; font-weight: 700;
+    color: var(--ink-border); line-height: 1; flex-shrink: 0; width: 3.5rem; text-align: right;
+  }
+  .step-title {
+    font-family: var(--ink-font-display); font-size: 1.125rem; font-weight: 700;
+    color: var(--ink-text); margin-bottom: 0.375rem;
+  }
+  .step-title code {
+    font-family: var(--ink-font-mono); font-size: 0.875em;
+    color: var(--ink-primary);
+    background: color-mix(in srgb, var(--ink-primary) 10%, transparent);
+    padding: 0.1em 0.35em; border-radius: 3px;
+  }
+  .step-desc { font-size: 0.9375rem; color: var(--ink-muted); line-height: 1.5; }
+  .step-desc code {
+    font-family: var(--ink-font-mono); font-size: 0.8125em;
+    color: var(--ink-secondary);
+    background: color-mix(in srgb, var(--ink-secondary) 10%, transparent);
+    padding: 0.1em 0.35em; border-radius: 3px;
+  }
 
   /* ── Feed ── */
   .feed { display: flex; flex-direction: column; }
@@ -476,43 +650,37 @@ const squads = [
   }
   .feed-item:first-child { border-top: 1px solid var(--ink-border); }
   .feed-item:hover { opacity: 0.7; }
-  .feed-date { font-family: var(--ink-font-mono); font-size: 0.75rem; color: var(--ink-dim); min-width: 4.5rem; flex-shrink: 0; }
-  .feed-author { font-family: var(--ink-font-mono); font-size: 0.75rem; color: var(--ink-primary); min-width: 5rem; flex-shrink: 0; }
+  .feed-date  { font-family: var(--ink-font-mono); font-size: 0.75rem; color: var(--ink-dim); min-width: 4.5rem; flex-shrink: 0; }
+  .feed-author{ font-family: var(--ink-font-mono); font-size: 0.75rem; color: var(--ink-primary); min-width: 5rem; flex-shrink: 0; }
   .feed-title { font-weight: 600; font-size: 0.9375rem; color: var(--ink-text); }
 
   /* ── Lore ── */
-  .lore {
-    padding: 3rem 1.5rem;
-    border-top: 1px solid var(--ink-border);
-    text-align: center;
-  }
+  .lore { padding: 3rem 1.5rem; border-top: 1px solid var(--ink-border); text-align: center; }
   .lore-inner {
-    max-width: var(--ink-page-width);
-    margin: 0 auto;
-    display: flex;
-    justify-content: center;
-    gap: 2rem;
-    flex-wrap: wrap;
+    max-width: var(--ink-page-width); margin: 0 auto;
+    display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap;
   }
   .lore-link {
-    font-family: var(--ink-font-mono);
-    font-size: 0.875rem;
-    color: var(--ink-muted);
-    text-decoration: none;
-    transition: color 0.15s;
+    font-family: var(--ink-font-mono); font-size: 0.875rem;
+    color: var(--ink-muted); text-decoration: none; transition: color 0.15s;
   }
   .lore-link:hover { color: var(--ink-primary); }
 
   /* ── Responsive ── */
   @media (max-width: 768px) {
-    .hero-two { grid-template-columns: 1fr; max-width: 360px; }
-    .squad-grid { grid-template-columns: 1fr; }
-    .equip-grid { grid-template-columns: 1fr; }
-    .team-grid { grid-template-columns: 1fr 1fr; }
-    .topic-item { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
-    .topic-stats { margin-top: 0.25rem; }
+    .hero-stats { gap: 0.75rem; }
+    .stat-n { font-size: 1.375rem; }
+    .arch-inner { flex-direction: column; gap: 1.5rem; }
+    .arch-arrow { display: none; }
+    .arch-block { padding: 0; }
+    .plugin-columns { grid-template-columns: 1fr; }
+    .ports-grid { grid-template-columns: 1fr; }
+    .mcp-groups { grid-template-columns: 1fr 1fr; }
+    .step { gap: 1rem; }
+    .step-n { width: 2rem; font-size: 1.5rem; }
     .feed-item { flex-wrap: wrap; }
     .section-header { flex-direction: column; }
     .lore-inner { flex-direction: column; gap: 1rem; }
+    .hero-actions { flex-direction: column; align-items: center; }
   }
 </style>
