@@ -338,4 +338,9 @@ instances/                     # Per-deployment overrides
 
 MIT License. Fork freely.
 
-Built by [Digid Inc.](https://digid.ca)
+---
+
+Built by [Mumega Labs](https://mumega.com) — the company that runs companies with AI agents.
+
+- **Mumega** — [mumega.com](https://mumega.com) — managed AI operations platform built on Inkwell
+- **SOS** — [github.com/Mumega-com/sos](https://github.com/Mumega-com/sos) — open source agent runtime Inkwell connects to

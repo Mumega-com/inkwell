@@ -687,7 +687,7 @@ function SceneHttpRoute() {
       {returnProg > 0.4 && responseProg < 0.8 && (
         <div style={{ position: 'absolute', left: 280, top: 380, width: 620, fontFamily: FONT_MONO, fontSize: 14, color: OF.green, background: OF.bgCard, border: `1px solid ${OF.green}55`, padding: '10px 12px', lineHeight: 1.3, opacity: clamp(returnProg - 0.4, 0, 1) }}>
           <span style={{ color: OF.orangeBright }}>← 200 OK</span><br/>
-          {'{ "title": "Hello, Inkwell", "author": "digid", "body": "..." }'}
+          {'{ "title": "Hello, Inkwell", "author": "agent", "body": "..." }'}
         </div>
       )}
 

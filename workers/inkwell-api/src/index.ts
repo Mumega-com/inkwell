@@ -20,14 +20,14 @@ import paymentsManifest from '../../../plugins/payments/manifest'
 import questionnaireManifest from '../../../plugins/questionnaire/manifest'
 import onboardingManifest from '../../../plugins/onboarding/manifest'
 import notificationsManifest from '../../../plugins/notifications/manifest'
-import organismManifest from '../../../plugins/organism/manifest'
 import syncManifest from '../../../plugins/sync/manifest'
 import mediaManifest from '../../../plugins/media/manifest'
 import seoManifest from '../../../plugins/seo/manifest'
 import feedbackManifest from '../../../plugins/feedback/manifest'
 import crmManifest from '../../../plugins/crm/manifest'
 import automationManifest from '../../../plugins/automation/manifest'
-import agencyManifest from '../../../plugins/agency/manifest'
+import organismManifest from '../../../plugins-pro/organism/manifest'
+import agencyManifest from '../../../plugins-pro/agency/manifest'
 
 // Register all available plugins
 const allPlugins = [

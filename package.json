@@ -1,25 +1,32 @@
 {
-  "name": "inkwell",
+  "name": "@mumega/inkwell",
   "type": "module",
   "version": "7.6.0",
-  "private": true,
+  "author": "Mumega Labs <hello@mumega.com>",
+  "homepage": "https://mumega.com/labs/inkwell",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Mumega-com/inkwell"
+  },
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
     "postbuild": "npx pagefind --site dist",
-    "preview": "astro preview",
-    "deploy": "npm run build && wrangler pages deploy dist/",
+    "preview": "npm run build && wrangler dev",
+    "deploy": "npm run build && wrangler deploy",
     "ingest": "tsx scripts/ingest.ts",
     "generate:og": "tsx scripts/generate-og.ts",
     "flywheel": "tsx scripts/flywheel.ts",
     "upload": "tsx scripts/upload-media.ts",
     "cache": "tsx scripts/cache-to-kv.ts",
     "publish": "bash scripts/publish.sh",
+    "qa": "bash scripts/qa.sh",
     "migrate": "cd workers/inkwell-api && npx wrangler d1 migrations apply inkwell-core --local && npx wrangler d1 migrations apply inkwell-analytics --local && npx wrangler d1 migrations apply inkwell-marketing --local",
     "migrate:prod": "cd workers/inkwell-api && npx wrangler d1 migrations apply inkwell-core --remote && npx wrangler d1 migrations apply inkwell-analytics --remote && npx wrangler d1 migrations apply inkwell-marketing --remote",
     "test": "cd kernel && npx vitest run",
     "test:worker": "cd workers/inkwell-api && npm test",
-    "gen:types": "bash /mnt/HC_Volume_104325311/SOS/scripts/gen_ts_types.sh"
+    "gen:types": "bash /mnt/HC_Volume_104325311/SOS/scripts/gen_ts_types.sh",
+    "generate-types": "wrangler types"
   },
   "dependencies": {
     "@assistant-ui/react": "^0.12.25",
@@ -69,6 +76,10 @@
     "json-schema-to-typescript": "^15.0.4",
     "tsx": "^4.0.0",
     "typescript": "^5.7.0",
-    "vitest": "^4.1.4"
+    "vitest": "^4.1.4",
+    "wrangler": "^4.83.0"
+  },
+  "overrides": {
+    "vite": "^7"
   }
 }
