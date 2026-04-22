@@ -50,7 +50,7 @@ export const config = {
 
   analytics: {
     googleAnalytics: 'G-WXKH19HD89',
-    clarity: '',
+    clarity: 'w9k4oxlqz8',
     hotjar: '',
     tagManager: '',
     plausible: '',
