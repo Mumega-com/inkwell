@@ -6,8 +6,7 @@ compatibility_date = "2024-12-01"
 SITE_URL = "https://mumega.com"
 # SaaS origin for tenant resolution (subdomains → tenant config)
 SOS_SAAS_URL = "https://api.mumega.com"
-SOS_BUS_URL = ""          # set in prod via wrangler secret
-INKWELL_MCP_TOKEN = ""    # set in prod via wrangler secret
+# SOS_BUS_URL and INKWELL_MCP_TOKEN are set via wrangler secrets (not vars)
 # DataForSEO — optional, enables real keyword research in CampaignWorkflow
 DATAFORSEO_LOGIN = ""
 DATAFORSEO_PASSWORD = ""
