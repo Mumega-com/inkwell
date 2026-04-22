@@ -185,6 +185,18 @@ const TOOLS: ToolDef[] = [
       },
     },
   },
+  {
+    name: 'recall_content',
+    description: 'Search Mirror memory for previously published content. Use before drafting to detect duplicates or find related articles.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        query: { type: 'string', description: 'Topic or keywords to search for' },
+        limit: { type: 'number', description: 'Max results (default 5)' },
+      },
+      required: ['query'],
+    },
+  },
 ]
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -704,6 +716,19 @@ async function callTool(
     case 'recall': return toolRecall(env, a)
     case 'create_task': return toolCreateTask(env, a)
     case 'browse_marketplace': return toolBrowseMarketplace(env, a)
+    case 'recall_content': {
+      const memory = makeMemoryPort(env.SOS_BUS_URL, env.INKWELL_MCP_TOKEN)
+      if (!memory) return { content: [{ type: 'text', text: 'Memory not configured' }] }
+      const results = await memory.recallContent(a.query as string, (a.limit as number) ?? 5)
+      return {
+        content: [{
+          type: 'text',
+          text: results.length
+            ? results.map(r => `[${r.score.toFixed(2)}] ${r.text}`).join('\n')
+            : 'No related content found in memory.',
+        }],
+      }
+    }
     default: return null
   }
 }
