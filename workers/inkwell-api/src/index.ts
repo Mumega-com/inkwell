@@ -1,356 +1,349 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
+import { registerPlugin } from '../../../kernel/plugin-loader'
 
-interface Env {
-  DB: D1Database
-  CONTENT: KVNamespace
-  SITE_URL: string
-  PUBLISH_TOKEN?: string
-  CF_PAGES_DEPLOY_HOOK?: string
-}
+// Plugin manifests
+import dashboardManifest from '../../../plugins/dashboard/manifest'
+import commerceManifest from '../../../plugins/commerce/manifest'
+import contentManifest from '../../../plugins/content/manifest'
+import mcpManifest from '../../../plugins/mcp/manifest'
+import contractsManifest from '../../../plugins/contracts/manifest'
+import telegramManifest from '../../../plugins/telegram/manifest'
+import chatManifest from '../../../plugins/chat/manifest'
+import diagnosticsManifest from '../../../plugins/diagnostics/manifest'
+import discoveryManifest from '../../../plugins/discovery/manifest'
+import paymentsManifest from '../../../plugins/payments/manifest'
+import onboardingManifest from '../../../plugins/onboarding/manifest'
+import notificationsManifest from '../../../plugins/notifications/manifest'
+import salesDeskManifest from '../../../plugins/sales-desk/manifest'
+import bountyManifest from '../../../plugins/bounty/manifest'
 
-const app = new Hono<{ Bindings: Env }>()
+// Register all available plugins
+registerPlugin(dashboardManifest)
+registerPlugin(commerceManifest)
+registerPlugin(contentManifest)
+registerPlugin(mcpManifest)
+registerPlugin(contractsManifest)
+registerPlugin(telegramManifest)
+registerPlugin(chatManifest)
+registerPlugin(diagnosticsManifest)
+registerPlugin(discoveryManifest)
+registerPlugin(paymentsManifest)
+registerPlugin(onboardingManifest)
+registerPlugin(notificationsManifest)
+registerPlugin(salesDeskManifest)
+registerPlugin(bountyManifest)
+
+import { analyticsRoutes } from './routes/analytics'
+import { authRoutes } from './routes/auth'
+import { chatRoutes } from './routes/chat'
+import { contentRoutes } from './routes/content'
+import { contractRoutes } from './routes/contracts'
+import { courseRoutes } from './routes/courses'
+import { dashboardRoutes } from './routes/dashboard'
+import { diagnosticsRoutes } from './routes/diagnostics'
+import { discoveryRoutes } from './routes/discovery'
+import { glassRoutes } from './routes/glass'
+import { mcpRoutes } from './routes/mcp'
+import { paymentRoutes } from './routes/payments'
+import { publishingRoutes } from './routes/publishing'
+import { questionnaireRoutes } from './routes/questionnaire'
+import { telegramRoutes } from './routes/telegram'
+import { salesRoutes } from '../../../plugins/sales-desk/routes'
+import { bountyRoutes } from '../../../plugins/bounty/routes'
+import { routeGate } from './middleware/route-gate'
+import { tenantResolver } from './middleware/tenant'
+import { usageTracker } from './middleware/usage'
+import { scheduled } from './scheduled'
+import type { AppBindings } from './types'
+
+const app = new Hono<AppBindings>()
+
+// ── Plugin System ──────────────────────────────────────────────────
+// All features are registered as plugins above.
+// config.plugins[] in inkwell.config.ts controls which are active.
+// Route mounting still uses static imports (Sprint 3 will migrate
+// to plugin.mountRoutes() once route files move into plugin dirs).
+// ───────────────────────────────────────────────────────────────────
+
+// ---------------------------------------------------------------------------
+// CF Access JWT middleware
+// Reads the CF-Access-JWT-Assertion header injected by Cloudflare Access.
+// CF has already verified the JWT signature — we just decode the payload.
+// Sets cf_access_email and cf_access_tenant on the context if a tenant is found.
+// Non-blocking: requests without the header pass through unchanged.
+// ---------------------------------------------------------------------------
+app.use('*', async (c, next) => {
+  const jwt = c.req.header('CF-Access-JWT-Assertion')
+  if (!jwt) {
+    c.set('cf_access_email', null)
+    c.set('cf_access_tenant', null)
+    return next()
+  }
+
+  try {
+    // JWT is three base64url-encoded segments: header.payload.signature
+    const parts = jwt.split('.')
+    if (parts.length !== 3) throw new Error('malformed jwt')
+
+    // base64url → base64 → decode
+    const payloadB64 = parts[1].replace(/-/g, '+').replace(/_/g, '/')
+    const padded = payloadB64 + '='.repeat((4 - (payloadB64.length % 4)) % 4)
+    const payload = JSON.parse(atob(padded)) as Record<string, unknown>
+
+    const email = typeof payload['email'] === 'string' ? payload['email'] : null
+    if (!email) {
+      c.set('cf_access_email', null)
+      c.set('cf_access_tenant', null)
+      return next()
+    }
+
+    c.set('cf_access_email', email)
+
+    // Look up tenant via SaaS API
+    const saasUrl = c.env.SOS_SAAS_URL
+    if (saasUrl) {
+      try {
+        const res = await fetch(
+          `${saasUrl}/auth/tenant?email=${encodeURIComponent(email)}`,
+          { headers: { 'Authorization': `Bearer ${c.env.MUMEGA_TOKEN ?? ''}` } },
+        )
+        if (res.ok) {
+          const data = await res.json() as { tenant_slug?: string }
+          c.set('cf_access_tenant', data.tenant_slug ?? null)
+        } else {
+          c.set('cf_access_tenant', null)
+        }
+      } catch {
+        c.set('cf_access_tenant', null)
+      }
+    } else {
+      c.set('cf_access_tenant', null)
+    }
+  } catch {
+    c.set('cf_access_email', null)
+    c.set('cf_access_tenant', null)
+  }
+
+  return next()
+})
 
 app.use('*', cors({
-  origin: '*',
+  origin: (origin) => {
+    if (!origin) return null
+    // Allow mumega.com and all tenant subdomains
+    if (origin === 'https://mumega.com') return origin
+    if (/^https:\/\/[a-z0-9-]+\.mumega\.com$/.test(origin)) return origin
+    // Allow localhost on any port for local development
+    if (/^http:\/\/localhost(:\d+)?$/.test(origin)) return origin
+    return null
+  },
   allowMethods: ['GET', 'POST', 'OPTIONS'],
-  allowHeaders: ['Content-Type'],
+  allowHeaders: ['Content-Type', 'Authorization'],
 }))
 
-const allowedPublishStatuses = new Set(['draft', 'published', 'archived'])
+// Tenant resolution (non-breaking: null = single-site mode)
+app.use('*', tenantResolver())
 
-function isNonEmptyString(value: unknown): value is string {
-  return typeof value === 'string' && value.trim().length > 0
-}
+// API usage tracking per tenant per day (fire-and-forget, non-blocking)
+app.use('*', usageTracker())
 
-function normalizeSlug(value: string): string {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 80)
-}
+app.get('/health', (c) => c.json({ status: 'ok', ts: Date.now(), tenant: c.get('tenant_slug') }))
 
-function cleanText(value: string, maxLength: number): string {
-  return value.replace(/\s+/g, ' ').trim().slice(0, maxLength)
-}
+// Core routes (always enabled)
+app.route('/api', analyticsRoutes)
+app.route('/api', contentRoutes)
 
-function parseTags(value: unknown): string[] {
-  if (!Array.isArray(value)) return []
+// Feature routes (gated by ENABLED_ROUTES env var)
+app.use('/api/auth/*', routeGate('auth'))
+app.route('/api/auth', authRoutes)
 
-  const seen = new Set<string>()
-  const tags: string[] = []
+app.use('/api/chat/*', routeGate('chat'))
+app.route('/api/chat', chatRoutes)
 
-  for (const item of value) {
-    if (!isNonEmptyString(item)) continue
-    const tag = item.trim().slice(0, 48)
-    if (!tag || seen.has(tag)) continue
-    seen.add(tag)
-    tags.push(tag)
+app.use('/api/contracts/*', routeGate('contracts'))
+app.route('/api/contracts', contractRoutes)
+
+app.use('/api/courses/*', routeGate('courses'))
+app.route('/api/courses', courseRoutes)
+
+app.use('/api/dashboard/*', routeGate('dashboard'))
+app.route('/api/dashboard', dashboardRoutes)
+
+app.use('/api/diagnostics/*', routeGate('diagnostics'))
+app.route('/api/diagnostics', diagnosticsRoutes)
+
+app.use('/api/discovery/*', routeGate('discovery'))
+app.route('/api/discovery', discoveryRoutes)
+
+app.use('/api/glass/*', routeGate('glass'))
+app.route('/api/glass', glassRoutes)
+
+app.use('/api/payments/*', routeGate('payments'))
+app.route('/api/payments', paymentRoutes)
+
+app.use('/api/publishing/*', routeGate('publishing'))
+app.route('/api/publishing', publishingRoutes)
+
+app.use('/api/questionnaire/*', routeGate('questionnaire'))
+app.route('/api/questionnaire', questionnaireRoutes)
+
+app.use('/api/telegram/*', routeGate('telegram'))
+app.route('/api/telegram', telegramRoutes)
+
+app.use('/api/sales/*', routeGate('sales-desk'))
+app.route('/api/sales', salesRoutes)
+
+app.use('/api/bounties/*', routeGate('bounty'))
+app.route('/api/bounties', bountyRoutes)
+
+app.use('/mcp', routeGate('mcp'))
+app.route('/mcp', mcpRoutes)
+
+// Static page serving for tenant subdomains
+// Catches all non-API requests and serves pre-rendered HTML from KV
+app.get('*', async (c) => {
+  const tenantSlug = c.get('tenant_slug')
+
+  // No tenant = not a subdomain request, return the default page or 404
+  if (!tenantSlug) {
+    return c.json({ error: 'not_found', message: 'No tenant resolved for this hostname' }, 404)
   }
 
-  return tags.slice(0, 12)
-}
+  // Build the KV key from the request path
+  let path = new URL(c.req.url).pathname
 
-function parsePublishPayload(body: unknown):
-  | { ok: true; value: { title: string; content: string; slug?: string; author: string; tags: string[]; description: string; status: 'draft' | 'published' | 'archived'; overwrite: boolean } }
-  | { ok: false; status: number; error: string; details?: unknown } {
-  if (!body || typeof body !== 'object') {
-    return { ok: false, status: 400, error: 'invalid_json' }
+  // Normalize: / → index.html, /about → about/index.html or about.html
+  if (path === '/') {
+    path = 'index.html'
+  } else {
+    // Remove trailing slash
+    path = path.replace(/\/$/, '')
+    // Remove leading slash
+    path = path.replace(/^\//, '')
   }
 
-  const payload = body as Record<string, unknown>
-  if (!isNonEmptyString(payload.title)) return { ok: false, status: 400, error: 'title required' }
-  if (!isNonEmptyString(payload.content)) return { ok: false, status: 400, error: 'content required' }
+  // Try multiple key patterns (Astro generates various file structures)
+  const keysToTry = [
+    `${tenantSlug}:page:${path}`,
+    `${tenantSlug}:page:${path}/index.html`,
+    `${tenantSlug}:page:${path}.html`,
+  ]
 
-  const title = cleanText(payload.title, 120)
-  const content = payload.content.trim()
-  if (title.length < 2) return { ok: false, status: 400, error: 'title too short' }
-  if (content.length < 1) return { ok: false, status: 400, error: 'content required' }
-  if (content.length > 200_000) return { ok: false, status: 413, error: 'content too large' }
+  for (const key of keysToTry) {
+    let content = await c.env.CONTENT.get(key)
+    if (content) {
+      // Determine content type from the key/path
+      const contentType = getContentType(key)
 
-  const slug = isNonEmptyString(payload.slug) ? normalizeSlug(payload.slug) : undefined
-  if (slug === '') return { ok: false, status: 400, error: 'invalid_slug' }
+      // If this is a dashboard HTML page and the user arrived via CF Access,
+      // inject a script that auto-configures localStorage so the React dashboard
+      // components are authenticated immediately — no manual token entry needed.
+      if (
+        contentType === 'text/html; charset=utf-8' &&
+        path.startsWith('dashboard') &&
+        c.get('cf_access_email')
+      ) {
+        const cfTenant = c.get('cf_access_tenant')
+        const saasUrl = c.env.SOS_SAAS_URL ?? 'https://api.mumega.com'
 
-  const author = isNonEmptyString(payload.author) ? cleanText(payload.author, 80) : 'agent'
-  const tags = parseTags(payload.tags)
-  const description = isNonEmptyString(payload.description)
-    ? cleanText(payload.description, 220)
-    : cleanText(content.replace(/```[\s\S]*?```/g, ' ').replace(/[#*_>\-\[\]`]/g, ' '), 220)
-  let status: 'draft' | 'published' | 'archived' = 'published'
-  if (isNonEmptyString(payload.status)) {
-    if (!allowedPublishStatuses.has(payload.status)) {
-      return { ok: false, status: 400, error: 'invalid_status' }
+        // Look up bus_token for the tenant so the dashboard can authenticate API calls
+        let busToken = ''
+        if (cfTenant && c.env.SOS_SAAS_URL) {
+          try {
+            const tokenRes = await fetch(
+              `${c.env.SOS_SAAS_URL}/auth/tenant?email=${encodeURIComponent(c.get('cf_access_email') ?? '')}`,
+              { headers: { 'Authorization': `Bearer ${c.env.MUMEGA_TOKEN ?? ''}` } },
+            )
+            if (tokenRes.ok) {
+              const tokenData = await tokenRes.json() as { bus_token?: string }
+              busToken = tokenData.bus_token ?? ''
+            }
+          } catch {
+            // Proceed without bus_token — dashboard will fall back to manual auth
+          }
+        }
+
+        const autoConfigScript = `<script>
+  (function(){
+    if (!localStorage.getItem('mumega_auth_token') && ${JSON.stringify(busToken)}) {
+      localStorage.setItem('mumega_auth_token', ${JSON.stringify(busToken)});
+      localStorage.setItem('mumega_tenant_slug', ${JSON.stringify(cfTenant ?? '')});
+      localStorage.setItem('mumega_api_url', ${JSON.stringify(saasUrl)});
     }
-    status = payload.status as 'draft' | 'published' | 'archived'
-  }
-  const overwrite = payload.overwrite === true
+  })();
+<\/script>`
 
-  return {
-    ok: true,
-    value: { title, content, slug, author, tags, description, status, overwrite },
-  }
-}
+        // Inject before </head> — graceful fallback: append before </body> if no </head>
+        if (content.includes('</head>')) {
+          content = content.replace('</head>', `${autoConfigScript}\n</head>`)
+        } else if (content.includes('</body>')) {
+          content = content.replace('</body>', `${autoConfigScript}\n</body>`)
+        }
+      }
 
-// Health check
-app.get('/health', (c) => c.json({ status: 'ok', ts: Date.now() }))
+      // Inject noindex for tenant subdomains (staging — not the customer's real domain)
+      if (
+        contentType === 'text/html; charset=utf-8' &&
+        tenantSlug &&
+        new URL(c.req.url).hostname.endsWith('.mumega.com')
+      ) {
+        const noindexTag = '<meta name="robots" content="noindex, nofollow">'
+        if (!content.includes('noindex') && content.includes('</head>')) {
+          content = content.replace('</head>', `${noindexTag}\n</head>`)
+        }
+      }
 
-// Record page view
-app.post('/api/view', async (c) => {
-  const body = await c.req.json<{ slug: string; referrer?: string; scroll_depth?: number }>()
-  const { slug, referrer, scroll_depth } = body
-
-  if (!slug) return c.json({ error: 'slug required' }, 400)
-
-  const country = c.req.header('cf-ipcountry') ?? 'unknown'
-  const mobile = c.req.header('sec-ch-ua-mobile')
-  const device = mobile === '?1' ? 'mobile' : 'desktop'
-
-  await c.env.DB.prepare(
-    'INSERT INTO page_views (slug, referrer, scroll_depth, country, device, timestamp) VALUES (?, ?, ?, ?, ?, ?)'
-  ).bind(slug, referrer ?? null, scroll_depth ?? null, country, device, new Date().toISOString()).run()
-
-  return c.json({ ok: true })
-})
-
-// Record reaction
-app.post('/api/reaction', async (c) => {
-  const body = await c.req.json<{ slug: string; emoji: string }>()
-  const { slug, emoji } = body
-
-  if (!slug || !emoji) return c.json({ error: 'slug and emoji required' }, 400)
-
-  const ip = c.req.header('cf-connecting-ip') ?? 'anonymous'
-  const encoder = new TextEncoder()
-  const data = encoder.encode(ip + slug)
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
-  const hashArray = Array.from(new Uint8Array(hashBuffer))
-  const visitorHash = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('').slice(0, 16)
-
-  await c.env.DB.prepare(
-    'INSERT INTO reactions (slug, emoji, visitor_hash, timestamp) VALUES (?, ?, ?, ?)'
-  ).bind(slug, emoji, visitorHash, new Date().toISOString()).run()
-
-  const counts = await c.env.DB.prepare(
-    'SELECT emoji, COUNT(*) as count FROM reactions WHERE slug = ? GROUP BY emoji'
-  ).bind(slug).all<{ emoji: string; count: number }>()
-
-  const result: Record<string, number> = {}
-  for (const row of counts.results) {
-    result[row.emoji] = row.count
-  }
-
-  return c.json({ ok: true, counts: result })
-})
-
-// Get reaction counts for a slug
-app.get('/api/reactions/:slug', async (c) => {
-  const slug = c.req.param('slug')
-
-  const counts = await c.env.DB.prepare(
-    'SELECT emoji, COUNT(*) as count FROM reactions WHERE slug = ? GROUP BY emoji'
-  ).bind(slug).all<{ emoji: string; count: number }>()
-
-  const result: Record<string, number> = {}
-  for (const row of counts.results) {
-    result[row.emoji] = row.count
-  }
-
-  return c.json({ counts: result })
-})
-
-// Subscribe
-app.post('/api/subscribe', async (c) => {
-  const body = await c.req.json<{ email: string; name?: string; source?: string }>()
-  const { email, name, source } = body
-
-  if (!email) return c.json({ error: 'email required' }, 400)
-
-  await c.env.DB.prepare(
-    'INSERT OR IGNORE INTO subscribers (email, name, status, source) VALUES (?, ?, ?, ?)'
-  ).bind(email, name ?? '', 'active', source ?? 'website').run()
-
-  return c.json({ ok: true, status: 'subscribed' })
-})
-
-// Unsubscribe
-app.post('/api/unsubscribe', async (c) => {
-  const body = await c.req.json<{ email: string }>()
-  const { email } = body
-
-  if (!email) return c.json({ error: 'email required' }, 400)
-
-  await c.env.DB.prepare(
-    'UPDATE subscribers SET status = ? WHERE email = ?'
-  ).bind('unsubscribed', email).run()
-
-  return c.json({ ok: true, status: 'unsubscribed' })
-})
-
-// Stats for a slug
-app.get('/api/stats/:slug', async (c) => {
-  const slug = c.req.param('slug')
-
-  const views = await c.env.DB.prepare(
-    'SELECT COUNT(*) as count, AVG(scroll_depth) as avg_scroll FROM page_views WHERE slug = ?'
-  ).bind(slug).first<{ count: number; avg_scroll: number | null }>()
-
-  const reactions = await c.env.DB.prepare(
-    'SELECT emoji, COUNT(*) as count FROM reactions WHERE slug = ? GROUP BY emoji'
-  ).bind(slug).all<{ emoji: string; count: number }>()
-
-  const reactionCounts: Record<string, number> = {}
-  for (const row of reactions.results) {
-    reactionCounts[row.emoji] = row.count
-  }
-
-  return c.json({
-    slug,
-    views: views?.count ?? 0,
-    avg_scroll_depth: views?.avg_scroll ?? null,
-    reactions: reactionCounts,
-  })
-})
-
-// ── Publishing ─────────────────────────────────────────────────────────
-
-app.post('/api/publish', async (c) => {
-  // Auth check
-  const token = c.env.PUBLISH_TOKEN
-  if (token) {
-    const auth = c.req.header('Authorization')
-    if (auth !== `Bearer ${token}`) {
-      return c.json({ error: 'unauthorized' }, 401)
+      return new Response(content, {
+        headers: {
+          'Content-Type': contentType,
+          'Cache-Control': 'public, max-age=300', // 5 min cache
+          'X-Tenant': tenantSlug,
+        },
+      })
     }
   }
 
-  let rawBody: unknown
-  try {
-    rawBody = await c.req.json()
-  } catch {
-    return c.json({ error: 'invalid_json' }, 400)
+  // Try serving a custom 404 page
+  const custom404 = await c.env.CONTENT.get(`${tenantSlug}:page:404.html`)
+  if (custom404) {
+    return new Response(custom404, {
+      status: 404,
+      headers: { 'Content-Type': 'text/html; charset=utf-8' },
+    })
   }
 
-  const parsed = parsePublishPayload(rawBody)
-  if (!parsed.ok) {
-    return c.json({ error: parsed.error, details: parsed.details }, parsed.status)
-  }
-
-  const { title, content, slug: providedSlug, author, tags, description, status, overwrite } = parsed.value
-  const slug = providedSlug || normalizeSlug(title)
-  if (!slug) {
-    return c.json({ error: 'invalid_slug' }, 400)
-  }
-
-  const now = new Date()
-  const date = now.toISOString().slice(0, 10)
-
-  // Slug uniqueness check
-  if (!overwrite) {
-    const [existingMeta, existingIndex] = await Promise.all([
-      c.env.CONTENT.get(`meta:${slug}`),
-      c.env.DB.prepare('SELECT slug FROM content_index WHERE slug = ? LIMIT 1').bind(slug).first<{ slug: string }>(),
-    ])
-    if (existingMeta || existingIndex) {
-      return c.json({ error: 'slug_exists', slug, hint: 'Use overwrite:true to replace, or choose a different slug' }, 409)
-    }
-  }
-
-  // Build frontmatter
-  const frontmatter = [
-    `title: "${body.title}"`,
-    `date: "${date}"`,
-    `author: "${author}"`,
-    `tags: [${tags.map(t => `"${t}"`).join(', ')}]`,
-    `description: "${description}"`,
-    `status: "${status}"`,
-  ].join('\n')
-
-  const markdown = `---\n${frontmatter}\n---\n\n${body.content}`
-
-  // Store in KV
-  await c.env.CONTENT.put(`post:${slug}`, markdown)
-  await c.env.CONTENT.put(`meta:${slug}`, JSON.stringify({
-    title,
-    slug,
-    author,
-    tags,
-    description,
-    date,
-    status,
-  }))
-
-  // Index in D1
-  await c.env.DB.prepare(
-    'INSERT OR REPLACE INTO content_index (slug, title, type, lang, author, tags, description, published_at, updated_at, word_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-  ).bind(slug, title, 'blog', 'en', author, JSON.stringify(tags), description, date, date, content.split(/\s+/).length).run()
-
-  // Trigger CF Pages deploy hook if configured
-  let deployState = 'manual'
-  if (c.env.CF_PAGES_DEPLOY_HOOK) {
-    try {
-      const resp = await fetch(c.env.CF_PAGES_DEPLOY_HOOK, { method: 'POST' })
-      deployState = resp.ok ? 'triggered' : `trigger_failed_${resp.status}`
-    } catch {
-      deployState = 'trigger_failed'
-    }
-  }
-
-  return c.json({
-    ok: true,
-    slug,
-    url: `${c.env.SITE_URL}/blog/${slug}`,
-    stored: 'kv',
-    deploy: deployState,
-  })
+  return c.html(
+    `<!DOCTYPE html>
+<html><head><title>Coming Soon</title>
+<style>body{font-family:system-ui;background:#0A0A10;color:#EDEDF0;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0}
+.c{text-align:center;max-width:400px;padding:2rem}h1{color:#D4A017}a{color:#06B6D4}</style>
+</head><body><div class="c">
+<h1>${tenantSlug}</h1>
+<p>This site is being set up. Check back soon.</p>
+<p><a href="https://mumega.com">Powered by Mumega</a></p>
+</div></body></html>`,
+    200,
+  )
 })
 
-// List published content (public — no auth needed)
-app.get('/api/posts', async (c) => {
-  const posts = await c.env.DB.prepare(
-    "SELECT slug, title, author, tags, description, published_at FROM content_index WHERE type = 'blog' ORDER BY published_at DESC LIMIT 50"
-  ).all()
+function getContentType(path: string): string {
+  if (path.endsWith('.html')) return 'text/html; charset=utf-8'
+  if (path.endsWith('.css')) return 'text/css'
+  if (path.endsWith('.js')) return 'application/javascript'
+  if (path.endsWith('.json')) return 'application/json'
+  if (path.endsWith('.svg')) return 'image/svg+xml'
+  if (path.endsWith('.png')) return 'image/png'
+  if (path.endsWith('.jpg') || path.endsWith('.jpeg')) return 'image/jpeg'
+  if (path.endsWith('.ico')) return 'image/x-icon'
+  if (path.endsWith('.xml')) return 'application/xml'
+  if (path.endsWith('.txt')) return 'text/plain'
+  if (path.endsWith('.woff2')) return 'font/woff2'
+  if (path.endsWith('.woff')) return 'font/woff'
+  return 'text/html; charset=utf-8' // Default to HTML
+}
 
-  // Filter out drafts from public listing
-  const published = []
-  for (const post of posts.results) {
-    const meta = await c.env.CONTENT.get(`meta:${post.slug}`, 'json') as Record<string, unknown> | null
-    if (!meta || meta.status !== 'draft') published.push(post)
-  }
-
-  return c.json({ posts: published })
-})
-
-// List drafts (auth required)
-app.get('/api/drafts', async (c) => {
-  const token = c.env.PUBLISH_TOKEN
-  if (token) {
-    const auth = c.req.header('Authorization')
-    if (auth !== `Bearer ${token}`) {
-      return c.json({ error: 'unauthorized' }, 401)
-    }
-  }
-
-  const all = await c.env.DB.prepare(
-    "SELECT slug, title, author, tags, description, published_at FROM content_index WHERE type = 'blog' ORDER BY published_at DESC LIMIT 50"
-  ).all()
-
-  const drafts = []
-  for (const post of all.results) {
-    const meta = await c.env.CONTENT.get(`meta:${post.slug}`, 'json') as Record<string, unknown> | null
-    if (meta && meta.status === 'draft') drafts.push(post)
-  }
-
-  return c.json({ drafts })
-})
-
-// Get single post from KV
-app.get('/api/posts/:slug', async (c) => {
-  const slug = c.req.param('slug')
-  const content = await c.env.CONTENT.get(`post:${slug}`)
-  if (!content) return c.json({ error: 'not found' }, 404)
-  const meta = await c.env.CONTENT.get(`meta:${slug}`, 'json')
-  return c.json({ slug, meta, markdown: content })
-})
-
-export default { fetch: app.fetch }
+export default {
+  fetch: app.fetch,
+  scheduled,
+}
