@@ -6,6 +6,23 @@ import { Button } from '../../../src/components/ui/button'
 import { cn } from '../../../src/lib/utils'
 import { config } from '../../../src/lib/config'
 
+interface AnalyticsOverview {
+  clicks?: number
+  impressions?: number
+  ctr?: number
+  position?: number
+  sessions?: number
+  bounceRate?: number
+}
+
+interface TopQuery {
+  query: string
+  clicks: number
+  impressions: number
+  ctr: number
+  position: number
+}
+
 interface DashboardData {
   wallet_balance?: number
   tasks_done?: number
@@ -108,6 +125,8 @@ export function ArrowDashboard() {
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [configMissing, setConfigMissing] = useState(false)
+  const [analytics, setAnalytics] = useState<AnalyticsOverview | null>(null)
+  const [topQueries, setTopQueries] = useState<TopQuery[]>([])
 
   useEffect(() => {
     const url = localStorage.getItem('mumega_api_url')
@@ -129,6 +148,34 @@ export function ArrowDashboard() {
       .then(r => r.json())
       .then((d: DashboardData) => { setData(d); setLoading(false) })
       .catch(() => setLoading(false))
+
+    // Analytics: GA4 + GSC overview
+    fetch(`${apiUrl}/api/dashboard/overview`, {
+      headers: { 'Authorization': `Bearer ${authToken}` },
+    })
+      .then(r => r.ok ? r.json() : null)
+      .then((d: Record<string, unknown> | null) => {
+        if (!d) return
+        setAnalytics({
+          clicks: d.clicks as number,
+          impressions: d.impressions as number,
+          ctr: d.ctr as number,
+          position: d.position as number,
+          sessions: d.sessions as number,
+          bounceRate: d.bounceRate as number,
+        })
+      })
+      .catch(() => {})
+
+    // SEO: top queries
+    fetch(`${apiUrl}/api/dashboard/seo?period=7d`, {
+      headers: { 'Authorization': `Bearer ${authToken}` },
+    })
+      .then(r => r.ok ? r.json() : null)
+      .then((d: Record<string, unknown> | null) => {
+        if (d?.top_queries) setTopQueries(d.top_queries as TopQuery[])
+      })
+      .catch(() => {})
   }, [apiUrl, authToken])
 
   if (configMissing) {
@@ -191,6 +238,50 @@ export function ArrowDashboard() {
           loading={loading}
         />
       </div>
+
+      {/* Analytics Row: GA4 + GSC */}
+      {(analytics || loading) && (
+        <div className="flex flex-col gap-3">
+          <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground">Search &amp; Traffic — last 7 days</p>
+          <div className="flex flex-wrap gap-4">
+            <MiniKPI title="Organic Clicks" value={analytics?.clicks != null ? formatCompact(analytics.clicks) : null} icon="↗" loading={loading && !analytics} />
+            <MiniKPI title="Impressions" value={analytics?.impressions != null ? formatCompact(analytics.impressions) : null} icon="◎" loading={loading && !analytics} />
+            <MiniKPI title="Avg Position" value={analytics?.position != null ? analytics.position.toFixed(1) : null} icon="#" loading={loading && !analytics} />
+            <MiniKPI title="CTR" value={analytics?.ctr != null ? `${(analytics.ctr * 100).toFixed(2)}%` : null} icon="%" loading={loading && !analytics} />
+            <MiniKPI title="Sessions" value={analytics?.sessions != null ? formatCompact(analytics.sessions) : null} icon="~" loading={loading && !analytics} />
+            <MiniKPI title="Bounce Rate" value={analytics?.bounceRate != null ? `${(analytics.bounceRate * 100).toFixed(0)}%` : null} icon="⇥" loading={loading && !analytics} />
+          </div>
+          {topQueries.length > 0 && (
+            <Card className="overflow-hidden">
+              <CardHeader className="border-b px-6 py-4">
+                <CardTitle className="text-sm font-semibold">Top Search Queries</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-xs uppercase tracking-wider">Query</TableHead>
+                      <TableHead className="text-xs uppercase tracking-wider text-right">Clicks</TableHead>
+                      <TableHead className="text-xs uppercase tracking-wider text-right">Impressions</TableHead>
+                      <TableHead className="text-xs uppercase tracking-wider text-right">Position</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {topQueries.slice(0, 10).map((q, i) => (
+                      <TableRow key={i}>
+                        <TableCell className="font-medium text-sm max-w-[320px] truncate">{q.query}</TableCell>
+                        <TableCell className="text-right font-mono text-sm">{q.clicks}</TableCell>
+                        <TableCell className="text-right font-mono text-sm text-muted-foreground">{q.impressions}</TableCell>
+                        <TableCell className="text-right font-mono text-sm text-muted-foreground">{q.position.toFixed(1)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
 
       {/* Lower row: activity + quick actions */}
       <div className="flex flex-wrap gap-5 items-start">
