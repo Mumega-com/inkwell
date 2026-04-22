@@ -241,6 +241,6 @@ CF Access is optional — works as an additional auth layer when configured.
 - Port registry Step 1.4 — generated barrel has models not port interfaces (GH #29)
 - No GC/AWS adapter implementations yet (ports are ready, adapters are CF-only)
 - Anthropic Managed Agent API integration (provision call is stubbed — API not yet public)
-- Mirror tenant isolation (SOS v0.8.0 — using prefix workaround)
+- Mirror tenant isolation — **resolved** (Mirror v2, 2026-04-22): workspace isolation enforced server-side via Bearer token; prefix workaround removed from `kernel/adapters/sos-memory.ts`
 - Bus SSE streaming (SOS v0.8.x — poll-only for now)
 - Economy MCP tools (SOS v0.7.3 — using REST)
