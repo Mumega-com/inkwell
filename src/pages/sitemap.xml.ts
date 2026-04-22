@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro'
 import { getCollection } from 'astro:content'
 
-const SITE = 'https://your-domain.com'
+const SITE = 'https://mumega.com'
 
 export const GET: APIRoute = async () => {
   const blog = await getCollection('blog', (p) => p.data.status === 'published')
@@ -27,23 +27,22 @@ export const GET: APIRoute = async () => {
     { url: '/terms', priority: '0.3', changefreq: 'yearly' },
   ]
 
-  const dynamicPages = [
-    ...blog.map((p) => ({ url: `/blog/${p.id}`, priority: '0.7', changefreq: 'weekly' as const })),
-    ...topics.map((t) => ({ url: `/topics/${t.id}`, priority: '0.9', changefreq: 'daily' as const })),
-    ...labs.map((l) => ({ url: `/labs/${l.id}`, priority: '0.8', changefreq: 'weekly' as const })),
-    ...tools.map((t) => ({ url: `/tools/${t.id}`, priority: '0.8', changefreq: 'weekly' as const })),
-    ...team.map((m) => ({ url: `/team/${m.id}`, priority: '0.7', changefreq: 'weekly' as const })),
-    ...products.map((p) => ({ url: `/products/${p.id}`, priority: '0.7', changefreq: 'weekly' as const })),
-  ]
-
-  const allPages = [...staticPages, ...dynamicPages]
   const today = new Date().toISOString().split('T')[0]
+  const allPages = [
+    ...staticPages.map(p => ({ ...p, lastmod: today })),
+    ...blog.map((p) => ({ url: `/blog/${p.id}`, priority: '0.7', changefreq: 'weekly' as const, lastmod: p.data.date ? new Date(p.data.date).toISOString().split('T')[0] : today })),
+    ...topics.map((t) => ({ url: `/topics/${t.id}`, priority: '0.9', changefreq: 'daily' as const, lastmod: today })),
+    ...labs.map((l) => ({ url: `/labs/${l.id}`, priority: '0.8', changefreq: 'weekly' as const, lastmod: today })),
+    ...tools.map((t) => ({ url: `/tools/${t.id}`, priority: '0.8', changefreq: 'weekly' as const, lastmod: today })),
+    ...team.map((m) => ({ url: `/team/${m.id}`, priority: '0.7', changefreq: 'weekly' as const, lastmod: today })),
+    ...products.map((p) => ({ url: `/products/${p.id}`, priority: '0.7', changefreq: 'weekly' as const, lastmod: today })),
+  ]
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${allPages.map((page) => `  <url>
     <loc>${SITE}${page.url}</loc>
-    <lastmod>${today}</lastmod>
+    <lastmod>${page.lastmod}</lastmod>
     <changefreq>${page.changefreq}</changefreq>
     <priority>${page.priority}</priority>
   </url>`).join('\n')}
