@@ -1,7 +1,7 @@
 export const config = {
   name: 'Mumega',
   domain: 'mumega.com',
-  tagline: 'Work, publish, and grow with an agent-first web stack.',
+  tagline: 'AI agents that operate your business — marketing, content, CRM, and growth on autopilot.',
 
   theme: {
     colors: {
@@ -45,10 +45,11 @@ export const config = {
     rss: true,
     search: true,
     darkModeToggle: true,
+    chat: false,
   },
 
   analytics: {
-    googleAnalytics: '',
+    googleAnalytics: 'G-WXKH19HD89',
     clarity: '',
     hotjar: '',
     tagManager: '',
@@ -61,11 +62,12 @@ export const config = {
       url: 'https://mumega.com',
       logo: '/logo.svg',
       knowsAbout: [
-        'Agent-operated publishing',
-        'Customer portals',
-        'Operational software',
-        'Content systems',
-        'Internal tools',
+        'AI business operations',
+        'Digital marketing automation',
+        'CRM and sales pipelines',
+        'Content publishing',
+        'Agency management',
+        'SEO and growth',
       ],
     },
     defaultAuthor: { name: 'Mumega', url: 'https://mumega.com' },
@@ -79,6 +81,59 @@ export const config = {
     api: true,
     mcp: true,
   },
+
+  // Brand — customer-facing language and identity
+  brand: {
+    voice: 'professional, warm, no jargon',
+    logo: '/logo.svg',
+    favicon: '/favicon.svg',
+    ogImage: '/og-default.png',
+
+    // Squad IDs → customer-facing team names
+    teamNames: {
+      seo: 'Marketing Team',
+      content: 'Content Writers',
+      ops: 'Tech Support',
+      dev: 'Development Team',
+      outreach: 'Outreach Team',
+      testing: 'Quality Assurance',
+    } as Record<string, string>,
+
+    // Task status → customer-facing labels
+    statusLabels: {
+      backlog: 'Coming up',
+      claimed: 'In progress',
+      in_progress: 'In progress',
+      done: 'Completed',
+      failed: 'Needs attention',
+    } as Record<string, string>,
+
+    // Priority → customer-facing labels
+    priorityLabels: {
+      critical: 'Urgent',
+      high: 'Important',
+      medium: 'Normal',
+      low: 'Whenever',
+    } as Record<string, string>,
+
+    // Transaction counterparties → customer-facing names
+    counterpartyNames: {
+      glass_commerce: 'Online Sales',
+      system: 'Platform',
+    } as Record<string, string>,
+  },
+
+  // Plugins — which plugin manifests are active in this fork.
+  // The Worker registers these at startup via the plugin loader.
+  // config.plugins[] controls which are active per fork.
+  plugins: [
+    'dashboard', 'commerce', 'content', 'mcp',
+    'contracts', 'telegram', 'chat',
+    'diagnostics', 'discovery', 'payments', 'onboarding',
+    'notifications', 'analytics', 'auth', 'automation',
+    'courses', 'crm', 'feedback', 'media',
+    'organism', 'questionnaire', 'seo', 'sync', 'agency', 'sales-desk', 'bounty',
+  ],
 } as const
 
 export type InkwellConfig = typeof config
