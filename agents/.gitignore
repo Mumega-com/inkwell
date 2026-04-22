@@ -1,0 +1,3 @@
+# Per-agent MCP identity files — never commit
+**/.mcp.json
+**/.claude/settings.local.json
