@@ -4,12 +4,61 @@ compatibility_date = "2024-12-01"
 
 [vars]
 SITE_URL = "https://mumega.com"
+# SaaS origin for tenant resolution (subdomains → tenant config)
+SOS_SAAS_URL = "https://api.mumega.com"
+SOS_BUS_URL = ""          # set in prod via wrangler secret
+INKWELL_MCP_TOKEN = ""    # set in prod via wrangler secret
+# DataForSEO — optional, enables real keyword research in CampaignWorkflow
+DATAFORSEO_LOGIN = ""
+DATAFORSEO_PASSWORD = ""
 
 [[d1_databases]]
-binding = "DB"
+binding = "DB_ANALYTICS"
 database_name = "inkwell-analytics"
 database_id = "40e442df-13d1-4ce5-a081-491962fe8e59"
+
+[[d1_databases]]
+binding = "DB_CORE"
+database_name = "inkwell-core"
+database_id = "abd1fc3e-2bd8-411a-bec8-2686ea9a51f5"
+
+[[d1_databases]]
+binding = "DB_MARKETING"
+database_name = "inkwell-marketing"
+database_id = "e4010c8f-5f61-4c04-aa14-cf42d1afc481"
 
 [[kv_namespaces]]
 binding = "CONTENT"
 id = "c303003bd718427c97f978773fce4f3a"
+
+[[kv_namespaces]]
+binding = "SESSIONS"
+id = "512331050ea04a35b23843b28af75c2c"
+
+[[r2_buckets]]
+binding = "MEDIA"
+bucket_name = "inkwell-media"
+
+# Audit log archive — create bucket: wrangler r2 bucket create inkwell-logs
+[[r2_buckets]]
+binding = "LOGS"
+bucket_name = "inkwell-logs"
+
+[ai]
+binding = "AI"
+
+[[workflows]]
+name = "campaign-workflow"
+binding = "CAMPAIGN_WORKFLOW"
+class_name = "CampaignWorkflow"
+
+[triggers]
+crons = ["0 6 * * *", "0 14 * * *", "0 7 * * 1"]
+
+[[routes]]
+pattern = "*.mumega.com/*"
+zone_name = "mumega.com"
+
+[[routes]]
+pattern = "mumega.com/api/*"
+zone_name = "mumega.com"
