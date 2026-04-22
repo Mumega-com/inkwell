@@ -215,7 +215,7 @@ export const config = {
     'contracts', 'courses', 'telegram', 'chat',
     'diagnostics', 'discovery', 'payments', 'questionnaire',
     'onboarding', 'notifications', 'organism', 'sync', 'media', 'seo', 'feedback',
-    'crm', 'automation', 'agency',
+    'crm', 'automation', 'bounty', 'agency',
   ],
 
   // Adapters — which implementation to use for each port.

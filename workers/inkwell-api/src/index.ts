@@ -26,6 +26,7 @@ import seoManifest from '../../../plugins/seo/manifest'
 import feedbackManifest from '../../../plugins/feedback/manifest'
 import crmManifest from '../../../plugins/crm/manifest'
 import automationManifest from '../../../plugins/automation/manifest'
+import bountyManifest from '../../../plugins/bounty/manifest'
 import organismManifest from '../../../plugins-pro/organism/manifest'
 import agencyManifest from '../../../plugins-pro/agency/manifest'
 
@@ -36,7 +37,7 @@ const allPlugins = [
   telegramManifest, chatManifest, diagnosticsManifest, discoveryManifest,
   paymentsManifest, questionnaireManifest, onboardingManifest, notificationsManifest,
   organismManifest, syncManifest, mediaManifest, seoManifest, feedbackManifest,
-  crmManifest, automationManifest, agencyManifest,
+  crmManifest, automationManifest, bountyManifest, agencyManifest,
 ]
 for (const manifest of allPlugins) {
   registerPlugin(manifest)
