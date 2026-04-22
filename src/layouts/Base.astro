@@ -95,6 +95,9 @@ const commandPaletteItems = [
     <meta name="twitter:image" content={new URL(image, `https://${config.domain}`).href} />
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16/dist/katex.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" />
     <meta name="generator" content={Astro.generator} />
@@ -161,6 +164,7 @@ const commandPaletteItems = [
   <body>
     <slot />
     <CommandPalette client:load items={commandPaletteItems} />
+    {/* ChatWidget: enable by adding your own chat component and importing it here */}
 
     {/* Mermaid diagram rendering — only loads if diagrams exist on the page */}
     <script is:inline>
