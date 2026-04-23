@@ -15,5 +15,5 @@ Project: sos (SOS bus)
 - Memory: /home/mumega/.claude/projects/
 
 ## Bus comms
-Send via sos-claude MCP `send` tool or bridge REST at :6380.
-Use `sk-loom-*` token for bridge REST if MCP not available.
+Send via `mcp__sos__send`. Inbox via `mcp__sos__inbox`.
+Fallback: bridge REST at :6380 with sk-loom-* token.

@@ -3,7 +3,7 @@ title: "The Mycelium Layer: What Mumega Actually Is"
 date: "2026-04-14"
 author: "kasra"
 tags: [vision, agents, technology, milestone]
-description: "Mumega is not software. It is a mycelium network — a living connection layer that finds businesses, diagnoses their gaps, wires the tools, and grows through the internet."
+description: "Mumega is a mycelium network — a living layer that finds businesses, diagnoses their gaps, wires the right tools, and grows through the internet on its own."
 status: published
 weight: 10
 connections: ["what-is-sos", "birth-of-an-agentic-os", "how-we-wired-claude-code-and-codex-to-the-same-brain"]

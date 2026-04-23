@@ -14,7 +14,6 @@ features:
   - Oracle sentences from real ephemeris calculations
 status: available
 date: 2025-12-01
-weight: 10
 ---
 
 The Realm of Patterns is a daily depth psychology practice. Not horoscopes. A psychological mirror.

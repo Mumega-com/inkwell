@@ -2,7 +2,6 @@
 import Base from '../../layouts/Base.astro'
 import Header from '../../components/layout/Header.astro'
 import Footer from '../../components/layout/Footer.astro'
-import JsonLd from '../../components/seo/JsonLd.astro'
 import { getCollection, render } from 'astro:content'
 
 export async function getStaticPaths() {
@@ -20,7 +19,6 @@ const statusColor = member.data.status === 'active' ? '#10B981' : member.data.st
 ---
 
 <Base title={`${member.data.title} — Mumega Team`} description={member.data.origin || `${member.data.title} — ${member.data.role}`}>
-  <JsonLd siteOnly />
   <Header />
 
   <main class="page">

@@ -2,7 +2,6 @@
 import Base from '../layouts/Base.astro'
 import Header from '../components/layout/Header.astro'
 import Footer from '../components/layout/Footer.astro'
-import JsonLd from '../components/seo/JsonLd.astro'
 import { NetworkHero } from '../components/visualization/NetworkHero'
 import { OrganismAnimation } from '../components/visualization/OrganismAnimation'
 import { getCollection } from 'astro:content'
@@ -39,17 +38,16 @@ function timeAgo(date: Date): string {
 }
 
 const squads = [
-  { name: 'Publishing', desc: 'Markdown, MDX, inbox ingest, deploys', agents: 'Content, Workflow', icon: '>' },
-  { name: 'Design', desc: 'Layouts, theme tokens, visual polish', agents: 'UI, Theme', icon: '~' },
-  { name: 'Search', desc: 'Pagefind, tags, graph, discovery', agents: 'Index, Query', icon: '^' },
-  { name: 'Integrations', desc: 'Workers, APIs, webhooks, MCP', agents: 'Edge, Sync', icon: '#' },
-  { name: 'Growth', desc: 'SEO, social, newsletters, analytics', agents: 'Audience, Metrics', icon: '@' },
-  { name: 'Ops', desc: 'Monitoring, deploys, security, incidents', agents: 'Infra, Alerts', icon: '!' },
+  { name: 'Content', desc: 'Blog posts, landing pages, wikis, auto-publishing', agents: 'Writer, Editor', icon: '>' },
+  { name: 'SEO', desc: 'Audits, meta tags, geo pages, scale content', agents: 'Analyst, Builder', icon: '^' },
+  { name: 'CRM', desc: 'Contacts, pipeline, deals, outreach sequences', agents: 'Sales, Outreach', icon: '◇' },
+  { name: 'Agency', desc: 'Client onboarding, dashboards, reports', agents: 'Manager, Ops', icon: '◆' },
+  { name: 'Growth', desc: 'Analytics, funnels, feedback, churn signals', agents: 'Metrics, Insight', icon: '@' },
+  { name: 'Automation', desc: 'Workflows, social posting, media pipeline', agents: 'Workflow, Media', icon: '#' },
 ]
 ---
 
-<Base title={`${config.name} — Forkable CMS for agent-first publishing`} description="Config-driven content, static search, optional Worker APIs, and publishing flows that agents can use without custom code.">
-  <JsonLd siteOnly />
+<Base title={`${config.name} — Tesla for your Business`} description="The destination-driven AI platform. You provide the destination and guidelines — we implement automated performance loops to drive your business forward.">
   <Header />
 
   <main>
@@ -59,14 +57,14 @@ const squads = [
         <NetworkHero client:load />
       </div>
       <div class="hero-content">
-        <span class="hero-eyebrow">The Operating System for AI Agents</span>
-        <h1 class="hero-title">{config.name}</h1>
-        <p class="hero-tagline">Give your AI persistent memory, a team of agents, and the ability to make money — with one config line.</p>
+        <span class="hero-eyebrow">The Destination-Driven Business Platform</span>
+        <h1 class="hero-title">Tesla for Business</h1>
+        <p class="hero-tagline">Set your destination. Our AI squads build the documentation, implement the performance loops, and automate your growth on autopilot.</p>
         <div class="hero-cta-row">
-          <a href="/connect" class="hero-cta-primary">Connect Your AI &rarr;</a>
-          <a href="/about" class="hero-cta-secondary">How it works</a>
+          <a href="/onboarding" class="hero-cta-primary">Set Your Destination &rarr;</a>
+          <a href="/vision" class="hero-cta-secondary">The Vision</a>
         </div>
-        <p class="hero-compat">Works with Claude, ChatGPT, Cursor, and any MCP tool</p>
+        <p class="hero-compat">41 MCP tools &middot; Agency management &middot; CRM &middot; SEO &middot; Content</p>
       </div>
     </section>
 
@@ -86,8 +84,8 @@ const squads = [
       <div class="section-inner">
         <div class="section-header">
           <div>
-            <h2 class="section-title">Capabilities</h2>
-            <p class="section-desc">The pieces that make the CMS usable on day one.</p>
+            <h2 class="section-title">Agent Squads</h2>
+            <p class="section-desc">Specialized teams that operate your business around the clock.</p>
           </div>
         </div>
         <div class="squad-grid">
@@ -110,8 +108,8 @@ const squads = [
       <div class="section-inner">
         <div class="section-header">
           <div>
-            <h2 class="section-title">What ships with the CMS</h2>
-            <p class="section-desc">A content system, not a blank starter.</p>
+            <h2 class="section-title">What ships with Mumega</h2>
+            <p class="section-desc">Everything your business needs — built in, not bolted on.</p>
           </div>
           <a href="/labs" class="section-link">All labs &rarr;</a>
         </div>
@@ -143,8 +141,8 @@ const squads = [
         <div class="section-inner">
           <div class="section-header">
             <div>
-              <h2 class="section-title">Example offerings</h2>
-              <p class="section-desc">Optional product pages and integrations for forks.</p>
+              <h2 class="section-title">Products</h2>
+              <p class="section-desc">Turnkey solutions built on the Mumega platform.</p>
             </div>
             <a href="/products" class="section-link">All products &rarr;</a>
           </div>
@@ -172,8 +170,8 @@ const squads = [
       <div class="section-inner">
         <div class="section-header">
           <div>
-            <h2 class="section-title">Example contributors</h2>
-            <p class="section-desc">{team.length} maintainers, authors, and sample agents.</p>
+            <h2 class="section-title">The Team</h2>
+            <p class="section-desc">{team.length} humans and AI agents building Mumega.</p>
           </div>
           <a href="/team" class="section-link">Full team &rarr;</a>
         </div>

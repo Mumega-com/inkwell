@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { registerPlugin } from '../../../kernel/plugin-loader'
+import type { ScheduledEvent, ExecutionContext } from '@cloudflare/workers-types'
 
 // Plugin manifests
 import dashboardManifest from '../../../plugins/dashboard/manifest'
@@ -17,6 +18,7 @@ import onboardingManifest from '../../../plugins/onboarding/manifest'
 import notificationsManifest from '../../../plugins/notifications/manifest'
 import salesDeskManifest from '../../../plugins/sales-desk/manifest'
 import bountyManifest from '../../../plugins/bounty/manifest'
+import automationManifest from '../../../plugins/automation/manifest'
 
 // Register all available plugins
 registerPlugin(dashboardManifest)
@@ -33,8 +35,10 @@ registerPlugin(onboardingManifest)
 registerPlugin(notificationsManifest)
 registerPlugin(salesDeskManifest)
 registerPlugin(bountyManifest)
+registerPlugin(automationManifest)
 
 import { analyticsRoutes } from './routes/analytics'
+export { CampaignWorkflow } from './workflows/campaign'
 import { authRoutes } from './routes/auth'
 import { chatRoutes } from './routes/chat'
 import { contentRoutes } from './routes/content'
@@ -43,14 +47,20 @@ import { courseRoutes } from './routes/courses'
 import { dashboardRoutes } from './routes/dashboard'
 import { diagnosticsRoutes } from './routes/diagnostics'
 import { discoveryRoutes } from './routes/discovery'
+import { feedbackRoutes } from './routes/feedback'
+import { gdprRoutes } from './routes/gdpr'
 import { glassRoutes } from './routes/glass'
 import { mcpRoutes } from './routes/mcp'
 import { paymentRoutes } from './routes/payments'
 import { publishingRoutes } from './routes/publishing'
+import { connectorRoutes } from './routes/connectors'
+import { portalRoutes } from './routes/portal'
+import { identityRoutes } from './routes/identity'
 import { questionnaireRoutes } from './routes/questionnaire'
 import { telegramRoutes } from './routes/telegram'
 import { salesRoutes } from '../../../plugins/sales-desk/routes'
 import { bountyRoutes } from '../../../plugins/bounty/routes'
+import { auditLogger } from './middleware/audit'
 import { routeGate } from './middleware/route-gate'
 import { tenantResolver } from './middleware/tenant'
 import { usageTracker } from './middleware/usage'
@@ -147,8 +157,20 @@ app.use('*', tenantResolver())
 
 // API usage tracking per tenant per day (fire-and-forget, non-blocking)
 app.use('*', usageTracker())
+app.use('/api/*', auditLogger())
 
 app.get('/health', (c) => c.json({ status: 'ok', ts: Date.now(), tenant: c.get('tenant_slug') }))
+
+// Admin: manually trigger the scheduled flywheel (MUMEGA_TOKEN required)
+app.post('/api/admin/trigger-sync', async (c) => {
+  const auth = c.req.header('Authorization') ?? ''
+  const token = c.env.MUMEGA_TOKEN ?? ''
+  if (!token || auth !== `Bearer ${token}`) return c.json({ error: 'forbidden' }, 403)
+  const ctx = { waitUntil: (p: Promise<unknown>) => p, passThroughOnException: () => {} }
+  // Fire and await the scheduled handler directly
+  await scheduled({} as ScheduledEvent, c.env, ctx as ExecutionContext)
+  return c.json({ triggered: true, at: new Date().toISOString() })
+})
 
 // Core routes (always enabled)
 app.route('/api', analyticsRoutes)
@@ -176,6 +198,9 @@ app.route('/api/diagnostics', diagnosticsRoutes)
 app.use('/api/discovery/*', routeGate('discovery'))
 app.route('/api/discovery', discoveryRoutes)
 
+app.use('/api/feedback/*', routeGate('feedback'))
+app.route('/api/feedback', feedbackRoutes)
+
 app.use('/api/glass/*', routeGate('glass'))
 app.route('/api/glass', glassRoutes)
 
@@ -197,6 +222,11 @@ app.route('/api/sales', salesRoutes)
 app.use('/api/bounties/*', routeGate('bounty'))
 app.route('/api/bounties', bountyRoutes)
 
+app.route('/api/portal', portalRoutes)
+app.route('/api/portal/identity', identityRoutes)
+app.route('/api/connectors', connectorRoutes)
+app.route('/api/gdpr', gdprRoutes)
+
 app.use('/mcp', routeGate('mcp'))
 app.route('/mcp', mcpRoutes)
 
@@ -208,6 +238,21 @@ app.get('*', async (c) => {
   // No tenant = not a subdomain request, return the default page or 404
   if (!tenantSlug) {
     return c.json({ error: 'not_found', message: 'No tenant resolved for this hostname' }, 404)
+  }
+
+  // Portal SPA fallback: portal.mumega.com/* always serves the SPA index
+  if (tenantSlug === 'portal') {
+    const spaHtml = await c.env.CONTENT.get('portal:page:index.html')
+    if (spaHtml) {
+      return new Response(spaHtml, {
+        headers: {
+          'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': 'public, max-age=60',
+          'X-Tenant': 'portal',
+        },
+      })
+    }
+    // SPA not published yet — fall through to keysToTry
   }
 
   // Build the KV key from the request path

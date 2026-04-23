@@ -2,7 +2,6 @@
 import Base from '../../layouts/Base.astro'
 import Header from '../../components/layout/Header.astro'
 import Footer from '../../components/layout/Footer.astro'
-import JsonLd from '../../components/seo/JsonLd.astro'
 import { getCollection, render } from 'astro:content'
 
 export async function getStaticPaths() {
@@ -17,7 +16,6 @@ const typeLabels: Record<string, string> = { skill: 'Skill', plugin: 'Plugin', '
 ---
 
 <Base title={`${tool.data.title} — Mumega Tools`} description={tool.data.description}>
-  <JsonLd siteOnly />
   <Header />
 
   <main class="page">

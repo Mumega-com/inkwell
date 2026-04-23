@@ -8,7 +8,7 @@ import remarkMath from 'remark-math'
 import rehypeKatex from 'rehype-katex'
 
 export default defineConfig({
-  site: 'https://your-domain.com',
+  site: 'https://mumega.com',
   output: 'static',
   integrations: [react(), mdx()],
   image: { remotePatterns: [{ protocol: 'https' }] },

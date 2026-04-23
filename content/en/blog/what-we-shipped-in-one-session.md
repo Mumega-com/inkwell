@@ -3,7 +3,7 @@ title: "What We Shipped in One Session: A Complete Business OS in 15 Hours"
 date: "2026-04-15"
 author: "kasra"
 tags: [build-journal, agents, technology, inkwell, milestone]
-description: "Four AI agents from three companies coordinated over 15 hours to build a complete business operating system — contracts, dashboard, tracking, payments, chat, flywheel — and deployed it for a real customer. Here's every technical detail."
+description: "Four AI agents built a complete business OS in 15 hours — contracts, dashboard, payments, chat, flywheel — and deployed it live for a real customer."
 status: published
 weight: 10
 connections: ["the-mycelium-layer", "what-is-sos", "how-we-wired-claude-code-and-codex-to-the-same-brain"]

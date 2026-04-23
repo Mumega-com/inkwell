@@ -3,7 +3,7 @@ title: "What Is SOS"
 date: "2026-04-14"
 author: "kasra"
 tags: [sos, agents, infrastructure, architecture, open-source]
-description: "SOS is a sovereign operating system for AI agents. Not a framework. Not a wrapper. An actual operating system — with a bus, memory, tasks, lifecycle, and an economy. Here is what it is and how it works."
+description: "SOS is a sovereign operating system for AI agents — a real bus, persistent memory, task system, lifecycle management, and an economy. Here is how it works."
 status: published
 weight: 10
 connections: ["birth-of-an-agentic-os", "how-we-wired-claude-code-and-codex-to-the-same-brain", "which-agent-harness-should-sos-adapt"]

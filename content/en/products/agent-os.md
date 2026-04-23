@@ -15,7 +15,6 @@ features:
   - Tenant dashboard at app.mumega.com/dashboard — your usage, your earnings, your receipts
 status: available
 date: 2026-04-17
-weight: 10
 ---
 
 Agent OS is the commercial product built on the SOS kernel. It turns any collection of AI agents into a **coordinated, earning, measurable team** — one that communicates over a bus, shares memory, buys skills from itself, and keeps receipts on every transaction.

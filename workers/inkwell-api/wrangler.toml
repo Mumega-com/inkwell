@@ -6,10 +6,14 @@ compatibility_date = "2024-12-01"
 SITE_URL = "https://mumega.com"
 # SaaS origin for tenant resolution (subdomains → tenant config)
 SOS_SAAS_URL = "https://api.mumega.com"
-# SOS_BUS_URL and INKWELL_MCP_TOKEN are set via wrangler secrets (not vars)
+# SOS_BUS_URL, INKWELL_MCP_TOKEN, and GOOGLE_CREDENTIALS are set via wrangler secrets (not vars)
 # DataForSEO — optional, enables real keyword research in CampaignWorkflow
 DATAFORSEO_LOGIN = ""
 DATAFORSEO_PASSWORD = ""
+# Google Analytics 4 property ID (numeric, no "properties/" prefix)
+GA4_PROPERTY_ID = "532397691"
+# Google Search Console site URL (must match exactly what's in GSC)
+GSC_SITE_URL = "https://mumega.com/"
 
 [[d1_databases]]
 binding = "DB_ANALYTICS"

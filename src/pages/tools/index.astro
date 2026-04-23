@@ -2,7 +2,6 @@
 import Base from '../../layouts/Base.astro'
 import Header from '../../components/layout/Header.astro'
 import Footer from '../../components/layout/Footer.astro'
-import JsonLd from '../../components/seo/JsonLd.astro'
 import { getCollection } from 'astro:content'
 
 const allTools = await getCollection('tools')
@@ -12,7 +11,6 @@ const typeLabels: Record<string, string> = { skill: 'Skill', plugin: 'Plugin', '
 ---
 
 <Base title="Tools — Mumega" description="AI-first tools, skills, plugins, and MCP servers. Ready to use by agents and developers.">
-  <JsonLd siteOnly />
   <Header />
 
   <main class="page">

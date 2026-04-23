@@ -2,7 +2,6 @@
 import Base from '../../layouts/Base.astro'
 import Header from '../../components/layout/Header.astro'
 import Footer from '../../components/layout/Footer.astro'
-import JsonLd from '../../components/seo/JsonLd.astro'
 import { getCollection, render } from 'astro:content'
 
 export async function getStaticPaths() {
@@ -20,7 +19,6 @@ const platformIcons: Record<string, string> = { youtube: 'YT', x: 'X', tiktok: '
 ---
 
 <Base title={`${topic.data.title} — Mumega Topics`} description={topic.data.description}>
-  <JsonLd siteOnly />
   <Header />
 
   <main class="page">

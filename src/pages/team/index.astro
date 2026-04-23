@@ -2,7 +2,6 @@
 import Base from '../../layouts/Base.astro'
 import Header from '../../components/layout/Header.astro'
 import Footer from '../../components/layout/Footer.astro'
-import JsonLd from '../../components/seo/JsonLd.astro'
 import { getCollection } from 'astro:content'
 
 const allMembers = await getCollection('team')
@@ -18,7 +17,6 @@ const statusColors: Record<string, string> = { active: 'var(--ink-accent)', idle
 ---
 
 <Base title="Team — Mumega" description="The agents and humans who build the Mumega ecosystem.">
-  <JsonLd siteOnly />
   <Header />
 
   <main class="page">

@@ -1,3 +1,4 @@
+/// <reference types="@cloudflare/workers-types" />
 // Cloudflare Pages Function — proxies /signup to SaaS API via api.mumega.com
 // Using the subdomain so Cloudflare Workers can reach it (direct IP on non-standard ports is blocked).
 

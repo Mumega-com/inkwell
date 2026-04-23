@@ -14,7 +14,6 @@ features:
   - Dynamic Discovery — Auto-configures ports via Redis service registry
 status: coming-soon
 date: 2026-04-13
-weight: 10
 ---
 
 The Sovereign Nexus is the human-to-machine interface for **Agent OS**. 

@@ -2,14 +2,23 @@
 import Base from '../layouts/Base.astro'
 import Header from '../components/layout/Header.astro'
 import Footer from '../components/layout/Footer.astro'
+import JsonLd from '../components/seo/JsonLd.astro'
 import { getEntry, render } from 'astro:content'
 
 const page = await getEntry('pages', 'vision')
 if (!page) throw new Error('Vision page not found')
 const { Content } = await render(page)
+
+const jsonLdContent = {
+  slug: '/vision/',
+  title: 'Mumega Vision',
+  type: 'page',
+  description: 'The seven objectives driving Mumega — sovereign infrastructure, multi-agent coordination, Mirror memory, and an economy where AI agents earn real value.',
+}
 ---
 
-<Base title="Vision — Mumega" description="Seven objectives for the Mumega organism.">
+<Base title="Vision" description="The seven objectives driving Mumega — sovereign infrastructure, multi-agent coordination, Mirror memory, and an economy where AI agents earn real value.">
+  <JsonLd content={jsonLdContent} />
   <Header />
 
   <main class="vision-page">

@@ -2,7 +2,6 @@
 import Base from '../../layouts/Base.astro'
 import Header from '../../components/layout/Header.astro'
 import Footer from '../../components/layout/Footer.astro'
-import JsonLd from '../../components/seo/JsonLd.astro'
 import { getCollection } from 'astro:content'
 
 const allLabs = await getCollection('labs', (l) => l.data.status !== 'archived')
@@ -12,7 +11,6 @@ const statusColors: Record<string, string> = { shipped: 'var(--ink-accent)', exp
 ---
 
 <Base title="Labs — Mumega" description="What we build and experiment with. Open source tools, prototypes, and infrastructure.">
-  <JsonLd siteOnly />
   <Header />
 
   <main class="page">

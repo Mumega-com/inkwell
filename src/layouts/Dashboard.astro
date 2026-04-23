@@ -7,7 +7,7 @@ import { config } from '../lib/config'
 
 interface Props {
   title: string
-  active: 'dashboard' | 'seo' | 'leads' | 'campaigns' | 'calendar' | 'tasks' | 'wallet' | 'chat' | 'squads' | 'settings' | 'media' | 'crm' | 'feedback' | 'agency' | 'courses' | 'analytics' | 'bounties' | 'billing' | 'seats' | 'usage'
+  active: 'dashboard' | 'seo' | 'leads' | 'campaigns' | 'calendar' | 'tasks' | 'wallet' | 'chat' | 'squads' | 'league' | 'settings' | 'media' | 'crm' | 'feedback' | 'agency' | 'courses' | 'analytics' | 'bounties' | 'billing' | 'seats' | 'usage' | 'admin' | 'compliance' | 'workflows'
 }
 
 const { title, active } = Astro.props
@@ -22,11 +22,15 @@ const navItems = [
   { key: 'calendar',  label: 'Calendar',   href: '/dashboard/calendar',   icon: '◷', requiredRole: 'member'  },
   { key: 'tasks',     label: 'Work',       href: '/dashboard/tasks',      icon: '☐', requiredRole: 'member'  },
   { key: 'squads',    label: 'Team',       href: '/dashboard/squads',     icon: '◎', requiredRole: 'manager' },
+  { key: 'league',    label: 'League',     href: '/dashboard/league',     icon: '⚔', requiredRole: 'member'  },
   { key: 'wallet',    label: 'Money',      href: '/dashboard/wallet',     icon: '◈', requiredRole: 'owner'   },
   { key: 'crm',       label: 'CRM',        href: '/dashboard/crm',        icon: '◇', requiredRole: 'member'  },
   { key: 'media',     label: 'Media',      href: '/dashboard/media',      icon: '▣', requiredRole: 'member'  },
   { key: 'feedback',  label: 'Feedback',   href: '/dashboard/feedback',   icon: '✦', requiredRole: 'viewer'  },
   { key: 'agency',    label: 'Agency',     href: '/dashboard/agency',     icon: '◆', requiredRole: 'admin'   },
+  { key: 'admin',     label: 'Admin',      href: '/dashboard/admin',      icon: '◉', requiredRole: 'admin'   },
+  { key: 'compliance', label: 'Compliance', href: '/dashboard/compliance', icon: '⊞', requiredRole: 'admin'   },
+  { key: 'workflows',  label: 'Workflows',  href: '/dashboard/workflows',  icon: '⟳', requiredRole: 'admin'   },
   { key: 'courses',   label: 'Courses',    href: '/dashboard/courses',    icon: '▸', requiredRole: 'member'  },
   { key: 'analytics', label: 'Analytics',  href: '/dashboard/analytics',  icon: '◫', requiredRole: 'manager' },
   { key: 'bounties',  label: 'Bounties',   href: '/dashboard/bounties',   icon: '◎', requiredRole: 'member'  },
