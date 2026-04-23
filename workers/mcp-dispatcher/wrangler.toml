@@ -7,12 +7,12 @@ compatibility_date = "2025-01-01"
 # Then paste the returned id below.
 [[kv_namespaces]]
 binding = "SESSIONS"
-id = "YOUR_KV_ID"  # replace after: npx wrangler kv:namespace create SESSIONS
+id = "1d6bbca97b944b6fa8bea79340aa4131"
 
 [vars]
 # VPS origin — nginx listens on a separate vhost (sos-mcp-origin.mumega.com)
 # so the public mcp.mumega.com route isn't recursive.
-SOS_ORIGIN = "https://sos-mcp-origin.mumega.com"
+SOS_ORIGIN = "http://sos-mcp-origin.mumega.com"
 
 [[routes]]
 pattern = "mcp.mumega.com/*"
