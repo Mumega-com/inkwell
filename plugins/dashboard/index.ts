@@ -1,0 +1,8 @@
+export { default as manifest } from './manifest'
+export { ArrowDashboard } from './components/ArrowDashboard'
+export { TaskBoard } from './components/TaskBoard'
+export { WalletView } from './components/WalletView'
+export { SquadPanel } from './components/SquadPanel'
+export { ConnectPanel } from './components/ConnectPanel'
+export { AssistantChat } from './components/AssistantChat'
+export { SettingsForm } from './components/SettingsForm'
