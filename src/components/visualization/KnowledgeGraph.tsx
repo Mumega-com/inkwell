@@ -29,7 +29,8 @@ export function KnowledgeGraph({ nodes: initialNodes, edges }: KnowledgeGraphPro
   const containerRef = useRef<HTMLDivElement>(null)
   const nodesRef = useRef<GraphNode[]>([])
   const animRef = useRef<number>(0)
-  const [hoveredNode, setHoveredNode] = useState<GraphNode | null>(null)
+  const hoveredNodeRef = useRef<GraphNode | null>(null)
+  const isVisibleRef = useRef<boolean>(true)
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
 
   useEffect(() => {
@@ -44,7 +45,22 @@ export function KnowledgeGraph({ nodes: initialNodes, edges }: KnowledgeGraphPro
     })
 
     observer.observe(container)
-    return () => observer.disconnect()
+
+    const intersectionObserver = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]) {
+          isVisibleRef.current = entries[0].isIntersecting
+        }
+      },
+      { threshold: 0 }
+    )
+
+    intersectionObserver.observe(container)
+
+    return () => {
+      observer.disconnect()
+      intersectionObserver.disconnect()
+    }
   }, [])
 
   useEffect(() => {
@@ -58,6 +74,10 @@ export function KnowledgeGraph({ nodes: initialNodes, edges }: KnowledgeGraphPro
   }, [initialNodes, dimensions])
 
   const simulate = useCallback(() => {
+    if (!isVisibleRef.current) {
+      animRef.current = requestAnimationFrame(simulate)
+      return
+    }
     const nodes = nodesRef.current
     const canvas = canvasRef.current
     if (!canvas || nodes.length === 0) return
@@ -123,7 +143,7 @@ export function KnowledgeGraph({ nodes: initialNodes, edges }: KnowledgeGraphPro
     }
 
     for (const node of nodes) {
-      const isHovered = hoveredNode?.slug === node.slug
+      const isHovered = hoveredNodeRef.current?.slug === node.slug
       const radius = isHovered ? 8 : 5
 
       if (isHovered) {
@@ -147,7 +167,7 @@ export function KnowledgeGraph({ nodes: initialNodes, edges }: KnowledgeGraphPro
     }
 
     animRef.current = requestAnimationFrame(simulate)
-  }, [dimensions, edges, hoveredNode])
+  }, [dimensions, edges])
 
   useEffect(() => {
     animRef.current = requestAnimationFrame(simulate)
@@ -171,16 +191,20 @@ export function KnowledgeGraph({ nodes: initialNodes, edges }: KnowledgeGraphPro
           break
         }
       }
-      setHoveredNode(found)
+
+      if (hoveredNodeRef.current !== found) {
+        hoveredNodeRef.current = found
+        canvas.style.cursor = found ? 'pointer' : 'default'
+      }
     },
     []
   )
 
   const handleClick = useCallback(() => {
-    if (hoveredNode) {
-      window.location.href = hoveredNode.url
+    if (hoveredNodeRef.current) {
+      window.location.href = hoveredNodeRef.current.url
     }
-  }, [hoveredNode])
+  }, [])
 
   return (
     <div
@@ -205,7 +229,7 @@ export function KnowledgeGraph({ nodes: initialNodes, edges }: KnowledgeGraphPro
         style={{
           width: '100%',
           height: '100%',
-          cursor: hoveredNode ? 'pointer' : 'default',
+          cursor: 'default',
         }}
       />
     </div>

@@ -23,6 +23,7 @@ export function NetworkHero() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const animRef = useRef<number>(0)
   const mouseRef = useRef({ x: -1000, y: -1000 })
+  const isVisibleRef = useRef<boolean>(true)
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -193,13 +194,26 @@ export function NetworkHero() {
     }
 
     function loop() {
-      update()
-      draw()
+      if (isVisibleRef.current) {
+        update()
+        draw()
+      }
       animRef.current = requestAnimationFrame(loop)
     }
 
     init()
     loop()
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]) {
+          isVisibleRef.current = entries[0].isIntersecting
+        }
+      },
+      { threshold: 0 }
+    )
+    if (canvas) observer.observe(canvas)
+
 
     const onResize = () => init()
     const onMove = (e: MouseEvent) => {
@@ -217,6 +231,7 @@ export function NetworkHero() {
       window.removeEventListener('resize', onResize)
       canvas!.removeEventListener('mousemove', onMove)
       canvas!.removeEventListener('mouseleave', onLeave)
+      observer.disconnect()
     }
   }, [])
 
