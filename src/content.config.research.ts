@@ -48,10 +48,55 @@ export const papers = defineCollection({
     status: z.enum(['draft', 'preprint', 'published', 'superseded']).default('draft'),
     perspective: z.string().optional(),
 
-    // Opinion-level taxonomy (5-tier strength-of-claim scale)
-    // L1 = falsifiable physics-like; L2 = formal model; L3 = empirical pattern;
-    // L4 = framework heuristic; L5 = mythological / register-shifted. Default L2.
+    // ── Opinion level (claim-strength axis) ─────────────────────────────────
+    //
+    // CANONICAL definitions (sealed by steward 2026-04-26; do not redefine
+    // without GOVERNANCE.md contested-call flow):
+    //
+    //   L1 — Falsifiable physics-like. Claim consistently revealed across
+    //        independent domains; experimental signature predicted +
+    //        confirmed; survives adversarial probing.
+    //   L2 — Formal model. Well-defined math; predictions specified;
+    //        empirical validation pending or partial. (DEFAULT for new
+    //        published papers.)
+    //   L3 — Empirical pattern. Observed regularity; mechanism hypothesized
+    //        but not derived; replication data accumulating.
+    //   L4 — Framework heuristic. Generative analogy; useful for thinking;
+    //        intentionally not pinned to a single mechanism. Includes
+    //        practitioner shorthand and field-level mental models.
+    //   L5 — Mythological or register-shifted. Holds in a non-physics
+    //        register (cultural, mythic, narrative). Useful framing without
+    //        claim of physical mechanism. NEVER promote to L1 without
+    //        evidence; the demotion path stays open per GOVERNANCE.md.
+    //
+    // Promotion flow: L4 → L3 → L2 → L1 requires evidence + steward
+    // review. L5 stays L5 unless promoted via the same evidence flow.
     opinionLevel: z.enum(['L1', 'L2', 'L3', 'L4', 'L5']).default('L2'),
+
+    // ── Reception level (world-validation axis, orthogonal to opinion) ──────
+    //
+    // CANONICAL definitions (sealed by steward 2026-04-26):
+    //
+    //   R0 — Emerging. Published; no external citation; reception unstarted.
+    //        (DEFAULT for new published papers.)
+    //   R1 — Cited. First independent third-party citation by DOI from
+    //        outside the lab. Citrinitas threshold per FRC's PM trajectory.
+    //   R2 — Adopted. Used in others' work; multiple labs reference; the
+    //        idea has left the source lab.
+    //   R3 — Foundational. Sub-field references it as canonical; ~50+
+    //        external citations OR 1+ replication study; named in textbooks
+    //        or reviews of the sub-field.
+    //   R4 — Paradigm. Paradigm-changing magnitude. Cross-field influence.
+    //        Reshapes how practitioners think OR what they do. The 1000-
+    //        citation rubedo target maps here.
+    //
+    // Reception is orthogonal to opinion. A paper can be L4/R4 (heuristic
+    // that became foundational despite never being formalized) or L1/R0
+    // (rigorously confirmed but unread). Both axes track separately.
+    //
+    // Today: manual steward judgment. When citation tracking is wired,
+    // R-tier auto-updates from external citation count + replication signal.
+    receptionLevel: z.enum(['R0', 'R1', 'R2', 'R3', 'R4']).default('R0'),
 
     // Dates
     date: z.coerce.date(),

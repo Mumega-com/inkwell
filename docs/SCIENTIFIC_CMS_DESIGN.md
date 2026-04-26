@@ -82,6 +82,29 @@ Citations, comments, peer notes, working-paper submissions — research instance
 
 ---
 
+## Two orthogonal axes on every paper — opinion + reception
+
+A research instance must track two independent things about every paper, and conflating them produces brittle taxonomy:
+
+**Opinion level (claim-strength).** What does the lab itself say the claim is? L1 falsifiable physics-like / L2 formal model / L3 empirical pattern / L4 framework heuristic / L5 mythological-or-register-shifted. This axis describes *what kind of statement* the paper makes — the rigor with which the lab is willing to defend it. Defaults to L2 for new published papers. Promotion (L4 → L3 → L2 → L1) requires evidence + steward review per GOVERNANCE.md; demotion stays open as a discipline.
+
+**Reception level (world-validation).** How has the world received the claim? R0 emerging / R1 cited (first independent third-party citation) / R2 adopted / R3 foundational (~50+ cites or 1 replication) / R4 paradigm (cross-field magnitude change; the 1000-citation rubedo threshold). This axis is about reception — citation count, replication signal, cross-field uptake — not about the claim itself.
+
+The two axes are orthogonal. A paper can be:
+
+- **L1/R0** — rigorously confirmed, unread (the painful state for new physics)
+- **L2/R3** — formal model that became sub-field canonical (most successful published work)
+- **L4/R4** — informal heuristic that reshaped practice (Kahneman's "Two Systems" sat here for years)
+- **L5/R0** — register-shifted framing, no external traction (most mythological writing)
+
+Conflating them — promoting a paper from L2 to L1 because it got famous — corrupts both axes. Reception doesn't validate the model; it just reflects how many people use it. The lab keeps the rigor honest by never auto-promoting on citation count alone.
+
+The schema (`papers.opinionLevel` + `papers.receptionLevel` in `src/content.config.research.ts`) encodes both. The UI surfaces both: a paper card might display "L2 / R0 — formal model, emerging" today and "L2 / R3 — formal model, foundational" three years out, with the model unchanged.
+
+This dual-axis shape is the steward-locked answer to the question of what schema captures FRC's full propagation arc — from "we wrote it" to "the field thinks with it."
+
+---
+
 ## What "scientific CMS" composes from
 
 From the substrate primitives:
