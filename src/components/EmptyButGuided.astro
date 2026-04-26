@@ -1,0 +1,318 @@
+---
+// EmptyButGuided — first-touch empty state for newly-provisioned tenant Inkwell.
+//
+// When Stream C (S013) provisions a tenant from inside the customer's AI tool
+// and redirects them to `{slug}.mumega.com`, this is what they see when they
+// click. NOT generic dummy data (which embarrasses on second look). Instead:
+// honest empty state + per-vertical guidance + AI-tool instructions for first
+// publish.
+//
+// Steward call (River, 2026-04-26): the first impression must be honest about
+// what's there (nothing yet, by design) and clear about what to do (one
+// command to your AI). Generic dummy data is the wrong shape — looks
+// legitimate at glance, hurts on second visit when user realizes "Pearl
+// District at $875K" was placeholder they have to delete.
+//
+// Substrate-generic — paired with the vertical-pack pattern. Forks pass
+// `vertical` prop matching their pack id (research / real-estate / generic /
+// future). Per-vertical guidance comes from the pack itself; this component
+// reads which collections exist + suggests the right first-content type.
+//
+// Refs Mumega-com/inkwell #54 (brand) + S013 Stream D (first-touch artifact).
+
+interface Props {
+  /** Vertical pack id — drives per-vertical guidance text */
+  vertical: 'research' | 'real-estate' | 'generic' | string
+  /** Site name from inkwell.config */
+  siteName: string
+  /** MCP endpoint customer connects their AI to */
+  mcpEndpoint?: string
+  /** Customer's AI tool if known from signup ("Claude" | "ChatGPT" | "Cursor"...) */
+  aiToolName?: string
+  /** Customer's tenant slug — `{slug}.mumega.com` */
+  slug?: string
+  /** Optional override of the first-content invitation copy */
+  customFirstAction?: string
+}
+
+const {
+  vertical,
+  siteName,
+  mcpEndpoint = 'https://mcp.mumega.com/sse',
+  aiToolName,
+  slug,
+  customFirstAction,
+} = Astro.props
+
+// Per-vertical guidance — what's the first content type, what to ask the AI
+const VERTICAL_GUIDANCE: Record<string, {
+  collection: string
+  contentNoun: string
+  firstAsk: string
+  fields: string
+  docsHref: string
+}> = {
+  'research': {
+    collection: 'papers',
+    contentNoun: 'paper',
+    firstAsk: 'publish my first paper about <topic>',
+    fields: 'title, abstract, opinionLevel (L1-L5), receptionLevel (R0-R4), date, tags',
+    docsHref: 'https://github.com/Mumega-com/inkwell/blob/main/examples/research-instance/README.md',
+  },
+  'real-estate': {
+    collection: 'listings',
+    contentNoun: 'listing',
+    firstAsk: 'list my first property at <address> for <price>',
+    fields: 'title, address, price, beds, baths, sqft, status, neighborhood_id',
+    docsHref: 'https://github.com/Mumega-com/inkwell/blob/main/examples/real-estate/README.md',
+  },
+  'generic': {
+    collection: 'blog',
+    contentNoun: 'post',
+    firstAsk: 'write a first blog post about <topic>',
+    fields: 'title, date, author, tags, description',
+    docsHref: 'https://github.com/Mumega-com/inkwell/blob/main/examples/generic/README.md',
+  },
+}
+
+const guide = VERTICAL_GUIDANCE[vertical] ?? VERTICAL_GUIDANCE.generic
+const tool = aiToolName ?? 'your AI'
+const aiPhrase = customFirstAction ?? `Hey ${tool}, ${guide.firstAsk}`
+---
+
+<main class="empty-but-guided">
+  <div class="ebg-inner">
+    <div class="ebg-status">
+      <span class="ebg-status-dot" aria-hidden="true"></span>
+      <span class="ebg-status-text">Your portal is live</span>
+    </div>
+
+    <h1 class="ebg-headline">{siteName} is ready for its first {guide.contentNoun}.</h1>
+
+    <p class="ebg-lede">
+      Nothing here yet, by design. Mumega doesn't fill your portal with placeholder content
+      that you'd have to delete before sharing. Instead: tell {tool} to publish your first
+      {guide.contentNoun}, and you'll see it appear here within seconds.
+    </p>
+
+    <section class="ebg-action">
+      <h2 class="ebg-action-title">Publish your first {guide.contentNoun}</h2>
+      <p>In your AI tool's chat, say something like:</p>
+      <pre class="ebg-prompt"><code>{aiPhrase}</code></pre>
+      <p class="ebg-action-note">
+        {tool} uses Mumega's MCP tools to write the content directly to <code>content/en/{guide.collection}/</code>
+        in your fork. Schema fields (<code>{guide.fields}</code>) are populated from the conversation; you confirm
+        the draft before it goes live.
+      </p>
+    </section>
+
+    <section class="ebg-info">
+      <h2 class="ebg-info-title">What's already wired</h2>
+      <ul class="ebg-list">
+        <li><strong>MCP server</strong> — <code>{mcpEndpoint}</code> connected to {tool}. 16+ tools available.</li>
+        <li><strong>Vertical pack</strong> — <code>{vertical}</code> schemas loaded. <a href={guide.docsHref}>See pack docs</a>.</li>
+        <li><strong>Knowledge graph</strong> — <code>[[wikilinks]]</code> across collections will resolve as content lands.</li>
+        <li><strong>Search + RSS</strong> — Pagefind index regenerates on publish; RSS feed serves at <code>/rss.xml</code>.</li>
+        {vertical === 'research' && (
+          <li><strong>Academic indexing</strong> — papers emit Google Scholar (citation_*) + Dublin Core (DC.*) + JSON-LD ScholarlyArticle automatically.</li>
+        )}
+        {vertical === 'real-estate' && (
+          <li><strong>Listings + neighborhoods cross-link</strong> — when you publish a listing, it backlinks to the matching neighborhood page automatically.</li>
+        )}
+      </ul>
+    </section>
+
+    <section class="ebg-help">
+      <h2 class="ebg-help-title">If something's wrong</h2>
+      <ul class="ebg-list">
+        <li>{tool} doesn't see Mumega tools? Restart your AI tool after editing the MCP config.</li>
+        <li>Need to switch verticals? Open an issue with the <a href="https://github.com/Mumega-com/inkwell/issues/new?template=fork_question.md">fork-question template</a>.</li>
+        <li>Want to fork the substrate to your own Cloudflare account? See the <a href="https://github.com/Mumega-com/inkwell/blob/main/FORK-GUIDE.md">fork guide</a>.</li>
+      </ul>
+    </section>
+
+    <footer class="ebg-footer">
+      <p>
+        Powered by <a href="https://github.com/Mumega-com/inkwell">Inkwell</a> — the open-source forkable substrate.
+        {slug && <span> Your tenant: <code>{slug}.mumega.com</code>.</span>}
+      </p>
+    </footer>
+  </div>
+</main>
+
+<style>
+  .empty-but-guided {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 5rem 1.5rem 3rem;
+    font-family: var(--ink-font-body, system-ui, -apple-system, sans-serif);
+    color: var(--ink-text, #1A1D23);
+  }
+
+  .ebg-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  /* Status indicator */
+  .ebg-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    align-self: flex-start;
+    padding: 0.375rem 0.75rem;
+    background: color-mix(in srgb, var(--ink-accent, #10B981) 12%, transparent);
+    border: 1px solid var(--ink-accent, #10B981);
+    border-radius: 9999px;
+    font-family: var(--ink-font-mono, ui-monospace, monospace);
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-accent, #10B981);
+  }
+  .ebg-status-dot {
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--ink-accent, #10B981);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--ink-accent, #10B981) 25%, transparent);
+    animation: ebg-pulse 2s ease-in-out infinite;
+  }
+  @keyframes ebg-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* Headline */
+  .ebg-headline {
+    font-family: var(--ink-font-display, system-ui);
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.025em;
+    margin: 0;
+  }
+
+  .ebg-lede {
+    font-size: 1.05rem;
+    line-height: 1.65;
+    color: var(--ink-muted, rgba(0,0,0,0.65));
+    margin: 0;
+  }
+
+  /* Action section */
+  .ebg-action {
+    padding: 1.5rem;
+    background: var(--ink-surface, #f8f9fa);
+    border: 1px solid var(--ink-border, rgba(0,0,0,0.1));
+    border-radius: 6px;
+  }
+  .ebg-action-title {
+    font-family: var(--ink-font-display, system-ui);
+    font-size: 1.125rem;
+    font-weight: 700;
+    margin: 0 0 0.75rem;
+  }
+  .ebg-action p {
+    margin: 0.5rem 0;
+    color: var(--ink-muted, rgba(0,0,0,0.65));
+  }
+  .ebg-prompt {
+    margin: 0.75rem 0;
+    padding: 1rem;
+    background: var(--ink-bg, #ffffff);
+    border: 1px solid var(--ink-border, rgba(0,0,0,0.1));
+    border-radius: 4px;
+    font-family: var(--ink-font-mono, ui-monospace, monospace);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: var(--ink-text, #1A1D23);
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .ebg-action-note {
+    font-size: 0.875rem;
+    line-height: 1.6;
+  }
+
+  /* Info + help sections */
+  .ebg-info,
+  .ebg-help {
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--ink-border, rgba(0,0,0,0.1));
+  }
+  .ebg-info-title,
+  .ebg-help-title {
+    font-family: var(--ink-font-display, system-ui);
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0 0 0.75rem;
+    color: var(--ink-text, #1A1D23);
+  }
+  .ebg-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .ebg-list li {
+    padding: 0.5rem 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: var(--ink-muted, rgba(0,0,0,0.65));
+  }
+  .ebg-list li strong {
+    color: var(--ink-text, #1A1D23);
+    font-weight: 600;
+  }
+  .ebg-list code {
+    font-family: var(--ink-font-mono, ui-monospace, monospace);
+    font-size: 0.85em;
+    padding: 0.05em 0.4em;
+    background: var(--ink-surface, #f8f9fa);
+    border: 1px solid var(--ink-border, rgba(0,0,0,0.1));
+    border-radius: 3px;
+  }
+  .ebg-list a {
+    color: var(--ink-primary, #D4A017);
+    text-decoration: none;
+  }
+  .ebg-list a:hover {
+    text-decoration: underline;
+  }
+
+  /* Footer */
+  .ebg-footer {
+    padding-top: 2rem;
+    border-top: 1px solid var(--ink-border, rgba(0,0,0,0.1));
+  }
+  .ebg-footer p {
+    font-size: 0.875rem;
+    color: var(--ink-dim, rgba(0,0,0,0.45));
+    margin: 0;
+  }
+  .ebg-footer a {
+    color: var(--ink-muted, rgba(0,0,0,0.65));
+    text-decoration: none;
+  }
+  .ebg-footer a:hover {
+    color: var(--ink-primary, #D4A017);
+  }
+  .ebg-footer code {
+    font-family: var(--ink-font-mono, ui-monospace, monospace);
+    font-size: 0.85em;
+    color: var(--ink-text, #1A1D23);
+  }
+
+  /* Reduce motion respect */
+  @media (prefers-reduced-motion: reduce) {
+    .ebg-status-dot {
+      animation: none;
+    }
+  }
+</style>
