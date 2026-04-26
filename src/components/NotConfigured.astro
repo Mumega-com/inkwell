@@ -1,0 +1,136 @@
+---
+// NotConfigured — friendly fallback when a page queries a content-collection
+// entry that doesn't exist in the fork.
+//
+// Use as a graceful-fail alternative to `if (!entry) throw new Error(...)`,
+// which kills the build, or to silently rendering empty HTML, which leaves
+// the URL discoverable but content-less.
+//
+// Usage:
+//
+//   const page = await getEntry('pages', 'about')
+//   if (!page) {
+//     return Astro.locals.notConfigured  // or render <NotConfigured ... />
+//   }
+//
+// Designed substrate-generic for upstream Inkwell. Fork creators can override
+// the visual presentation by copying this file into their fork's
+// `src/components/` and editing.
+//
+// Refs Mumega-com/inkwell #49 (P-007 graceful-fail on missing collection entries).
+
+interface Props {
+  /** Collection name being queried — e.g. 'pages' */
+  collection?: string
+  /** Slug expected — e.g. 'about' */
+  slug?: string
+  /** Optional path under content/ — e.g. 'content/en/pages/about.md' */
+  expectedPath?: string
+  /** Optional doc link for fork creators */
+  docHref?: string
+}
+
+const {
+  collection = 'pages',
+  slug,
+  expectedPath,
+  docHref = 'https://github.com/Mumega-com/inkwell/blob/main/FORK-GUIDE.md',
+} = Astro.props
+
+const inferredPath = expectedPath ?? (slug ? `content/en/${collection}/${slug}.md` : null)
+---
+
+<main class="not-configured">
+  <div class="nc-inner">
+    <h1>This page isn't configured for your fork</h1>
+    <p>
+      The route exists in Inkwell's substrate, but no content has been provided
+      for it in this fork.
+    </p>
+
+    {inferredPath && (
+      <div class="nc-fix">
+        <h2>To fix:</h2>
+        <p>Add a markdown file at:</p>
+        <pre><code>{inferredPath}</code></pre>
+        <p>With minimum frontmatter:</p>
+        <pre><code>---
+title: Page Title
+description: One-line description
+---
+
+Page body here.</code></pre>
+      </div>
+    )}
+
+    <p class="nc-meta">
+      Or remove this page route from your fork if you don't need it. See the{' '}
+      <a href={docHref}>fork guide</a>.
+    </p>
+
+    <p class="nc-status">HTTP 200 — page exists but is unconfigured. Search engines
+    indexing this URL will see this notice.</p>
+  </div>
+</main>
+
+<style>
+  .not-configured {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 6rem 1.5rem 4rem;
+  }
+  .nc-inner {
+    border: 1px dashed var(--ink-border, rgba(0,0,0,0.15));
+    border-radius: 6px;
+    padding: 2rem;
+    background: var(--ink-surface, #fafafa);
+  }
+  .nc-inner h1 {
+    font-family: var(--ink-font-display, system-ui);
+    font-size: 1.5rem;
+    margin: 0 0 0.75rem;
+    color: var(--ink-text, #111);
+  }
+  .nc-inner h2 {
+    font-family: var(--ink-font-display, system-ui);
+    font-size: 1rem;
+    margin: 1.5rem 0 0.5rem;
+    color: var(--ink-text, #111);
+  }
+  .nc-inner p {
+    margin: 0.5rem 0;
+    color: var(--ink-muted, rgba(0,0,0,0.6));
+    line-height: 1.6;
+  }
+  .nc-fix pre {
+    background: var(--ink-bg, #fff);
+    border: 1px solid var(--ink-border, rgba(0,0,0,0.1));
+    border-radius: 4px;
+    padding: 0.75rem 1rem;
+    overflow-x: auto;
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
+  .nc-fix pre code {
+    font-family: var(--ink-font-mono, ui-monospace, monospace);
+  }
+  .nc-meta {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--ink-border, rgba(0,0,0,0.1));
+    font-size: 0.875rem;
+  }
+  .nc-meta a {
+    color: var(--ink-primary, #D4A017);
+    text-decoration: none;
+  }
+  .nc-meta a:hover {
+    text-decoration: underline;
+  }
+  .nc-status {
+    font-family: var(--ink-font-mono, ui-monospace, monospace);
+    font-size: 0.75rem;
+    color: var(--ink-dim, rgba(0,0,0,0.4));
+    margin-top: 1rem;
+  }
+</style>

@@ -3,30 +3,40 @@ import Base from '../layouts/Base.astro'
 import Header from '../components/layout/Header.astro'
 import Footer from '../components/layout/Footer.astro'
 import JsonLd from '../components/seo/JsonLd.astro'
+import NotConfigured from '../components/NotConfigured.astro'
 import { getEntry, render } from 'astro:content'
 
+// Graceful-fail when fork hasn't provided content/<lang>/pages/about.md.
+// Renders the NotConfigured fallback at HTTP 200 instead of throwing at build
+// or rendering empty HTML. See Mumega-com/inkwell #49 (P-007).
 const page = await getEntry('pages', 'about')
-if (!page) throw new Error('About page not found')
-const { Content } = await render(page)
+const rendered = page ? await render(page) : null
 
-const jsonLdContent = {
+const jsonLdContent = page ? {
   slug: '/about/',
   title: page.data.title,
-  type: 'page',
+  type: 'page' as const,
   description: page.data.description,
-}
+} : null
 ---
 
-<Base title={page.data.title} description={page.data.description}>
-  <JsonLd content={jsonLdContent} />
+<Base
+  title={page?.data.title ?? 'About — page not configured'}
+  description={page?.data.description}
+>
+  {jsonLdContent && <JsonLd content={jsonLdContent} />}
   <Header />
 
-  <main class="page">
-    <article class="page-inner ink-prose">
-      <h1>{page.data.title}</h1>
-      <Content />
-    </article>
-  </main>
+  {page && rendered ? (
+    <main class="page">
+      <article class="page-inner ink-prose">
+        <h1>{page.data.title}</h1>
+        <rendered.Content />
+      </article>
+    </main>
+  ) : (
+    <NotConfigured collection="pages" slug="about" />
+  )}
 
   <Footer />
 </Base>
