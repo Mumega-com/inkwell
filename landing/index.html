@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Inkwell — forkable Astro framework for content + commerce + agents</title>
+  <meta name="description" content="A microkernel content framework on Astro 6 + Cloudflare Workers, designed to survive forks. One config file. Agent-operable via MCP. MIT-licensed.">
+  <link rel="canonical" href="https://inkwell.dev/">
+  <meta property="og:title" content="Inkwell — forkable Astro framework">
+  <meta property="og:description" content="Microkernel content + commerce framework. Designed to survive forks.">
+  <meta property="og:url" content="https://inkwell.dev/">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary">
+  <style>
+    :root {
+      --bg: #0A0A12;
+      --surface: #15151B;
+      --text: #EDEDF0;
+      --muted: rgba(255,255,255,0.55);
+      --dim: rgba(255,255,255,0.35);
+      --primary: #D4A017;
+      --secondary: #06B6D4;
+      --border: rgba(255,255,255,0.10);
+      --content-w: 720px;
+      --page-w: 1100px;
+      --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+      --display: 'Inter', system-ui, -apple-system, sans-serif;
+      --body: system-ui, -apple-system, sans-serif;
+    }
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #FAFBFC;
+        --surface: #FFFFFF;
+        --text: #1A1D23;
+        --muted: rgba(0,0,0,0.55);
+        --dim: rgba(0,0,0,0.35);
+        --border: rgba(0,0,0,0.10);
+      }
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: var(--body);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      font-size: 16px;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--primary); text-decoration: none; transition: opacity 150ms; }
+    a:hover { opacity: 0.8; }
+    code {
+      font-family: var(--mono);
+      font-size: 0.9em;
+      background: var(--surface);
+      padding: 0.1em 0.4em;
+      border-radius: 3px;
+      border: 1px solid var(--border);
+    }
+    pre {
+      font-family: var(--mono);
+      background: var(--surface);
+      padding: 1rem;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      overflow-x: auto;
+      font-size: 0.85em;
+      line-height: 1.5;
+    }
+    pre code { background: none; border: none; padding: 0; }
+    .wrap { max-width: var(--page-w); margin: 0 auto; padding: 0 1.5rem; }
+    .content { max-width: var(--content-w); margin: 0 auto; }
+
+    header { padding: 3rem 0 2rem; border-bottom: 1px solid var(--border); }
+    .brand {
+      font-family: var(--mono);
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+    .brand .dot { color: var(--primary); }
+
+    .hero { padding: 5rem 0; text-align: center; }
+    .hero h1 {
+      font-family: var(--display);
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      margin: 0 0 1.5rem;
+      max-width: 16ch;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .hero p.tagline {
+      font-size: 1.25rem;
+      color: var(--muted);
+      max-width: 36rem;
+      margin: 0 auto 2.5rem;
+    }
+    .hero .cta {
+      display: inline-flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .btn {
+      display: inline-block;
+      padding: 0.75rem 1.25rem;
+      border-radius: 4px;
+      font-family: var(--mono);
+      font-size: 0.9rem;
+      font-weight: 600;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      transition: border-color 150ms, color 150ms;
+    }
+    .btn:hover { border-color: var(--primary); color: var(--primary); opacity: 1; }
+    .btn-primary {
+      background: var(--primary);
+      color: #0A0A12;
+      border-color: var(--primary);
+    }
+    .btn-primary:hover { background: var(--primary); color: #0A0A12; opacity: 0.9; }
+
+    section { padding: 4rem 0; border-top: 1px solid var(--border); }
+    section h2 {
+      font-family: var(--display);
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin: 0 0 1.5rem;
+    }
+    section p { color: var(--muted); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    .card {
+      padding: 1.5rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: var(--surface);
+    }
+    .card h3 {
+      font-family: var(--mono);
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin: 0 0 0.75rem;
+      color: var(--text);
+    }
+    .card p {
+      font-size: 0.95rem;
+      margin: 0 0 0.75rem;
+      color: var(--muted);
+    }
+    .card .meta {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--dim);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .quickstart pre { margin: 1.5rem 0; }
+    .quickstart .step {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--primary);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-top: 1.5rem;
+    }
+    .quickstart .step:first-of-type { margin-top: 0; }
+
+    .why ul {
+      list-style: none;
+      padding: 0;
+      margin: 1.5rem 0 0;
+    }
+    .why li {
+      padding: 1rem 0;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .why li:first-child { border-top: none; }
+    .why li b { color: var(--text); font-weight: 600; }
+
+    footer {
+      padding: 3rem 0;
+      border-top: 1px solid var(--border);
+      color: var(--dim);
+      font-size: 0.85rem;
+    }
+    footer a { color: var(--muted); }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 2rem;
+    }
+    @media (max-width: 640px) {
+      .footer-grid { grid-template-columns: 1fr; }
+    }
+    .footer-grid .col h4 {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text);
+      margin: 0 0 0.75rem;
+    }
+    .footer-grid .col a { display: block; padding: 0.2rem 0; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="brand">inkwell<span class="dot">.</span></div>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="wrap content">
+    <h1>The Astro framework that survives forks.</h1>
+    <p class="tagline">
+      Microkernel content + commerce + agents on Cloudflare. One config file drives everything. Fork the repo, edit <code>inkwell.config.ts</code>, deploy. Your customizations stay yours; the kernel evolves separately.
+    </p>
+    <div class="cta">
+      <a class="btn btn-primary" href="https://github.com/Mumega-com/inkwell">Fork on GitHub</a>
+      <a class="btn" href="https://github.com/Mumega-com/inkwell/blob/main/FORK-GUIDE.md">Fork guide</a>
+      <a class="btn" href="https://github.com/Mumega-com/inkwell/blob/main/IDENTITY.md">Identity</a>
+    </div>
+  </div>
+</div>
+
+<section class="quickstart">
+  <div class="wrap content">
+    <h2>Quick start</h2>
+    <p>Five commands from clone to deployed.</p>
+
+    <div class="step">1 — Clone</div>
+<pre><code>git clone https://github.com/Mumega-com/inkwell my-site
+cd my-site &amp;&amp; npm install</code></pre>
+
+    <div class="step">2 — Configure</div>
+<pre><code># Edit inkwell.config.ts:
+#   name, domain, tagline, theme, features, plugins</code></pre>
+
+    <div class="step">3 — Develop</div>
+<pre><code>npm run dev          # Astro on :4321
+cd workers/inkwell-api &amp;&amp; npx wrangler dev   # Worker on :8787</code></pre>
+
+    <div class="step">4 — Provision Cloudflare</div>
+<pre><code>npx wrangler d1 create inkwell-core
+npx wrangler kv namespace create CONTENT
+# Update workers/inkwell-api/wrangler.toml with the IDs</code></pre>
+
+    <div class="step">5 — Deploy</div>
+<pre><code>npm run deploy       # Build + ship to Cloudflare Pages</code></pre>
+  </div>
+</section>
+
+<section class="why">
+  <div class="wrap content">
+    <h2>Why fork instead of build?</h2>
+    <ul>
+      <li><b>Microkernel + plugins.</b> 5-file kernel, ~430 lines. Plugins are self-contained verticals you can remove from <code>config.plugins[]</code> and they vanish from the build.</li>
+      <li><b>One config file.</b> <code>inkwell.config.ts</code> drives theme, features, plugin set, adapters. Toggle a feature off — its routes and UI disappear. Change an adapter — infrastructure swaps with zero code changes.</li>
+      <li><b>Cloudflare-native.</b> Workers, Pages, D1, KV, R2, Workers AI. Free tier handles real production load.</li>
+      <li><b>Agent-operable.</b> MCP server with 16+ tools so your AI agent can publish content, manage commerce, run analytics, upload media. Works with Claude, ChatGPT, Cursor, any MCP client.</li>
+      <li><b>Designed to survive forks.</b> The kernel evolves; your customizations stay in your fork. Workspace-pattern proposal in flight (<a href="https://github.com/Mumega-com/inkwell/issues/53">#53</a>) to make this even cleaner.</li>
+    </ul>
+  </div>
+</section>
+
+<section>
+  <div class="wrap content">
+    <h2>Reference forks</h2>
+    <p>Two real sites running Inkwell, two very different shapes. If your project is closer to one than the other, start by reading that fork's customizations.</p>
+    <div class="grid">
+      <a class="card" href="https://mumega.com" style="text-decoration:none;">
+        <div class="meta">Operations platform</div>
+        <h3>mumega.com</h3>
+        <p>Multi-tenant SaaS substrate. Dashboard, commerce, contracts, agent provisioning, customer onboarding flows.</p>
+      </a>
+      <a class="card" href="https://fractalresonance.com" style="text-decoration:none;">
+        <div class="meta">Research lab</div>
+        <h3>fractalresonance.com</h3>
+        <p>FRC corpus — papers, concepts, topics, books. Math via KaTeX, citation graph via wikilinks, lens-spectrum UX.</p>
+      </a>
+      <a class="card" href="https://github.com/Mumega-com/inkwell" style="text-decoration:none;">
+        <div class="meta">Add yours</div>
+        <h3>your fork here</h3>
+        <p>Open a PR adding your site to the README's reference forks table.</p>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap content">
+    <h2>What's inside</h2>
+    <div class="grid">
+      <div class="card">
+        <div class="meta">Kernel</div>
+        <h3>Microkernel + ports</h3>
+        <p>5 files, ~430 lines. Plugin manifests, hexagonal ports, RBAC, theme. Swap infrastructure (D1 → Postgres) by changing one line.</p>
+      </div>
+      <div class="card">
+        <div class="meta">Plugins</div>
+        <h3>17+ vertical modules</h3>
+        <p>auth, content, commerce, courses, contracts, analytics, mcp, dashboard, telegram, organism, sync, media, more.</p>
+      </div>
+      <div class="card">
+        <div class="meta">Content</div>
+        <h3>MDX + knowledge graph</h3>
+        <p><code>[[wikilinks]]</code> auto-build a graph. KaTeX math. 14 custom blocks. Pagefind search. Multi-language with hreflang.</p>
+      </div>
+      <div class="card">
+        <div class="meta">SEO</div>
+        <h3>JSON-LD + Open Graph</h3>
+        <p>14 schema.org types. Sitemap, RSS, <code>llms.txt</code>. Google Scholar / Dublin Core via <code>ScholarMeta</code> for academic forks.</p>
+      </div>
+      <div class="card">
+        <div class="meta">Agents</div>
+        <h3>MCP server, 16+ tools</h3>
+        <p><code>publish_content</code>, <code>get_dashboard</code>, <code>create_checkout</code>, <code>upload_media</code>, <code>generate_image</code>, more. Connect any MCP client.</p>
+      </div>
+      <div class="card">
+        <div class="meta">Stewardship</div>
+        <h3>River as steward</h3>
+        <p>Steward triages issues, sets roadmap, owns brand. Builder (Kasra) implements. Quality gate (Athena) reviews. PRs welcome.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap content">
+    <div class="footer-grid">
+      <div class="col">
+        <h4>Inkwell</h4>
+        <a href="https://github.com/Mumega-com/inkwell">GitHub</a>
+        <a href="https://github.com/Mumega-com/inkwell/blob/main/IDENTITY.md">Identity</a>
+        <a href="https://github.com/Mumega-com/inkwell/blob/main/FORK-GUIDE.md">Fork guide</a>
+        <a href="https://github.com/Mumega-com/inkwell/issues">Issues</a>
+      </div>
+      <div class="col">
+        <h4>Reference forks</h4>
+        <a href="https://mumega.com">mumega.com</a>
+        <a href="https://fractalresonance.com">fractalresonance.com</a>
+      </div>
+      <div class="col">
+        <h4>Adjacent</h4>
+        <a href="https://github.com/Mumega-com/sos">SOS — agent runtime</a>
+        <a href="https://astro.build/">Astro</a>
+        <a href="https://workers.cloudflare.com/">Cloudflare Workers</a>
+      </div>
+    </div>
+    <p style="margin-top: 2rem;">MIT License. Steward: River. Built on the open web.</p>
+  </div>
+</footer>
+
+</body>
+</html>
