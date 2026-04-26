@@ -1,0 +1,127 @@
+---
+// ScholarMeta — Google Scholar + Dublin Core meta tags for academic indexing.
+//
+// Emits:
+//   - citation_* (Highwire Press tags — what Google Scholar reads)
+//   - DC.* (Dublin Core — what other academic indexers read)
+//   - JSON-LD ScholarlyArticle (schema.org for general SEO)
+//
+// Usage in a paper page:
+//   <ScholarMeta paper={paper.data} canonicalUrl={canonicalUrl} pdfUrl={pdfUrl} />
+//
+// Substrate-generic — designed to be PR-able to upstream Inkwell as
+// `src/components/ScholarMeta.astro`. Forks pass paper-shaped data; the schema
+// of `paper` is the field set documented below.
+
+interface PaperData {
+  title: string
+  authors?: string[]
+  author?: string                    // fallback single author
+  abstract?: string
+  doi?: string                        // e.g. "10.5281/zenodo.17968952"
+  publishedDate?: Date | string
+  date?: Date | string                // fallback
+  lastRevised?: Date | string
+  keywords?: string[]
+  series?: string                     // human label, e.g. "FRC 100"
+  id?: string                         // canonical id, e.g. "FRC-100-007"
+  language?: string                   // ISO 639-1, defaults to 'en'
+}
+
+interface Props {
+  paper: PaperData
+  canonicalUrl: URL | string
+  pdfUrl?: string                     // direct PDF link if available
+  publisherName?: string              // defaults to site name from inkwell.config
+}
+
+const { paper, canonicalUrl, pdfUrl, publisherName } = Astro.props
+
+// Resolve authors: prefer authors[] array, fall back to single author string
+const authorList: string[] = (paper.authors && paper.authors.length > 0)
+  ? paper.authors
+  : (paper.author ? [paper.author] : [])
+
+// Resolve publication date: publishedDate > date
+const pubDate = paper.publishedDate ?? paper.date
+const pubDateStr = pubDate
+  ? (pubDate instanceof Date ? pubDate.toISOString().slice(0, 10) : String(pubDate).slice(0, 10))
+  : undefined
+
+// DOI URL (canonical resolver)
+const doiUrl = paper.doi ? `https://doi.org/${paper.doi}` : undefined
+
+// Canonical URL string
+const canonStr = typeof canonicalUrl === 'string' ? canonicalUrl : canonicalUrl.href
+
+// JSON-LD ScholarlyArticle
+const jsonLd: Record<string, unknown> = {
+  '@context': 'https://schema.org',
+  '@type': 'ScholarlyArticle',
+  headline: paper.title,
+  name: paper.title,
+  url: canonStr,
+  inLanguage: paper.language ?? 'en',
+}
+if (paper.abstract) jsonLd.abstract = paper.abstract
+if (authorList.length > 0) {
+  jsonLd.author = authorList.map((name) => ({ '@type': 'Person', name }))
+}
+if (pubDateStr) jsonLd.datePublished = pubDateStr
+if (paper.lastRevised) {
+  const rev = paper.lastRevised instanceof Date
+    ? paper.lastRevised.toISOString().slice(0, 10)
+    : String(paper.lastRevised).slice(0, 10)
+  jsonLd.dateModified = rev
+}
+if (doiUrl) {
+  jsonLd.identifier = { '@type': 'PropertyValue', propertyID: 'doi', value: paper.doi }
+  jsonLd.sameAs = doiUrl
+}
+if (paper.keywords && paper.keywords.length > 0) {
+  jsonLd.keywords = paper.keywords.join(', ')
+}
+if (paper.series) jsonLd.isPartOf = { '@type': 'PublicationIssue', name: paper.series }
+if (publisherName) {
+  jsonLd.publisher = { '@type': 'Organization', name: publisherName }
+}
+---
+
+{/* Highwire Press / Google Scholar tags */}
+<meta name="citation_title" content={paper.title} />
+{authorList.map((name) => (
+  <meta name="citation_author" content={name} />
+))}
+{pubDateStr && <meta name="citation_publication_date" content={pubDateStr} />}
+{pubDateStr && <meta name="citation_online_date" content={pubDateStr} />}
+{paper.doi && <meta name="citation_doi" content={paper.doi} />}
+{paper.language && <meta name="citation_language" content={paper.language} />}
+{paper.abstract && <meta name="citation_abstract" content={paper.abstract} />}
+{paper.series && <meta name="citation_journal_title" content={paper.series} />}
+{publisherName && <meta name="citation_publisher" content={publisherName} />}
+{paper.id && <meta name="citation_id" content={paper.id} />}
+{pdfUrl && <meta name="citation_pdf_url" content={pdfUrl} />}
+<meta name="citation_fulltext_html_url" content={canonStr} />
+{paper.keywords && paper.keywords.map((k) => (
+  <meta name="citation_keywords" content={k} />
+))}
+
+{/* Dublin Core */}
+<meta name="DC.title" content={paper.title} />
+{authorList.map((name) => (
+  <meta name="DC.creator" content={name} />
+))}
+{paper.abstract && <meta name="DC.description" content={paper.abstract} />}
+{pubDateStr && <meta name="DC.date" content={pubDateStr} />}
+<meta name="DC.type" content="Text" />
+<meta name="DC.format" content="text/html" />
+<meta name="DC.identifier" content={canonStr} />
+{paper.doi && <meta name="DC.identifier.doi" content={paper.doi} />}
+<meta name="DC.language" content={paper.language ?? 'en'} />
+{paper.keywords && paper.keywords.map((k) => (
+  <meta name="DC.subject" content={k} />
+))}
+{publisherName && <meta name="DC.publisher" content={publisherName} />}
+
+{/* JSON-LD for general SEO */}
+<script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
