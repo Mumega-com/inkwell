@@ -77,11 +77,11 @@ When you ask your AI to do something that needs a tenant — publish a post, lis
 
 Pick one:
 
-- **research** — Papers, concepts, lens-spectrum topics. For labs and theorists. [→ research.mumega.com](https://research.mumega.com)
-- **real-estate** — Listings, neighborhoods, agent profiles. For brokerages and agents. [→ real-estate.mumega.com](https://real-estate.mumega.com)
-- **generic** — Blog, team, pages. Pick this if your fit isn't here yet. [→ generic.mumega.com](https://generic.mumega.com)
+- **research** — Papers, concepts, lens-spectrum topics. For labs and theorists. ([starter →](https://github.com/Mumega-com/inkwell/tree/main/examples/research-instance))
+- **real-estate** — Listings, neighborhoods, agent profiles. For brokerages and agents. ([starter →](https://github.com/Mumega-com/inkwell/tree/main/examples/real-estate))
+- **generic** — Blog, team, pages. Pick this if your fit isn't here yet. ([starter →](https://github.com/Mumega-com/inkwell/tree/main/examples/generic))
 
-The AI provisions your tenant at `{slug}.mumega.com` with the vertical's content shape pre-configured. Your portal is live in seconds. Future verticals (dental, grants, agency) follow the same pattern.
+Each starter shows the schema, the config, and a sample content shape. The AI provisions your tenant at `{slug}.mumega.com` with the vertical's content shape pre-configured. Your portal is live in seconds. Future verticals (dental, grants, agency) follow the same pattern.
 
 ---
 
