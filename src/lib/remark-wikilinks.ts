@@ -9,11 +9,25 @@ export const wikilinkMap = new Map<string, string[]>()
 
 const WIKILINK_RE = /\[\[([^\]|]+?)(?:\|([^\]]+?))?\]\]/g
 
+export type ResolveLink = (targetSlug: string) => string
+
+export interface RemarkWikilinksOptions {
+  /**
+   * Map a target slug to a URL path. Default: `/blog/{slug}`.
+   * Forks with multiple content collections (e.g. papers, concepts) should
+   * pass a resolver that routes by slug pattern or collection lookup.
+   */
+  resolveLink?: ResolveLink
+}
+
+const defaultResolveLink: ResolveLink = (slug) => `/blog/${encodeURIComponent(slug)}`
+
 /**
  * Remark plugin that converts [[target]] and [[target|display]] wikilinks
  * into HTML anchor tags and tracks the link graph for backlink computation.
  */
-export default function remarkWikilinks() {
+export default function remarkWikilinks(options: RemarkWikilinksOptions = {}) {
+  const resolveLink = options.resolveLink ?? defaultResolveLink
   return (tree: Root, file: { data: Record<string, unknown> }) => {
     const slug = typeof file.data.slug === 'string' ? file.data.slug : ''
     const targets: string[] = []
@@ -42,7 +56,7 @@ export default function remarkWikilinks() {
 
         children.push({
           type: 'html',
-          value: `<a href="/blog/${encodeURIComponent(targetSlug)}" class="wikilink">${escapeHtml(label)}</a>`,
+          value: `<a href="${resolveLink(targetSlug)}" class="wikilink">${escapeHtml(label)}</a>`,
         })
 
         targets.push(targetSlug)
