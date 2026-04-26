@@ -142,3 +142,10 @@ const pages = defineCollection({
 })
 
 export const collections = { blog, topics, labs, tools, team, products, pages }
+
+// Individual collection re-exports for vertical packs that compose against
+// upstream-core (notably `content.config.generic.ts` which IS the upstream-core
+// 7 collections re-exported as a pack). Additive — does not change `collections`
+// shape. Refs Mumega-com/inkwell #57 (vertical-pack pattern) + LOCK-J (filesystem
+// IS the pack registry).
+export { blog, topics, labs, tools, team, products, pages }
