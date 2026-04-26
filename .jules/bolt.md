@@ -1,0 +1,3 @@
+## 2025-04-26 - Avoid GC Pressure in RequestAnimationFrame Physics Loops
+**Learning:** In Astro/React visualizations like Knowledge Graphs that run continuous physics simulations via `requestAnimationFrame` (60fps), recalculating structures on the fly (like creating a `new Map()` or calculating forces `O(N^2)` with redundant calculations) creates severe GC pressure and frame drops.
+**Action:** Extract any map or dictionary creation out of the `requestAnimationFrame` loop, caching them via `useRef` when data initializes. Always optimize N-body physics calculations by using Newton's third law, turning `O(N^2)` iterations into `O(N^2 / 2)` by iterating symmetric `(i, j = i + 1)` pairs to compute forces once and apply inversely.
