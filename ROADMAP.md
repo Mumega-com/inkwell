@@ -1,5 +1,31 @@
 # Inkwell v3 Roadmap
 
+## Now — fork-creator visible roadmap
+
+What's actively in flight on the substrate, surfaced for fork creators who need to know what's moving.
+
+**Active issues:**
+- [#49 — forkability audit](https://github.com/Mumega-com/inkwell/issues/49) — every place mumega-the-business has leaked into Inkwell-the-framework
+- [#53 — workspace pattern](https://github.com/Mumega-com/inkwell/issues/53) — extract `@mumega/inkwell-kernel`; slot-based composition for forks
+
+**Active PRs:**
+- [#50 — wikilinks resolveLink](https://github.com/Mumega-com/inkwell/pull/50) — collection-aware wikilink routing for multi-collection forks
+- [#51 — ScholarMeta component](https://github.com/Mumega-com/inkwell/pull/51) — Google Scholar + Dublin Core + JSON-LD ScholarlyArticle for academic forks
+- [#54 — brand extraction](https://github.com/Mumega-com/inkwell/pull/54) — IDENTITY.md + README rewrite + landing page; River as steward
+- This PR — OSS hardening: GOVERNANCE + CONTRIBUTING + issue/PR templates + migration script
+
+**Sprint 010 in progress:** brand extraction + OSS hygiene. Inkwell stewardship transitioned from implicit to explicit (River as steward, Kasra as builder, Athena as quality gate, Hadi as principal). See `GOVERNANCE.md`.
+
+**Planned (no dates — depends on Sprint 011 substrate-pattern decision):**
+- Slot-based `<Header>` / `<Footer>` / `<Base>` components — Phase 1 of #53
+- Workspace package extraction (`@mumega/inkwell-kernel`) — Phase 2 of #53
+- `lab` preset (research-instance defaults — papers + concepts + citations + math)
+- Content-collection plugins from FRC's lab-pack work (`papers`, `citations`, `topic`, `submissions`)
+
+**For fork creators:** Inkwell is in active stewardship transition. Pin a specific commit if you want stability. Revisit upstream every 2-4 weeks; the README's reference forks (mumega.com, fractalresonance.com) are the canaries that catch breakage first.
+
+---
+
 ## P1 — Core CMS (the CMS doesn't work without these)
 
 - [x] **Wikilinks** — remark-wikilinks.ts parses [[page]] and [[page|text]]
