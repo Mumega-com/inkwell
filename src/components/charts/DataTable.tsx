@@ -16,13 +16,20 @@ interface DataTableProps {
   emptyMessage?: string
 }
 
+// Cache Intl.NumberFormat instances at the module level.
+// Instantiating these formatters inside the render loop or per-cell is an expensive
+// operation that causes unnecessary CPU overhead. By caching them, we avoid
+// re-creating the formatter object on every function call.
+const NUMBER_FORMATTER = new Intl.NumberFormat('en-CA', { notation: 'compact', maximumFractionDigits: 1 })
+const CURRENCY_FORMATTER = new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 })
+
 function formatCell(value: unknown, format: Column['format']): string {
   if (value === null || value === undefined) return '—'
   switch (format) {
     case 'number':
-      return new Intl.NumberFormat('en-CA', { notation: 'compact', maximumFractionDigits: 1 }).format(value as number)
+      return NUMBER_FORMATTER.format(value as number)
     case 'currency':
-      return new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 }).format(value as number)
+      return CURRENCY_FORMATTER.format(value as number)
     case 'percent':
       return `${(value as number).toFixed(1)}%`
     default:
