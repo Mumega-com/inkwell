@@ -46,12 +46,16 @@ function apiFetch(url: string, options?: RequestInit): Promise<Response> {
   })
 }
 
+// ⚡ Bolt: Cache Intl.NumberFormat instances at module level to avoid expensive
+// instantiations and garbage collection during frequent React re-renders.
+const usdFormatter = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
+  minimumFractionDigits: 2,
+})
+
 function formatCurrency(cents: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-  }).format(cents / 100)
+  return usdFormatter.format(cents / 100)
 }
 
 function daysRemaining(endDate: string): number {

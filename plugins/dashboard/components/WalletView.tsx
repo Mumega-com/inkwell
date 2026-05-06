@@ -52,13 +52,17 @@ function humanizeReason(reason: string, type: 'earn' | 'spend'): string {
     .trim()
 }
 
+// ⚡ Bolt: Cache Intl.NumberFormat instances at module level to avoid expensive
+// instantiations and garbage collection during frequent React re-renders.
+const cadFormatter = new Intl.NumberFormat('en-CA', {
+  style: 'currency',
+  currency: 'CAD',
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+})
+
 function formatCAD(n: number): string {
-  return new Intl.NumberFormat('en-CA', {
-    style: 'currency',
-    currency: 'CAD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(n)
+  return cadFormatter.format(n)
 }
 
 function formatDate(iso: string): string {

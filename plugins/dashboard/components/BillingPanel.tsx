@@ -67,13 +67,23 @@ function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   })
 }
 
+// ⚡ Bolt: Cache Intl.NumberFormat instances at module level to avoid expensive
+// instantiations and garbage collection during frequent React re-renders.
+const currencyFormatters = new Map<string, Intl.NumberFormat>()
+
 function formatCurrency(cents: number, currency: string): string {
-  return new Intl.NumberFormat('en-CA', {
-    style: 'currency',
-    currency: currency.toUpperCase(),
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(cents / 100)
+  const code = currency.toUpperCase()
+  let formatter = currencyFormatters.get(code)
+  if (!formatter) {
+    formatter = new Intl.NumberFormat('en-CA', {
+      style: 'currency',
+      currency: code,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })
+    currencyFormatters.set(code, formatter)
+  }
+  return formatter.format(cents / 100)
 }
 
 function formatDate(iso: string): string {
