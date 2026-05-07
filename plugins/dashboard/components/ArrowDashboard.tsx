@@ -54,12 +54,16 @@ function timeAgo(ts: string): string {
   return `${Math.floor(hrs / 24)}d ago`
 }
 
+// ⚡ Bolt: Cache Intl.NumberFormat instances at module level to avoid expensive GC/instantiation inside loops
+const currencyFormat = new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 })
+const compactNumberFormat = new Intl.NumberFormat('en-CA', { notation: 'compact', maximumFractionDigits: 1 })
+
 function formatCurrency(n: number): string {
-  return new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 }).format(n)
+  return currencyFormat.format(n)
 }
 
 function formatCompact(n: number): string {
-  return new Intl.NumberFormat('en-CA', { notation: 'compact', maximumFractionDigits: 1 }).format(n)
+  return compactNumberFormat.format(n)
 }
 
 const TEAM_NAMES: Record<string, string> = config.brand?.teamNames || {}
