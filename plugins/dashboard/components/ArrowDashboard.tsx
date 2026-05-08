@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '../../../src/components/ui/card'
+import { cadCurrencyFormatter, cadCompactFormatter } from '../../../src/lib/formatters'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../src/components/ui/table'
 import { Badge } from '../../../src/components/ui/badge'
 import { Button } from '../../../src/components/ui/button'
@@ -54,12 +55,15 @@ function timeAgo(ts: string): string {
   return `${Math.floor(hrs / 24)}d ago`
 }
 
+// ⚡ Bolt Performance Optimization:
+// Use cached formatters to avoid unnecessary CPU overhead and
+// garbage collection during renders.
 function formatCurrency(n: number): string {
-  return new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 }).format(n)
+  return cadCurrencyFormatter.format(n)
 }
 
 function formatCompact(n: number): string {
-  return new Intl.NumberFormat('en-CA', { notation: 'compact', maximumFractionDigits: 1 }).format(n)
+  return cadCompactFormatter.format(n)
 }
 
 const TEAM_NAMES: Record<string, string> = config.brand?.teamNames || {}

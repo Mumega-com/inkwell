@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '../../../src/components/ui/card'
+import { cadCurrencyFormatterWithCents } from '../../../src/lib/formatters'
 import { Badge } from '../../../src/components/ui/badge'
 import { Button } from '../../../src/components/ui/button'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../../src/components/ui/tabs'
@@ -52,13 +53,11 @@ function humanizeReason(reason: string, type: 'earn' | 'spend'): string {
     .trim()
 }
 
+// ⚡ Bolt Performance Optimization:
+// Use cached cadCurrencyFormatterWithCents to avoid unnecessary CPU
+// overhead and garbage collection during renders.
 function formatCAD(n: number): string {
-  return new Intl.NumberFormat('en-CA', {
-    style: 'currency',
-    currency: 'CAD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(n)
+  return cadCurrencyFormatterWithCents.format(n)
 }
 
 function formatDate(iso: string): string {

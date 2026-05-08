@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '../../../src/components/ui/card'
+import { getCurrencyFormatter } from '../../../src/lib/formatters'
 import { Badge } from '../../../src/components/ui/badge'
 import { Button } from '../../../src/components/ui/button'
 import {
@@ -67,13 +68,11 @@ function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   })
 }
 
+// ⚡ Bolt Performance Optimization:
+// Use cached dynamic formatters via getCurrencyFormatter to avoid
+// unnecessary CPU overhead and garbage collection during renders.
 function formatCurrency(cents: number, currency: string): string {
-  return new Intl.NumberFormat('en-CA', {
-    style: 'currency',
-    currency: currency.toUpperCase(),
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(cents / 100)
+  return getCurrencyFormatter('en-CA', currency, 2).format(cents / 100)
 }
 
 function formatDate(iso: string): string {

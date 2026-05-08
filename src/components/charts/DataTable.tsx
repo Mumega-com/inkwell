@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { cadCurrencyFormatter, cadCompactFormatter } from '../../lib/formatters'
 
 interface Column {
   key: string
@@ -16,13 +17,16 @@ interface DataTableProps {
   emptyMessage?: string
 }
 
+// ⚡ Bolt Performance Optimization:
+// Use cached Intl.NumberFormat instances from formatters utility to avoid
+// unnecessary CPU overhead and garbage collection during renders.
 function formatCell(value: unknown, format: Column['format']): string {
   if (value === null || value === undefined) return '—'
   switch (format) {
     case 'number':
-      return new Intl.NumberFormat('en-CA', { notation: 'compact', maximumFractionDigits: 1 }).format(value as number)
+      return cadCompactFormatter.format(value as number)
     case 'currency':
-      return new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 }).format(value as number)
+      return cadCurrencyFormatter.format(value as number)
     case 'percent':
       return `${(value as number).toFixed(1)}%`
     default:

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent } from '../../../src/components/ui/card'
+import { usdCurrencyFormatterWithCents } from '../../../src/lib/formatters'
 import { Badge } from '../../../src/components/ui/badge'
 import { Separator } from '../../../src/components/ui/separator'
 
@@ -46,12 +47,11 @@ function apiFetch(url: string, options?: RequestInit): Promise<Response> {
   })
 }
 
+// ⚡ Bolt Performance Optimization:
+// Use cached usdCurrencyFormatterWithCents to avoid unnecessary CPU
+// overhead and garbage collection during renders.
 function formatCurrency(cents: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-  }).format(cents / 100)
+  return usdCurrencyFormatterWithCents.format(cents / 100)
 }
 
 function daysRemaining(endDate: string): number {
