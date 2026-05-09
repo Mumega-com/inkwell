@@ -30,12 +30,22 @@ async function apiFetch(url: string, options?: RequestInit): Promise<Response> {
   })
 }
 
+// ⚡ Bolt: Cache Intl.NumberFormat for dynamic currencies to avoid expensive object creation
+const currencyFormatters = new Map<string, Intl.NumberFormat>()
+
 function formatCurrency(amount: number, currency = 'CAD'): string {
-  return new Intl.NumberFormat('en-CA', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2,
-  }).format(amount)
+  const cacheKey = currency.toUpperCase()
+  if (!currencyFormatters.has(cacheKey)) {
+    currencyFormatters.set(
+      cacheKey,
+      new Intl.NumberFormat('en-CA', {
+        style: 'currency',
+        currency: cacheKey,
+        minimumFractionDigits: 2,
+      })
+    )
+  }
+  return currencyFormatters.get(cacheKey)!.format(amount)
 }
 
 function formatDate(dateStr: string): string {
