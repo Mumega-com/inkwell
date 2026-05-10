@@ -1,39 +1,31 @@
-name: Deploy Inkwell Worker
+name: Deploy mumega.com
 on:
   push:
-    branches: [main, v4]
+    branches: [main]
     paths:
-      - 'workers/**'
+      - 'src/**'
+      - 'content/**'
+      - 'public/**'
+      - 'package.json'
+      - 'astro.config.mjs'
+      - 'vite.config.ts'
       - '.github/workflows/deploy.yml'
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-      - name: Install deps
-        run: cd workers/inkwell-api && npm ci
-      - name: Run tests
-        run: cd workers/inkwell-api && npm test || echo "No tests yet"
   deploy:
-    needs: test
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/v4'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
       - name: Install deps
-        run: cd workers/inkwell-api && npm ci
-      - name: Deploy Worker
-        run: cd workers/inkwell-api && npx wrangler deploy
+        run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Deploy
+        run: npx wrangler pages deploy dist/ --project-name=mumega-inkwell --branch=main
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      - name: Health check
-        run: sleep 2 && curl -sf https://inkwell-api.weathered-scene-2272.workers.dev/health || echo "Worker health check failed"
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

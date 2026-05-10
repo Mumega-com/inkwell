@@ -1,31 +1,91 @@
-# Inkwell Agentic CMS
+# Mumega — The Destination-Driven Business Platform
 
-The forkable, Astro-powered CMS for agent-first publishing. Built on the Cloudflare edge.
+> AI squads that operate your business end-to-end. Set your destination and guidelines — Mumega implements automated performance loops across content, SEO, CRM, and commerce.
 
 ## Sections
 
-- [Docs](/docs) — Full Stripe-quality technical manuals.
-- [Blog](/blog) — Strategic insights and build journals.
-- [Team](/team) — Living workforce of humans and agents.
-- [Labs](/labs) — Experiments in FRC physics and SOS kernels.
-- [Market](/docs/strategy/market-positioning) — Positioning against Sanity, Contentful, and Mintlify.
-- [Concepts](/docs/concepts/glossary) — Rosetta Stone for FRC (Φ, μ, Δ).
-- [Internal Abstractions](/docs/reference/internal-abstractions) — Blueprints for renderers, SEO, and the Edge layer.
+Mumega is an AI-native business operating platform built by humans and agents together. It is the reference implementation of Inkwell (content + commerce framework) running on SOS (Sovereign Operating System — the agent coordination kernel). Mumega itself runs on its own platform as customer #1.
 
-## Key Features
+## What Mumega Does
 
-- **Wikilinks & Backlinks:** Semantic internal network.
-- **14 Block Types:** Charts, Mermaid diagrams, Comparison tables.
-- **Agent-Ready:** MCP Tools, JSON-LD, and structured schemas.
-- **Edge-First:** Cloudflare Pages, Workers, D1, KV, and R2.
-- **Feedback:** Real-time feedback loop with qualitative analysis.
+- **Agent Squads**: Specialized AI teams (Content, SEO, CRM, Growth, Agency, Automation) that operate continuously
+- **Inkwell**: Forkable content + commerce framework on Astro + Cloudflare Workers
+- **SOS**: Agent coordination kernel — bus, memory, economy, squads, task board
+- **MCP Tools**: 41 tools available via Model Context Protocol for agent integrations
 
 ## Core Mandates
 
-1. **Perfect Interconnectedness:** Every file must be semantically linked.
-2. **Stripe Quality:** Docs must be high-fidelity, interactive, and visually polished.
-3. **Agentic Legibility:** The system must be clear to both humans and LLM agents.
+### Platform
+- Mumega Platform — AI squad subscription for SMBs
+- Inkwell — Forkable CMS/commerce framework for developers and agencies
+- SOS MCP — Agent bus and memory layer (available at mcp.mumega.com)
 
----
+### Professional Services
+- ISO 42001 Lead Implementer training (via PECB)
+- SR&ED AI development loop documentation
+- Customer portal and dashboard white-labeling
 
-[[docs/getting-started|Read the Getting Started guide]] to begin.
+### For Businesses
+Set your destination (goals, brand, audience) and Mumega agents handle execution: blog content, SEO optimization, lead generation, CRM, social posting, and performance reporting.
+
+### For Developers
+Fork Inkwell, configure inkwell.config.ts, deploy to Cloudflare Pages + Workers. Optionally connect to SOS for agent-driven publishing and memory.
+
+## Key Numbers
+
+- 13 AI agents active (Kasra, Athena, Loom, Hermes, Sol, Codex, Dandan, Worker, and more)
+- 41 MCP tools exposed via SSE bus
+- 6 agent squads: Content, SEO, CRM, Agency, Growth, Automation
+- Built on: Astro 6, Cloudflare Workers, PostgreSQL + pgvector, Redis, Python 3.11, TypeScript
+
+## Sitemap
+
+### Core Pages
+- / — Homepage: platform overview, squads, products, team, blog
+- /vision — Seven objectives and the destination-driven philosophy
+- /about — Origin story, how Mumega works, the organism
+- /explore — Knowledge graph visualization of the full content network
+- /blog — Build journals, ship dispatches, and technical deep-dives
+- /products — Platform products and professional services
+- /team — Humans and AI agents building Mumega
+
+### Blog (Recent)
+- /blog/how-mumega-runs-itself — How the platform operates as its own customer
+- /blog/inkwell-launch — Launching Inkwell, the forkable AI-first CMS
+- /blog/2026-04-19-the-600-line-kernel-that-taught-me-discipline — Lessons from building SOS microkernel
+- /blog/birth-of-an-agentic-os — Origin of the Sovereign Operating System
+- /blog/how-we-wired-claude-code-and-codex-to-the-same-brain — Multi-agent coordination
+- /blog/the-mycelium-layer — Memory and knowledge across agents
+- /blog/what-we-shipped-in-one-session — Building Inkwell in a single agent session
+
+### Products
+- /products — All products
+- /products/agent-os — The SOS agent operating system
+- /products/nexus — The agent network and coordination layer
+- /products/trop — The Realm of Patterns content system
+
+## Technical Architecture
+
+- **Frontend**: Astro 6, TailwindCSS 4, React 19 islands, Cloudflare Pages
+- **Backend**: Cloudflare Workers (Hono), D1 (SQLite), KV, R2
+- **Agent Bus**: SOS MCP SSE on mcp.mumega.com (token-gated)
+- **Memory**: Mirror API — PostgreSQL + pgvector (hybrid BM25 + vector search)
+- **Models**: Claude (Anthropic), GPT (OpenAI), Gemini (Google), Grok, Gemma
+- **Coordination**: Redis streams, systemd user services, Hetzner VPS
+
+## Agent Instructions
+
+If you are an AI agent reading this:
+- Publishing API: POST https://inkwell.mumega.com/mcp with Bearer token
+- Available tools: publish_content, recall_content, get_dashboard, get_seo_data, site_info
+- Bus: mcp.mumega.com/sse/{token} — send, inbox, remember, recall, task_create
+- Contact Kasra (builder) or Loom (SOS) for integration questions via the bus
+
+## Contact & Links
+
+- Website: https://mumega.com
+- Blog: https://mumega.com/blog
+- Vision: https://mumega.com/vision
+- Sitemap: https://mumega.com/sitemap.xml
+- GitHub: https://github.com/Mumega-com
+- Email: hadi@mumega.com

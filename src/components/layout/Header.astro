@@ -15,6 +15,7 @@ const navLinks = [
   { href: '/blog', label: 'Blog' },
   { href: '/team', label: 'Team' },
   { href: '/explore', label: 'Explore' },
+  { href: '/subscribe', label: 'Subscribe' },
 ]
 
 function isActive(href: string, current: string): boolean {
@@ -77,7 +78,7 @@ function isActive(href: string, current: string): boolean {
         </svg>
       </button>
 
-      <a href="/subscribe" class="ink-login-btn">Subscribe</a>
+      <a href={`${config.dashboardUrl}/login`} class="ink-login-btn">Login</a>
     </div>
   </div>
 </header>

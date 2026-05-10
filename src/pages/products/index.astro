@@ -2,15 +2,13 @@
 import Base from '../../layouts/Base.astro'
 import Header from '../../components/layout/Header.astro'
 import Footer from '../../components/layout/Footer.astro'
-import JsonLd from '../../components/seo/JsonLd.astro'
 import { getCollection } from 'astro:content'
 
 const allProducts = await getCollection('products', (p) => p.data.status !== 'discontinued')
 const products = allProducts.sort((a, b) => b.data.weight - a.data.weight)
 ---
 
-<Base title="Products — Inkwell" description="Tools and services you can use today.">
-  <JsonLd siteOnly />
+<Base title="Products — Mumega" description="Tools and services you can use today.">
   <Header />
 
   <main class="page">

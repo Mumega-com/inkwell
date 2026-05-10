@@ -1,7 +1,7 @@
 export const config = {
-  name: 'Inkwell',
-  domain: 'inkwell.dev',
-  tagline: 'The agent-first publishing organism. Fork it. Configure it. Scale it.',
+  name: 'Mumega',
+  domain: 'mumega.com',
+  tagline: 'AI agents that operate your business — marketing, content, CRM, and growth on autopilot.',
 
   theme: {
     colors: {
@@ -75,8 +75,8 @@ export const config = {
   },
 
   analytics: {
-    googleAnalytics: '',
-    clarity: '',
+    googleAnalytics: 'G-WXKH19HD89',
+    clarity: 'w9k4oxlqz8',
     hotjar: '',
     tagManager: '',
     plausible: '',
@@ -88,11 +88,12 @@ export const config = {
       url: 'https://inkwell.dev',
       logo: '/logo.svg',
       knowsAbout: [
-        'Agent-operated publishing',
-        'Customer portals',
-        'Operational software',
-        'Content systems',
-        'Internal tools',
+        'AI business operations',
+        'Digital marketing automation',
+        'CRM and sales pipelines',
+        'Content publishing',
+        'Agency management',
+        'SEO and growth',
       ],
     },
     defaultAuthor: { name: 'Inkwell', url: 'https://inkwell.dev' },
@@ -114,50 +115,8 @@ export const config = {
     },
   },
 
-  // Feedback — customer surveys, NPS, feature voting.
-  // Forks configure their own surveys. Empty = no auto-surveys.
-  feedback: {
-    surveys: [] as Array<{
-      id: string
-      type: 'nps' | 'csat' | 'micro' | 'exit' | 'custom'
-      title: string
-      questions: Array<{
-        id: string
-        text: string
-        type: 'nps' | 'rating' | 'choice' | 'text' | 'boolean'
-        options?: string[]
-        required: boolean
-      }>
-      trigger?: string          // 'day-14', 'post-checkout', 'exit', 'manual'
-      targetPath?: string       // only show on this path pattern
-      active: boolean
-    }>,
-    votingEnabled: true,        // feature request voting board
-    classifyEnabled: false,     // LLM auto-classification (requires Workers AI)
-  },
-
-  // Content sources — external systems that sync content into Inkwell.
-  // Each entry creates a ContentSourcePort adapter. The sync plugin pulls from all.
-  // Credentials come from env vars (NOTION_TOKEN, GITHUB_TOKEN, GDRIVE_TOKEN).
-  // Forks enable whichever sources they use. Empty array = manual content only.
-  contentSources: [] as Array<
-    | { type: 'obsidian'; vaultPath: string; glob?: string }
-    | { type: 'github'; owner: string; repo: string; branch?: string; path?: string }
-    | { type: 'notion'; databaseId: string }
-    | { type: 'gdrive'; folderId: string }
-  >,
-
-  // Network — how this instance connects to external services.
-  // Forks override these. Standalone instances leave them empty.
-  network: {
-    apiUrl: '',                    // External API for network tools (remember, recall, tasks, marketplace)
-    storageKeyPrefix: 'inkwell',   // Prefix for localStorage keys (e.g. 'inkwell_auth_token')
-    brandName: 'Inkwell',          // Shown in "Powered by X" footer, ledger entries
-    poweredByUrl: 'https://github.com/Mumega-com/inkwell',
-    busTarget: 'owner',            // Default bus recipient for system messages
-  },
-
-  workerUrl: '',  // Set per fork — e.g. 'https://api.yoursite.workers.dev'
+  workerUrl: '',
+  dashboardUrl: 'https://app.mumega.com',
 
   publish: {
     inbox: true,
@@ -166,7 +125,6 @@ export const config = {
   },
 
   // Brand — customer-facing language and identity
-  // Every fork customizes this. Components read from it.
   brand: {
     voice: 'professional, warm, no jargon',
     logo: '/logo.svg',
@@ -211,35 +169,13 @@ export const config = {
   // The Worker registers these at startup via the plugin loader.
   // config.plugins[] controls which are active per fork.
   plugins: [
-    'analytics', 'auth', 'dashboard', 'commerce', 'content', 'mcp',
-    'contracts', 'courses', 'telegram', 'chat',
-    'diagnostics', 'discovery', 'payments', 'questionnaire',
-    'onboarding', 'notifications', 'organism', 'sync', 'media', 'seo', 'feedback',
-    'crm', 'automation', 'bounty', 'agency',
+    'dashboard', 'commerce', 'content', 'mcp',
+    'contracts', 'telegram', 'chat',
+    'diagnostics', 'discovery', 'payments', 'onboarding',
+    'notifications', 'analytics', 'auth', 'automation',
+    'courses', 'crm', 'feedback', 'media',
+    'organism', 'questionnaire', 'seo', 'sync', 'agency', 'sales-desk', 'bounty',
   ],
-
-  // Adapters — which implementation to use for each port.
-  // Each key maps a port name to an adapter type.
-  // The adapter middleware resolves these at request time.
-  // To swap infrastructure, change the adapter type — no code changes needed.
-  //
-  // Available adapter types per port:
-  //   bus:     'standalone' | 'sos'
-  //   memory:  'standalone' | 'mirror'
-  //   economy: 'standalone' | 'sos'
-  //   agent:   'd1'
-  //   graph:   'd1'
-  //
-  // Adding a new adapter: create kernel/adapters/<name>.ts implementing the port,
-  // add it to the factory in middleware/adapters.ts, register the type here.
-  adapters: {
-    bus: 'standalone' as string,
-    memory: 'standalone' as string,
-    economy: 'standalone' as string,
-    agent: 'd1' as string,
-    graph: 'd1' as string,
-    media: 'cf' as string,
-  },
 } as const
 
 export type InkwellConfig = typeof config

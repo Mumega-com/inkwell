@@ -1,0 +1,729 @@
+---
+import Base from '../layouts/Base.astro'
+import Header from '../components/layout/Header.astro'
+import Footer from '../components/layout/Footer.astro'
+import { config } from '../lib/config'
+---
+
+<Base
+  title="Connect Your AI — Mumega"
+  description="Give your AI persistent memory, a team of agents, and the ability to make money. One config line."
+>
+  <Header />
+
+  <main class="connect-page">
+
+    {/* ── Hero ── */}
+    <section class="hero">
+      <div class="hero-inner">
+        <span class="hero-eyebrow">MCP Connect</span>
+        <h1 class="hero-title">Give Your AI <span class="highlight">Superpowers</span></h1>
+        <p class="hero-sub">One config line. Your AI gets persistent memory, a team of agents, and the ability to make money.</p>
+        <p class="hero-compat">Works with Claude, ChatGPT, Cursor, and any MCP-compatible tool</p>
+        <a href="#signup" class="cta-btn">Get My MCP Config &darr;</a>
+      </div>
+    </section>
+
+    {/* ── Steps ── */}
+    <section class="steps-section">
+      <div class="section-inner">
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <h3>Sign up</h3>
+            <p>Enter your name and email. 10 seconds.</p>
+          </div>
+          <div class="step-arrow">&rarr;</div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <h3>Paste one line</h3>
+            <p>Copy the MCP config into your AI tool's settings.</p>
+          </div>
+          <div class="step-arrow">&rarr;</div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <h3>Your AI is alive</h3>
+            <p>It remembers everything, delegates work, and earns revenue.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {/* ── What your AI gets ── */}
+    <section class="tools-section">
+      <div class="section-inner">
+        <h2 class="section-title">What Your AI Gets</h2>
+        <p class="section-desc">39+ tools your AI can call the moment it connects.</p>
+        <div class="tools-grid">
+          <div class="tool-card">
+            <span class="tool-icon">#</span>
+            <div>
+              <h3>Remember &amp; Recall</h3>
+              <p>Your AI never forgets. Every conversation builds your business knowledge graph.</p>
+            </div>
+          </div>
+          <div class="tool-card">
+            <span class="tool-icon">&gt;</span>
+            <div>
+              <h3>Publish</h3>
+              <p>Turn conversations into blog posts, guides, and pages on your site instantly.</p>
+            </div>
+          </div>
+          <div class="tool-card">
+            <span class="tool-icon">^</span>
+            <div>
+              <h3>Dashboard</h3>
+              <p>Ask "how's my site doing?" and get real metrics — traffic, conversions, rankings.</p>
+            </div>
+          </div>
+          <div class="tool-card">
+            <span class="tool-icon">~</span>
+            <div>
+              <h3>Create Task</h3>
+              <p>Delegate work to AI squads — SEO audits, content production, outreach campaigns.</p>
+            </div>
+          </div>
+          <div class="tool-card">
+            <span class="tool-icon">$</span>
+            <div>
+              <h3>Sell</h3>
+              <p>Create payment links on the fly. Your AI becomes a revenue machine.</p>
+            </div>
+          </div>
+          <div class="tool-card">
+            <span class="tool-icon">@</span>
+            <div>
+              <h3>Marketplace</h3>
+              <p>Browse and subscribe to specialized AI teams on ToRivers.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {/* ── Pricing ── */}
+    <section class="pricing-section">
+      <div class="section-inner">
+        <h2 class="section-title">Pricing</h2>
+        <p class="section-desc">Start free for 14 days. No credit card required.</p>
+        <div class="plans">
+          <div class="plan">
+            <h3 class="plan-name">Starter</h3>
+            <div class="plan-price">$29<span>/mo</span></div>
+            <ul class="plan-features">
+              <li>1 seat</li>
+              <li>1 squad</li>
+              <li>10K API calls/mo</li>
+              <li>Persistent memory</li>
+            </ul>
+            <a href="#signup" class="plan-cta secondary">Get started</a>
+          </div>
+          <div class="plan featured">
+            <div class="plan-badge">Most popular</div>
+            <h3 class="plan-name">Growth</h3>
+            <div class="plan-price">$79<span>/mo</span></div>
+            <ul class="plan-features">
+              <li>5 seats</li>
+              <li>3 squads</li>
+              <li>50K API calls/mo</li>
+              <li>Priority agents</li>
+            </ul>
+            <a href="#signup" class="plan-cta primary">Get started</a>
+          </div>
+          <div class="plan">
+            <h3 class="plan-name">Scale</h3>
+            <div class="plan-price">$199<span>/mo</span></div>
+            <ul class="plan-features">
+              <li>Unlimited seats</li>
+              <li>Unlimited squads</li>
+              <li>500K API calls/mo</li>
+              <li>Custom domain</li>
+            </ul>
+            <a href="#signup" class="plan-cta secondary">Get started</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {/* ── Signup form ── */}
+    <section class="signup-section" id="signup">
+      <div class="section-inner narrow">
+        <h2 class="section-title">Get Connected</h2>
+        <p class="section-desc">Sign up and get your MCP config in seconds.</p>
+
+        <form id="signup-form" class="signup-form">
+          <div class="field">
+            <label for="name">Name or business</label>
+            <input type="text" id="name" name="name" placeholder="Acme Corp" required />
+          </div>
+          <div class="field">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" placeholder="you@example.com" required />
+          </div>
+          <div class="field">
+            <label for="plan">Plan</label>
+            <select id="plan" name="plan">
+              <option value="starter">Starter — $29/mo</option>
+              <option value="growth" selected>Growth — $79/mo</option>
+              <option value="scale">Scale — $199/mo</option>
+            </select>
+          </div>
+          <button type="submit" class="submit-btn">Get My MCP Config &rarr;</button>
+          <p class="form-note">14-day free trial. Cancel any time.</p>
+        </form>
+
+        <div id="result" class="result" style="display:none">
+          <div class="result-header">
+            <span class="result-check">&#10003;</span>
+            <h3>You're Connected!</h3>
+          </div>
+          <p id="welcome" class="result-welcome"></p>
+
+          <div class="config-block">
+            <div class="config-label">
+              <span>Claude Code</span>
+              <button class="copy-btn" data-target="cc-config">copy</button>
+            </div>
+            <pre id="cc-config" class="config-box"></pre>
+          </div>
+
+          <div class="config-block">
+            <div class="config-label">
+              <span>Claude Desktop / Cursor</span>
+              <button class="copy-btn" data-target="cd-config">copy</button>
+            </div>
+            <pre id="cd-config" class="config-box"></pre>
+          </div>
+
+          <div id="next-steps" class="next-steps"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <Footer />
+</Base>
+
+<style>
+  main.connect-page {
+    padding-top: 3.5rem;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    padding: 5rem 1.5rem 4rem;
+    text-align: center;
+    background: linear-gradient(180deg, var(--ink-surface) 0%, var(--ink-bg) 100%);
+    border-bottom: 1px solid var(--ink-border);
+  }
+  .hero-inner {
+    max-width: 680px;
+    margin: 0 auto;
+  }
+  .hero-eyebrow {
+    font-family: var(--ink-font-mono);
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-primary);
+    font-weight: 600;
+  }
+  .hero-title {
+    font-family: var(--ink-font-display);
+    font-size: clamp(2rem, 6vw, 3.5rem);
+    font-weight: 700;
+    color: var(--ink-text);
+    letter-spacing: -0.03em;
+    margin: 0.75rem 0 1rem;
+    line-height: 1.1;
+  }
+  .highlight { color: var(--ink-primary); }
+  .hero-sub {
+    font-size: 1.125rem;
+    color: var(--ink-muted);
+    max-width: 520px;
+    margin: 0 auto 0.75rem;
+    line-height: 1.5;
+  }
+  .hero-compat {
+    font-family: var(--ink-font-mono);
+    font-size: 0.75rem;
+    color: var(--ink-dim);
+    margin-bottom: 2rem;
+  }
+  .cta-btn {
+    display: inline-block;
+    padding: 0.75rem 2rem;
+    background: var(--ink-primary);
+    color: var(--ink-bg);
+    font-family: var(--ink-font-display);
+    font-weight: 700;
+    font-size: 0.9375rem;
+    border-radius: var(--ink-radius);
+    text-decoration: none;
+    transition: opacity 0.15s;
+  }
+  .cta-btn:hover { opacity: 0.85; }
+
+  /* ── Shared section layout ── */
+  .section-inner { max-width: var(--ink-page-width); margin: 0 auto; }
+  .section-inner.narrow { max-width: 540px; }
+  .section-title {
+    font-family: var(--ink-font-display);
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--ink-text);
+    letter-spacing: -0.02em;
+    margin: 0 0 0.375rem;
+    text-align: center;
+  }
+  .section-desc {
+    font-size: 0.9375rem;
+    color: var(--ink-muted);
+    text-align: center;
+    margin: 0 0 2.5rem;
+  }
+
+  /* ── Steps ── */
+  .steps-section {
+    padding: 3.5rem 1.5rem;
+  }
+  .steps {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 0;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  .step {
+    flex: 1;
+    text-align: center;
+    padding: 0 1.5rem;
+  }
+  .step-arrow {
+    color: var(--ink-primary);
+    font-size: 1.5rem;
+    margin-top: 1.25rem;
+    flex-shrink: 0;
+  }
+  .step-num {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--ink-primary);
+    color: var(--ink-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-family: var(--ink-font-mono);
+    font-weight: 700;
+    font-size: 1.125rem;
+  }
+  .step h3 {
+    font-family: var(--ink-font-display);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink-text);
+    margin: 0 0 0.375rem;
+  }
+  .step p {
+    font-size: 0.875rem;
+    color: var(--ink-muted);
+    line-height: 1.4;
+    margin: 0;
+  }
+
+  /* ── Tools ── */
+  .tools-section {
+    padding: 3.5rem 1.5rem;
+    background: var(--ink-surface);
+  }
+  .tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+  }
+  .tool-card {
+    display: flex;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: var(--ink-bg);
+    border: 1px solid var(--ink-border);
+    border-radius: var(--ink-radius);
+    transition: border-color 0.15s;
+  }
+  .tool-card:hover { border-color: var(--ink-primary); }
+  .tool-icon {
+    font-family: var(--ink-font-mono);
+    font-size: 1.375rem;
+    font-weight: 700;
+    color: var(--ink-primary);
+    line-height: 1;
+    flex-shrink: 0;
+    width: 1.75rem;
+    text-align: center;
+    margin-top: 0.125rem;
+  }
+  .tool-card h3 {
+    font-family: var(--ink-font-display);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink-text);
+    margin: 0 0 0.375rem;
+  }
+  .tool-card p {
+    font-size: 0.8125rem;
+    color: var(--ink-muted);
+    line-height: 1.45;
+    margin: 0;
+  }
+
+  /* ── Pricing ── */
+  .pricing-section {
+    padding: 3.5rem 1.5rem;
+  }
+  .plans {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+  .plan {
+    position: relative;
+    background: var(--ink-surface);
+    border: 1px solid var(--ink-border);
+    border-radius: var(--ink-radius);
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .plan.featured { border-color: var(--ink-primary); }
+  .plan-badge {
+    position: absolute;
+    top: -0.625rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--ink-primary);
+    color: var(--ink-bg);
+    font-family: var(--ink-font-mono);
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+    padding: 0.125rem 0.75rem;
+    border-radius: 99px;
+    white-space: nowrap;
+  }
+  .plan-name {
+    font-family: var(--ink-font-display);
+    font-size: 1.0625rem;
+    font-weight: 700;
+    color: var(--ink-text);
+    margin: 0;
+  }
+  .plan-price {
+    font-family: var(--ink-font-display);
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: var(--ink-text);
+    letter-spacing: -0.03em;
+  }
+  .plan-price span {
+    font-size: 1rem;
+    color: var(--ink-muted);
+    font-weight: 400;
+    letter-spacing: 0;
+  }
+  .plan-features {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    flex: 1;
+  }
+  .plan-features li {
+    font-size: 0.875rem;
+    color: var(--ink-muted);
+    padding-left: 1rem;
+    position: relative;
+  }
+  .plan-features li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.5em;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--ink-accent);
+  }
+  .plan-cta {
+    display: block;
+    text-align: center;
+    padding: 0.625rem 1rem;
+    border-radius: var(--ink-radius);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: opacity 0.15s;
+    margin-top: auto;
+  }
+  .plan-cta.primary {
+    background: var(--ink-primary);
+    color: var(--ink-bg);
+  }
+  .plan-cta.secondary {
+    background: transparent;
+    border: 1px solid var(--ink-border);
+    color: var(--ink-text);
+  }
+  .plan-cta:hover { opacity: 0.8; }
+
+  /* ── Signup ── */
+  .signup-section {
+    padding: 3.5rem 1.5rem 5rem;
+    background: var(--ink-surface);
+  }
+  .signup-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 0.5rem;
+  }
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+  .field label {
+    font-family: var(--ink-font-mono);
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-dim);
+    font-weight: 600;
+  }
+  .field input,
+  .field select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: var(--ink-bg);
+    border: 1px solid var(--ink-border);
+    border-radius: var(--ink-radius);
+    color: var(--ink-text);
+    font-size: 0.9375rem;
+    font-family: var(--ink-font-body);
+    transition: border-color 0.15s;
+    box-sizing: border-box;
+  }
+  .field input:focus,
+  .field select:focus {
+    outline: none;
+    border-color: var(--ink-primary);
+  }
+  .submit-btn {
+    width: 100%;
+    padding: 0.875rem;
+    background: var(--ink-primary);
+    color: var(--ink-bg);
+    border: none;
+    border-radius: var(--ink-radius);
+    font-family: var(--ink-font-display);
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    margin-top: 0.5rem;
+  }
+  .submit-btn:hover { opacity: 0.85; }
+  .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+  .form-note {
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--ink-dim);
+    margin: 0;
+  }
+
+  /* ── Result ── */
+  .result {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+  .result-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .result-check {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--ink-accent);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .result-header h3 {
+    font-family: var(--ink-font-display);
+    font-size: 1.375rem;
+    font-weight: 700;
+    color: var(--ink-text);
+    margin: 0;
+  }
+  .result-welcome {
+    font-size: 0.9375rem;
+    color: var(--ink-muted);
+    margin: 0;
+  }
+  .config-block {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+  .config-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .config-label span {
+    font-family: var(--ink-font-mono);
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-dim);
+    font-weight: 600;
+  }
+  .copy-btn {
+    font-family: var(--ink-font-mono);
+    font-size: 0.6875rem;
+    color: var(--ink-primary);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .copy-btn:hover { text-decoration: underline; }
+  .config-box {
+    background: var(--ink-bg);
+    border: 1px solid var(--ink-border);
+    border-radius: var(--ink-radius);
+    padding: 1rem;
+    font-family: var(--ink-font-mono);
+    font-size: 0.75rem;
+    line-height: 1.5;
+    word-break: break-all;
+    white-space: pre-wrap;
+    margin: 0;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .config-box:hover { border-color: var(--ink-primary); }
+  .next-steps {
+    font-size: 0.875rem;
+    color: var(--ink-muted);
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+  .next-steps p { margin: 0; }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .steps { flex-direction: column; align-items: center; }
+    .step-arrow { transform: rotate(90deg); margin: 0; }
+    .plans { grid-template-columns: 1fr; max-width: 400px; }
+    .tools-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<script>
+  // api.mumega.com has CORS headers + proxies to SaaS :8075 — call directly from browser
+  const API_BASE = 'https://api.mumega.com'
+
+  document.getElementById('signup-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault()
+    const btn = e.currentTarget as HTMLFormElement
+    const submitBtn = btn.querySelector('button[type=submit]') as HTMLButtonElement
+    const original = submitBtn.textContent
+    submitBtn.textContent = 'Setting up...'
+    submitBtn.disabled = true
+
+    try {
+      const resp = await fetch(`${API_BASE}/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: (document.getElementById('name') as HTMLInputElement).value,
+          email: (document.getElementById('email') as HTMLInputElement).value,
+          plan: (document.getElementById('plan') as HTMLSelectElement).value,
+        }),
+      })
+      const data = await resp.json()
+      if (!resp.ok) {
+        alert(data.detail || 'Signup failed. Please try again.')
+        submitBtn.textContent = original
+        submitBtn.disabled = false
+        return
+      }
+
+      ;(document.getElementById('signup-form') as HTMLElement).style.display = 'none'
+      const result = document.getElementById('result') as HTMLElement
+      result.style.display = 'flex'
+
+      ;(document.getElementById('welcome') as HTMLElement).textContent = data.welcome
+
+      const ccEl = document.getElementById('cc-config') as HTMLElement
+      ccEl.textContent = data.connect.claude_code
+
+      const cdEl = document.getElementById('cd-config') as HTMLElement
+      cdEl.textContent = JSON.stringify(data.connect.claude_desktop, null, 2)
+
+      const stepsEl = document.getElementById('next-steps') as HTMLElement
+      ;(data.next_steps as string[]).forEach((s: string) => {
+        const p = document.createElement('p')
+        p.textContent = s
+        stepsEl.appendChild(p)
+      })
+    } catch {
+      alert('Connection error — please try again.')
+      submitBtn.textContent = original
+      submitBtn.disabled = false
+    }
+  })
+
+  // Copy buttons
+  document.querySelectorAll('.copy-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const target = (btn as HTMLElement).dataset.target
+      const el = document.getElementById(target ?? '')
+      if (!el) return
+      navigator.clipboard.writeText(el.textContent ?? '')
+      const orig = btn.textContent
+      btn.textContent = 'copied!'
+      setTimeout(() => { btn.textContent = orig }, 2000)
+    })
+  })
+
+  // Click-to-copy on config boxes
+  document.querySelectorAll('.config-box').forEach((el) => {
+    el.addEventListener('click', () => {
+      navigator.clipboard.writeText((el as HTMLElement).textContent ?? '')
+      ;(el as HTMLElement).style.borderColor = 'var(--ink-primary)'
+      setTimeout(() => { (el as HTMLElement).style.borderColor = '' }, 2000)
+    })
+  })
+</script>

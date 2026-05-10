@@ -2,7 +2,6 @@
 import Base from '../layouts/Base.astro'
 import Header from '../components/layout/Header.astro'
 import Footer from '../components/layout/Footer.astro'
-import JsonLd from '../components/seo/JsonLd.astro'
 import { getEntry, render } from 'astro:content'
 
 const page = await getEntry('pages', 'subscribe')
@@ -11,7 +10,6 @@ const { Content } = await render(page)
 ---
 
 <Base title={page.data.title} description={page.data.description}>
-  <JsonLd siteOnly />
   <Header />
 
   <main class="page">

@@ -35,12 +35,12 @@ interface Stats {
 
 function getApiBase(): string {
   if (typeof window === 'undefined') return ''
-  return (localStorage.getItem('inkwell_api_url') ?? window.location.origin)
+  return (localStorage.getItem('mumega_api_url') ?? window.location.origin)
 }
 
 function getAuthToken(): string {
   if (typeof window === 'undefined') return ''
-  return localStorage.getItem('inkwell_auth_token') ?? ''
+  return localStorage.getItem('mumega_auth_token') ?? ''
 }
 
 function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
@@ -414,7 +414,7 @@ export function BountyBoard() {
   const [claiming, setClaiming] = useState<string | null>(null)
 
   // Detect manager role from localStorage (set by auth flow)
-  const role = typeof window !== 'undefined' ? (localStorage.getItem('inkwell_user_role') ?? 'viewer') : 'viewer'
+  const role = typeof window !== 'undefined' ? (localStorage.getItem('mumega_user_role') ?? 'viewer') : 'viewer'
   const isManager = ['manager', 'admin', 'owner'].includes(role)
 
   const load = useCallback(async () => {

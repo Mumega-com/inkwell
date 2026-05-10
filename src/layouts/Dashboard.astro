@@ -7,7 +7,7 @@ import { config } from '../lib/config'
 
 interface Props {
   title: string
-  active: 'dashboard' | 'seo' | 'leads' | 'campaigns' | 'calendar' | 'tasks' | 'wallet' | 'chat' | 'squads' | 'media' | 'analytics' | 'feedback' | 'commerce' | 'contracts' | 'diagnostics' | 'courses' | 'questionnaire' | 'admin' | 'settings'
+  active: 'dashboard' | 'seo' | 'leads' | 'campaigns' | 'calendar' | 'tasks' | 'wallet' | 'chat' | 'squads' | 'league' | 'settings' | 'media' | 'crm' | 'feedback' | 'agency' | 'courses' | 'analytics' | 'bounties' | 'billing' | 'seats' | 'usage' | 'admin' | 'compliance' | 'workflows'
 }
 
 const { title, active } = Astro.props
@@ -22,18 +22,23 @@ const navItems = [
   { key: 'calendar',  label: 'Calendar',   href: '/dashboard/calendar',   icon: '◷', requiredRole: 'member'  },
   { key: 'tasks',     label: 'Work',       href: '/dashboard/tasks',      icon: '☐', requiredRole: 'member'  },
   { key: 'squads',    label: 'Team',       href: '/dashboard/squads',     icon: '◎', requiredRole: 'manager' },
+  { key: 'league',    label: 'League',     href: '/dashboard/league',     icon: '⚔', requiredRole: 'member'  },
   { key: 'wallet',    label: 'Money',      href: '/dashboard/wallet',     icon: '◈', requiredRole: 'owner'   },
-  { key: 'media',     label: 'Media',      href: '/dashboard/media',      icon: '◻', requiredRole: 'member'  },
-  { key: 'analytics', label: 'Analytics',  href: '/dashboard/analytics',  icon: '◆', requiredRole: 'manager' },
-  { key: 'feedback',  label: 'Feedback',   href: '/dashboard/feedback',   icon: '◇', requiredRole: 'viewer'  },
-  { key: 'commerce',      label: 'Commerce',      href: '/dashboard/commerce',      icon: '◈', requiredRole: 'manager' },
-  { key: 'contracts',     label: 'Contracts',     href: '/dashboard/contracts',     icon: '◎', requiredRole: 'manager' },
-  { key: 'courses',       label: 'Courses',       href: '/dashboard/courses',       icon: '◇', requiredRole: 'viewer'  },
-  { key: 'admin',          label: 'Admin',         href: '/dashboard/admin',         icon: '⊞', requiredRole: 'admin'   },
-  { key: 'diagnostics',   label: 'Health',        href: '/dashboard/diagnostics',   icon: '◆', requiredRole: 'admin'   },
-  { key: 'questionnaire', label: 'Check-In',      href: '/dashboard/questionnaire', icon: '◌', requiredRole: 'owner'   },
-  { key: 'chat',          label: 'Chat',          href: '/dashboard/chat',          icon: '◉', requiredRole: 'member'  },
-  { key: 'settings',      label: 'Settings',      href: '/dashboard/settings',      icon: '⚙', requiredRole: 'owner'   },
+  { key: 'crm',       label: 'CRM',        href: '/dashboard/crm',        icon: '◇', requiredRole: 'member'  },
+  { key: 'media',     label: 'Media',      href: '/dashboard/media',      icon: '▣', requiredRole: 'member'  },
+  { key: 'feedback',  label: 'Feedback',   href: '/dashboard/feedback',   icon: '✦', requiredRole: 'viewer'  },
+  { key: 'agency',    label: 'Agency',     href: '/dashboard/agency',     icon: '◆', requiredRole: 'admin'   },
+  { key: 'admin',     label: 'Admin',      href: '/dashboard/admin',      icon: '◉', requiredRole: 'admin'   },
+  { key: 'compliance', label: 'Compliance', href: '/dashboard/compliance', icon: '⊞', requiredRole: 'admin'   },
+  { key: 'workflows',  label: 'Workflows',  href: '/dashboard/workflows',  icon: '⟳', requiredRole: 'admin'   },
+  { key: 'courses',   label: 'Courses',    href: '/dashboard/courses',    icon: '▸', requiredRole: 'member'  },
+  { key: 'analytics', label: 'Analytics',  href: '/dashboard/analytics',  icon: '◫', requiredRole: 'manager' },
+  { key: 'bounties',  label: 'Bounties',   href: '/dashboard/bounties',   icon: '◎', requiredRole: 'member'  },
+  { key: 'chat',      label: 'Chat',       href: '/dashboard/chat',       icon: '◉', requiredRole: 'member'  },
+  { key: 'billing',   label: 'Billing',    href: '/dashboard/billing',    icon: '◈', requiredRole: 'owner'   },
+  { key: 'seats',     label: 'Team seats', href: '/dashboard/seats',      icon: '◎', requiredRole: 'admin'   },
+  { key: 'usage',     label: 'Usage',      href: '/dashboard/usage',      icon: '◫', requiredRole: 'owner'   },
+  { key: 'settings',  label: 'Settings',   href: '/dashboard/settings',   icon: '⚙', requiredRole: 'owner'   },
 ]
 ---
 
@@ -271,11 +276,11 @@ const navItems = [
 
     <!-- Auth context: seeded server-side by inkwell-api Worker via CF Access JWT.
          On first dashboard visit after CF Access login, localStorage is auto-configured
-         with inkwell_auth_token, inkwell_tenant_slug, and inkwell_api_url. -->
+         with mumega_auth_token, mumega_tenant_slug, and mumega_api_url. -->
 
     <script is:inline>
       ;(function() {
-        var role = (localStorage.getItem('inkwell_user_role') || 'viewer')
+        var role = (localStorage.getItem('mumega_user_role') || 'viewer')
         var h = { viewer:1, member:2, manager:3, admin:4, owner:5 }
         var level = h[role] || 1
         document.querySelectorAll('[data-required-role]').forEach(function(el) {
@@ -286,7 +291,7 @@ const navItems = [
     </script>
 
     <script is:inline>
-      if (!localStorage.getItem('inkwell_onboarded') && !window.location.pathname.includes('/onboarding')) {
+      if (!localStorage.getItem('mumega_onboarded') && !window.location.pathname.includes('/onboarding')) {
         window.location.href = '/dashboard/onboarding'
       }
     </script>

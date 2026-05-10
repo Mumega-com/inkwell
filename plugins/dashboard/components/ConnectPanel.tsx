@@ -30,18 +30,39 @@ const PLATFORM_ICONS: Record<string, string> = {
   chatgpt: '◈',
 }
 
-function buildFallbackPlatforms(mcpUrl: string): PlatformConfig[] {
-  const config = JSON.stringify(
-    { mcpServers: { inkwell: { type: 'streamable-http', url: mcpUrl } } },
+function buildDefaultPlatforms(mcpUrl: string): PlatformConfig[] {
+  const claudeConfig = JSON.stringify(
+    { mcpServers: { inkwell: { url: mcpUrl } } },
+    null,
+    2
+  )
+  const chatgptConfig = JSON.stringify(
+    { tools: [{ type: 'mcp', server_url: mcpUrl }] },
     null,
     2
   )
 
   return [
-    { platform: 'claude_code', label: 'Claude Code', config: `# Add to .mcp.json in your project root:\n${config}` },
-    { platform: 'claude_desktop', label: 'Claude Desktop', config: `# Add to claude_desktop_config.json:\n${config}` },
-    { platform: 'cursor', label: 'Cursor', config: `# Add to .cursor/mcp.json:\n${config}` },
-    { platform: 'chatgpt', label: 'ChatGPT', config: `# In ChatGPT Settings → Connectors → Add MCP server:\nURL: ${mcpUrl}` },
+    {
+      platform: 'claude_code',
+      label: 'Claude Code',
+      config: `# Add to ~/.claude/mcp.json or mcp.json in your project root:\n${claudeConfig}`,
+    },
+    {
+      platform: 'claude_desktop',
+      label: 'Claude Desktop',
+      config: `# Add to your claude_desktop_config.json:\n${claudeConfig}`,
+    },
+    {
+      platform: 'cursor',
+      label: 'Cursor',
+      config: `# Add to .cursor/mcp.json in your project:\n${claudeConfig}`,
+    },
+    {
+      platform: 'chatgpt',
+      label: 'ChatGPT',
+      config: `# In ChatGPT tool settings, add an MCP server:\n${chatgptConfig}`,
+    },
   ]
 }
 
@@ -96,7 +117,7 @@ export function ConnectPanel({ apiUrl, authToken }: { apiUrl: string; authToken:
   const [error, setError] = useState(false)
 
   useEffect(() => {
-    fetch(`${apiUrl}/mcp/connect`, {
+    fetch(`${apiUrl}/my/connect`, {
       headers: { Authorization: `Bearer ${authToken}` },
     })
       .then((r) => r.json())
@@ -113,7 +134,7 @@ export function ConnectPanel({ apiUrl, authToken }: { apiUrl: string; authToken:
   const platforms: PlatformConfig[] = data?.platforms?.length
     ? data.platforms
     : data?.mcp_url
-      ? buildFallbackPlatforms(data.mcp_url)
+      ? buildDefaultPlatforms(data.mcp_url)
       : []
 
   return (

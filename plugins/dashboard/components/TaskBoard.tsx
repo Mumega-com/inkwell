@@ -196,8 +196,8 @@ export function TaskBoard() {
   const [view, setView] = useState<'kanban' | 'table'>('kanban')
 
   useEffect(() => {
-    const url = localStorage.getItem('inkwell_api_url')
-    const token = localStorage.getItem('inkwell_auth_token')
+    const url = localStorage.getItem('mumega_api_url')
+    const token = localStorage.getItem('mumega_auth_token')
     if (!url || !token) {
       setConfigMissing(true)
       setLoading(false)

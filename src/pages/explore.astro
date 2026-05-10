@@ -50,10 +50,17 @@ function formatDate(entry: { date?: Date; updated?: Date }): string {
   if (!date) return ''
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
+
+const jsonLdContent = {
+  slug: '/explore/',
+  title: 'Explore Mumega',
+  type: 'page',
+  description: 'Browse the full Mumega content graph — agent builds, SOS architecture, MCP tools, squads, skills, and how every idea connects across the network.',
+}
 ---
 
-<Base title="Explore" description="Explore the knowledge graph — see how ideas connect across the network.">
-  <JsonLd siteOnly />
+<Base title="Explore Mumega — AI Agents, Squads, Skills" description="Browse the full Mumega content graph — agent builds, SOS architecture, MCP tools, squads, skills, and how every idea connects across the network.">
+  <JsonLd content={jsonLdContent} />
   <Header />
 
   <main class="explore-page">

@@ -20,8 +20,8 @@ interface TodayQuestion {
 
 function getApiConfig() {
   return {
-    url: localStorage.getItem('inkwell_api_url') ?? '',
-    token: localStorage.getItem('inkwell_auth_token') ?? '',
+    url: localStorage.getItem('mumega_api_url') ?? '',
+    token: localStorage.getItem('mumega_auth_token') ?? '',
   }
 }
 

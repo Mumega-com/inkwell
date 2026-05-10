@@ -1,0 +1,7 @@
+---
+import Dashboard from '../../layouts/Dashboard.astro'
+import { BillingPanel } from '../../../plugins/dashboard/components/BillingPanel'
+---
+<Dashboard title="Billing" active="billing">
+  <BillingPanel client:load />
+</Dashboard>

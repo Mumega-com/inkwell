@@ -1,86 +1,149 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
-import { registerPlugin, getActivePlugins } from '../../../kernel/plugin-loader'
-import { config } from '../../../inkwell.config'
+import { registerPlugin } from '../../../kernel/plugin-loader'
+import type { ScheduledEvent, ExecutionContext } from '@cloudflare/workers-types'
 
-// Plugin manifests (all 19 plugins)
-import analyticsManifest from '../../../plugins/analytics/manifest'
-import authManifest from '../../../plugins/auth/manifest'
+// Plugin manifests
 import dashboardManifest from '../../../plugins/dashboard/manifest'
 import commerceManifest from '../../../plugins/commerce/manifest'
 import contentManifest from '../../../plugins/content/manifest'
 import mcpManifest from '../../../plugins/mcp/manifest'
 import contractsManifest from '../../../plugins/contracts/manifest'
-import coursesManifest from '../../../plugins/courses/manifest'
 import telegramManifest from '../../../plugins/telegram/manifest'
 import chatManifest from '../../../plugins/chat/manifest'
 import diagnosticsManifest from '../../../plugins/diagnostics/manifest'
 import discoveryManifest from '../../../plugins/discovery/manifest'
 import paymentsManifest from '../../../plugins/payments/manifest'
-import questionnaireManifest from '../../../plugins/questionnaire/manifest'
 import onboardingManifest from '../../../plugins/onboarding/manifest'
 import notificationsManifest from '../../../plugins/notifications/manifest'
-import syncManifest from '../../../plugins/sync/manifest'
-import mediaManifest from '../../../plugins/media/manifest'
-import seoManifest from '../../../plugins/seo/manifest'
-import feedbackManifest from '../../../plugins/feedback/manifest'
-import crmManifest from '../../../plugins/crm/manifest'
-import automationManifest from '../../../plugins/automation/manifest'
+import salesDeskManifest from '../../../plugins/sales-desk/manifest'
 import bountyManifest from '../../../plugins/bounty/manifest'
-import organismManifest from '../../../plugins-pro/organism/manifest'
-import agencyManifest from '../../../plugins-pro/agency/manifest'
+import automationManifest from '../../../plugins/automation/manifest'
 
 // Register all available plugins
-const allPlugins = [
-  analyticsManifest, authManifest, dashboardManifest, commerceManifest,
-  contentManifest, mcpManifest, contractsManifest, coursesManifest,
-  telegramManifest, chatManifest, diagnosticsManifest, discoveryManifest,
-  paymentsManifest, questionnaireManifest, onboardingManifest, notificationsManifest,
-  organismManifest, syncManifest, mediaManifest, seoManifest, feedbackManifest,
-  crmManifest, automationManifest, bountyManifest, agencyManifest,
-]
-for (const manifest of allPlugins) {
-  registerPlugin(manifest)
-}
+registerPlugin(dashboardManifest)
+registerPlugin(commerceManifest)
+registerPlugin(contentManifest)
+registerPlugin(mcpManifest)
+registerPlugin(contractsManifest)
+registerPlugin(telegramManifest)
+registerPlugin(chatManifest)
+registerPlugin(diagnosticsManifest)
+registerPlugin(discoveryManifest)
+registerPlugin(paymentsManifest)
+registerPlugin(onboardingManifest)
+registerPlugin(notificationsManifest)
+registerPlugin(salesDeskManifest)
+registerPlugin(bountyManifest)
+registerPlugin(automationManifest)
 
-import { cfAccessMiddleware } from './middleware/cf-access'
-import { autoMigrate } from './middleware/auto-migrate'
+import { analyticsRoutes } from './routes/analytics'
+export { CampaignWorkflow } from './workflows/campaign'
+import { authRoutes } from './routes/auth'
+import { chatRoutes } from './routes/chat'
+import { contentRoutes } from './routes/content'
+import { contractRoutes } from './routes/contracts'
+import { courseRoutes } from './routes/courses'
+import { dashboardRoutes } from './routes/dashboard'
+import { diagnosticsRoutes } from './routes/diagnostics'
+import { discoveryRoutes } from './routes/discovery'
+import { feedbackRoutes } from './routes/feedback'
+import { gdprRoutes } from './routes/gdpr'
+import { glassRoutes } from './routes/glass'
+import { mcpRoutes } from './routes/mcp'
+import { paymentRoutes } from './routes/payments'
+import { publishingRoutes } from './routes/publishing'
+import { connectorRoutes } from './routes/connectors'
+import { portalRoutes } from './routes/portal'
+import { identityRoutes } from './routes/identity'
+import { questionnaireRoutes } from './routes/questionnaire'
+import { telegramRoutes } from './routes/telegram'
+import { salesRoutes } from '../../../plugins/sales-desk/routes'
+import { bountyRoutes } from '../../../plugins/bounty/routes'
+import { auditLogger } from './middleware/audit'
+import { routeGate } from './middleware/route-gate'
 import { tenantResolver } from './middleware/tenant'
 import { usageTracker } from './middleware/usage'
-import { authSessionMiddleware } from './middleware/auth'
-import { requireRole } from './middleware/rbac'
-import { adapterMiddleware } from './middleware/adapters'
-import { edgeSeoRedirects, edgeSeoCrawlLogger, dynamicRobotsTxt } from './middleware/edge-seo'
-import { utmMiddleware } from './middleware/utm'
-import { visitorProfileMiddleware } from './middleware/visitor-profile'
 import { scheduled } from './scheduled'
-import { trackerSnippet } from './snippets/tracker'
-import { feedbackTriggerSnippet } from './snippets/feedback-trigger'
-import { recommendationsSnippet } from './snippets/recommendations'
 import type { AppBindings } from './types'
 
 const app = new Hono<AppBindings>()
 
 // ── Plugin System ──────────────────────────────────────────────────
-// Plugins declare mountRoutes() in their manifests.
-// config.plugins[] controls which are active — unlisted plugins
-// are registered but their routes are NOT mounted.
+// All features are registered as plugins above.
+// config.plugins[] in inkwell.config.ts controls which are active.
+// Route mounting still uses static imports (Sprint 3 will migrate
+// to plugin.mountRoutes() once route files move into plugin dirs).
 // ───────────────────────────────────────────────────────────────────
 
-// CF Access Zero Trust middleware — service tokens, JWT signature verification, tenant resolution
-app.use('*', cfAccessMiddleware)
+// ---------------------------------------------------------------------------
+// CF Access JWT middleware
+// Reads the CF-Access-JWT-Assertion header injected by Cloudflare Access.
+// CF has already verified the JWT signature — we just decode the payload.
+// Sets cf_access_email and cf_access_tenant on the context if a tenant is found.
+// Non-blocking: requests without the header pass through unchanged.
+// ---------------------------------------------------------------------------
+app.use('*', async (c, next) => {
+  const jwt = c.req.header('CF-Access-JWT-Assertion')
+  if (!jwt) {
+    c.set('cf_access_email', null)
+    c.set('cf_access_tenant', null)
+    return next()
+  }
+
+  try {
+    // JWT is three base64url-encoded segments: header.payload.signature
+    const parts = jwt.split('.')
+    if (parts.length !== 3) throw new Error('malformed jwt')
+
+    // base64url → base64 → decode
+    const payloadB64 = parts[1].replace(/-/g, '+').replace(/_/g, '/')
+    const padded = payloadB64 + '='.repeat((4 - (payloadB64.length % 4)) % 4)
+    const payload = JSON.parse(atob(padded)) as Record<string, unknown>
+
+    const email = typeof payload['email'] === 'string' ? payload['email'] : null
+    if (!email) {
+      c.set('cf_access_email', null)
+      c.set('cf_access_tenant', null)
+      return next()
+    }
+
+    c.set('cf_access_email', email)
+
+    // Look up tenant via SaaS API
+    const saasUrl = c.env.SOS_SAAS_URL
+    if (saasUrl) {
+      try {
+        const res = await fetch(
+          `${saasUrl}/auth/tenant?email=${encodeURIComponent(email)}`,
+          { headers: { 'Authorization': `Bearer ${c.env.MUMEGA_TOKEN ?? ''}` } },
+        )
+        if (res.ok) {
+          const data = await res.json() as { tenant_slug?: string }
+          c.set('cf_access_tenant', data.tenant_slug ?? null)
+        } else {
+          c.set('cf_access_tenant', null)
+        }
+      } catch {
+        c.set('cf_access_tenant', null)
+      }
+    } else {
+      c.set('cf_access_tenant', null)
+    }
+  } catch {
+    c.set('cf_access_email', null)
+    c.set('cf_access_tenant', null)
+  }
+
+  return next()
+})
 
 app.use('*', cors({
   origin: (origin) => {
     if (!origin) return null
-    // Allow the configured SITE_URL origin and all tenant subdomains
-    const siteUrl = config.domain ? `https://${config.domain}` : ''
-    if (siteUrl && origin === siteUrl) return origin
-    // Allow tenant subdomains (*.domain)
-    if (config.domain) {
-      const pattern = new RegExp(`^https://[a-z0-9-]+\\.${config.domain.replace('.', '\\.')}$`)
-      if (pattern.test(origin)) return origin
-    }
+    // Allow mumega.com and all tenant subdomains
+    if (origin === 'https://mumega.com') return origin
+    if (/^https:\/\/[a-z0-9-]+\.mumega\.com$/.test(origin)) return origin
     // Allow localhost on any port for local development
     if (/^http:\/\/localhost(:\d+)?$/.test(origin)) return origin
     return null
@@ -89,51 +152,83 @@ app.use('*', cors({
   allowHeaders: ['Content-Type', 'Authorization'],
 }))
 
-// Auto-migrate — apply D1 migrations on first request (cold start only)
-app.use('*', autoMigrate)
-
-// Adapters — plugins use c.get('db_core'), c.get('sessions'), c.get('content') instead of c.env.*
-app.use('*', adapterMiddleware)
-
 // Tenant resolution (non-breaking: null = single-site mode)
 app.use('*', tenantResolver())
 
 // API usage tracking per tenant per day (fire-and-forget, non-blocking)
 app.use('*', usageTracker())
-
-// Session resolution (non-blocking: null = unauthenticated)
-app.use('*', authSessionMiddleware)
-
-// UTM attribution parsing
-app.use('*', utmMiddleware)
-
-// Visitor profile — first-party identity (fire-and-forget, after auth for stitching)
-app.use('*', visitorProfileMiddleware)
-
-// Edge SEO — dynamic robots.txt, redirect engine, crawl logging
-app.use('*', dynamicRobotsTxt)
-app.use('*', edgeSeoRedirects)
-app.use('*', edgeSeoCrawlLogger)
+app.use('/api/*', auditLogger())
 
 app.get('/health', (c) => c.json({ status: 'ok', ts: Date.now(), tenant: c.get('tenant_slug') }))
 
-// ── Plugin Routes with RBAC ────────────────────────────────────────
-// Each plugin declares mountRoutes() + requiredRole in its manifest.
-// The kernel resolves the user's role and gates access per-plugin.
-// System tokens (PUBLISH_TOKEN, INKWELL_MCP_TOKEN) bypass RBAC.
-// ───────────────────────────────────────────────────────────────────
-for (const plugin of getActivePlugins([...config.plugins])) {
-  if (!plugin.mountRoutes) continue
+// Admin: manually trigger the scheduled flywheel (MUMEGA_TOKEN required)
+app.post('/api/admin/trigger-sync', async (c) => {
+  const auth = c.req.header('Authorization') ?? ''
+  const token = c.env.MUMEGA_TOKEN ?? ''
+  if (!token || auth !== `Bearer ${token}`) return c.json({ error: 'forbidden' }, 403)
+  const ctx = { waitUntil: (p: Promise<unknown>) => p, passThroughOnException: () => {} }
+  // Fire and await the scheduled handler directly
+  await scheduled({} as ScheduledEvent, c.env, ctx as ExecutionContext)
+  return c.json({ triggered: true, at: new Date().toISOString() })
+})
 
-  if (plugin.requiredRole && plugin.requiredRole !== 'viewer') {
-    const guarded = new Hono<AppBindings>()
-    guarded.use('*', requireRole(plugin.requiredRole))
-    plugin.mountRoutes(guarded as never)
-    app.route('/', guarded)
-  } else {
-    plugin.mountRoutes(app as never)
-  }
-}
+// Core routes (always enabled)
+app.route('/api', analyticsRoutes)
+app.route('/api', contentRoutes)
+
+// Feature routes (gated by ENABLED_ROUTES env var)
+app.use('/api/auth/*', routeGate('auth'))
+app.route('/api/auth', authRoutes)
+
+app.use('/api/chat/*', routeGate('chat'))
+app.route('/api/chat', chatRoutes)
+
+app.use('/api/contracts/*', routeGate('contracts'))
+app.route('/api/contracts', contractRoutes)
+
+app.use('/api/courses/*', routeGate('courses'))
+app.route('/api/courses', courseRoutes)
+
+app.use('/api/dashboard/*', routeGate('dashboard'))
+app.route('/api/dashboard', dashboardRoutes)
+
+app.use('/api/diagnostics/*', routeGate('diagnostics'))
+app.route('/api/diagnostics', diagnosticsRoutes)
+
+app.use('/api/discovery/*', routeGate('discovery'))
+app.route('/api/discovery', discoveryRoutes)
+
+app.use('/api/feedback/*', routeGate('feedback'))
+app.route('/api/feedback', feedbackRoutes)
+
+app.use('/api/glass/*', routeGate('glass'))
+app.route('/api/glass', glassRoutes)
+
+app.use('/api/payments/*', routeGate('payments'))
+app.route('/api/payments', paymentRoutes)
+
+app.use('/api/publishing/*', routeGate('publishing'))
+app.route('/api/publishing', publishingRoutes)
+
+app.use('/api/questionnaire/*', routeGate('questionnaire'))
+app.route('/api/questionnaire', questionnaireRoutes)
+
+app.use('/api/telegram/*', routeGate('telegram'))
+app.route('/api/telegram', telegramRoutes)
+
+app.use('/api/sales/*', routeGate('sales-desk'))
+app.route('/api/sales', salesRoutes)
+
+app.use('/api/bounties/*', routeGate('bounty'))
+app.route('/api/bounties', bountyRoutes)
+
+app.route('/api/portal', portalRoutes)
+app.route('/api/portal/identity', identityRoutes)
+app.route('/api/connectors', connectorRoutes)
+app.route('/api/gdpr', gdprRoutes)
+
+app.use('/mcp', routeGate('mcp'))
+app.route('/mcp', mcpRoutes)
 
 // Static page serving for tenant subdomains
 // Catches all non-API requests and serves pre-rendered HTML from KV
@@ -143,6 +238,21 @@ app.get('*', async (c) => {
   // No tenant = not a subdomain request, return the default page or 404
   if (!tenantSlug) {
     return c.json({ error: 'not_found', message: 'No tenant resolved for this hostname' }, 404)
+  }
+
+  // Portal SPA fallback: portal.mumega.com/* always serves the SPA index
+  if (tenantSlug === 'portal') {
+    const spaHtml = await c.env.CONTENT.get('portal:page:index.html')
+    if (spaHtml) {
+      return new Response(spaHtml, {
+        headers: {
+          'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': 'public, max-age=60',
+          'X-Tenant': 'portal',
+        },
+      })
+    }
+    // SPA not published yet — fall through to keysToTry
   }
 
   // Build the KV key from the request path
@@ -166,7 +276,7 @@ app.get('*', async (c) => {
   ]
 
   for (const key of keysToTry) {
-    let content = await c.get('content').getPage(key)
+    let content = await c.env.CONTENT.get(key)
     if (content) {
       // Determine content type from the key/path
       const contentType = getContentType(key)
@@ -180,8 +290,7 @@ app.get('*', async (c) => {
         c.get('cf_access_email')
       ) {
         const cfTenant = c.get('cf_access_tenant')
-        const saasUrl = c.env.SOS_SAAS_URL ?? ''
-        const keyPrefix = config.network.storageKeyPrefix
+        const saasUrl = c.env.SOS_SAAS_URL ?? 'https://api.mumega.com'
 
         // Look up bus_token for the tenant so the dashboard can authenticate API calls
         let busToken = ''
@@ -189,7 +298,7 @@ app.get('*', async (c) => {
           try {
             const tokenRes = await fetch(
               `${c.env.SOS_SAAS_URL}/auth/tenant?email=${encodeURIComponent(c.get('cf_access_email') ?? '')}`,
-              { headers: { 'Authorization': `Bearer ${c.env.NETWORK_TOKEN ?? ''}` } },
+              { headers: { 'Authorization': `Bearer ${c.env.MUMEGA_TOKEN ?? ''}` } },
             )
             if (tokenRes.ok) {
               const tokenData = await tokenRes.json() as { bus_token?: string }
@@ -202,10 +311,10 @@ app.get('*', async (c) => {
 
         const autoConfigScript = `<script>
   (function(){
-    if (!localStorage.getItem('${keyPrefix}_auth_token') && ${JSON.stringify(busToken)}) {
-      localStorage.setItem('${keyPrefix}_auth_token', ${JSON.stringify(busToken)});
-      localStorage.setItem('${keyPrefix}_tenant_slug', ${JSON.stringify(cfTenant ?? '')});
-      localStorage.setItem('${keyPrefix}_api_url', ${JSON.stringify(saasUrl)});
+    if (!localStorage.getItem('mumega_auth_token') && ${JSON.stringify(busToken)}) {
+      localStorage.setItem('mumega_auth_token', ${JSON.stringify(busToken)});
+      localStorage.setItem('mumega_tenant_slug', ${JSON.stringify(cfTenant ?? '')});
+      localStorage.setItem('mumega_api_url', ${JSON.stringify(saasUrl)});
     }
   })();
 <\/script>`
@@ -222,24 +331,11 @@ app.get('*', async (c) => {
       if (
         contentType === 'text/html; charset=utf-8' &&
         tenantSlug &&
-        config.domain && new URL(c.req.url).hostname.endsWith(`.${config.domain}`)
+        new URL(c.req.url).hostname.endsWith('.mumega.com')
       ) {
         const noindexTag = '<meta name="robots" content="noindex, nofollow">'
         if (!content.includes('noindex') && content.includes('</head>')) {
           content = content.replace('</head>', `${noindexTag}\n</head>`)
-        }
-      }
-
-      // Inject client-side snippets into HTML pages (tracker, feedback, recommendations)
-      if (contentType === 'text/html; charset=utf-8' && !path.startsWith('dashboard')) {
-        const snippets = [
-          trackerSnippet(),
-          feedbackTriggerSnippet(config.feedback?.surveys ?? []),
-          recommendationsSnippet(),
-        ].filter(Boolean).join('\n')
-
-        if (snippets && content.includes('</body>')) {
-          content = content.replace('</body>', `${snippets}\n</body>`)
         }
       }
 
@@ -254,7 +350,7 @@ app.get('*', async (c) => {
   }
 
   // Try serving a custom 404 page
-  const custom404 = await c.get('content').getPage(`${tenantSlug}:page:404.html`)
+  const custom404 = await c.env.CONTENT.get(`${tenantSlug}:page:404.html`)
   if (custom404) {
     return new Response(custom404, {
       status: 404,
@@ -270,7 +366,7 @@ app.get('*', async (c) => {
 </head><body><div class="c">
 <h1>${tenantSlug}</h1>
 <p>This site is being set up. Check back soon.</p>
-<p><a href="${config.network.poweredByUrl}">${config.network.brandName ? `Powered by ${config.network.brandName}` : ''}</a></p>
+<p><a href="https://mumega.com">Powered by Mumega</a></p>
 </div></body></html>`,
     200,
   )

@@ -6,15 +6,23 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Progress } from '../../../src/components/ui/progress'
 import { Textarea } from '../../../src/components/ui/textarea'
 
-import { STORAGE_KEYS } from '../../lib/storage-keys'
+// ---------------------------------------------------------------------------
+// Storage keys (mirrors dashboard plugin convention)
+// ---------------------------------------------------------------------------
+const STORAGE_KEYS = {
+  apiUrl: 'mumega_api_url',
+  authToken: 'mumega_auth_token',
+  tenantSlug: 'mumega_tenant_slug',
+  onboarded: 'mumega_onboarded',
+} as const
 
 const TOTAL_STEPS = 5
 
 const TEAMS = [
-  { id: 'seo',      label: 'Content & SEO' },
-  { id: 'content',  label: 'Lead Management' },
-  { id: 'ops',      label: 'Customer Support' },
-  { id: 'outreach', label: 'Social & Outreach' },
+  { id: 'seo',      label: 'Marketing Team' },
+  { id: 'content',  label: 'Content Writers' },
+  { id: 'ops',      label: 'Tech Support' },
+  { id: 'outreach', label: 'Outreach Team' },
 ] as const
 
 type TeamId = (typeof TEAMS)[number]['id']
@@ -33,7 +41,7 @@ function StepWelcome({ onNext }: { onNext: () => void }) {
       </div>
       <div className="flex flex-col gap-2">
         <h2 className="text-2xl font-bold" style={{ color: 'var(--ink-text)' }}>
-          Your AI team is ready
+          Welcome to Mumega
         </h2>
         <p style={{ color: 'var(--ink-muted)' }} className="text-sm">
           Let&apos;s set up your AI team in 2 minutes
@@ -156,7 +164,7 @@ function StepConnectAI({ onNext, onSkip }: { onNext: () => void; onSkip: () => v
       // Build a placeholder config from tenant slug
       const slug = localStorage.getItem(STORAGE_KEYS.tenantSlug) ?? 'your-tenant'
       const placeholder = JSON.stringify(
-        { mcpServers: { inkwell: { url: `https://${slug}.example.com/mcp` } } },
+        { mcpServers: { inkwell: { url: `https://${slug}.mumega.com/mcp` } } },
         null,
         2
       )
@@ -165,25 +173,18 @@ function StepConnectAI({ onNext, onSkip }: { onNext: () => void; onSkip: () => v
       return
     }
 
-    fetch(`${apiUrl}/mcp/connect`, {
+    fetch(`${apiUrl}/my/connect`, {
       headers: { Authorization: `Bearer ${authToken}` },
     })
       .then((r) => r.json())
       .then((d: Record<string, unknown>) => {
-        // Use the Claude Code config from the server (includes token + correct URL)
-        const platforms = d.platforms as Array<{ platform: string; config: string }> | undefined
-        const claudeConfig = platforms?.find(p => p.platform === 'claude_code')
-        if (claudeConfig) {
-          setMcpConfig(claudeConfig.config)
-        } else {
-          const mcpUrl = typeof d.mcp_url === 'string' ? d.mcp_url : `${apiUrl}/mcp`
-          setMcpConfig(
-            JSON.stringify({ mcpServers: { inkwell: { type: 'streamable-http', url: mcpUrl } } }, null, 2)
-          )
-        }
+        const mcpUrl = typeof d.mcp_url === 'string' ? d.mcp_url : `${apiUrl}/mcp`
+        setMcpConfig(
+          JSON.stringify({ mcpServers: { inkwell: { url: mcpUrl } } }, null, 2)
+        )
       })
       .catch(() => {
-        setMcpConfig(JSON.stringify({ mcpServers: { inkwell: { type: 'streamable-http', url: `${apiUrl}/mcp` } } }, null, 2))
+        setMcpConfig(JSON.stringify({ mcpServers: { inkwell: { url: `${apiUrl}/mcp` } } }, null, 2))
       })
       .finally(() => setLoading(false))
   }, [])
@@ -414,8 +415,8 @@ export function OnboardingWizard() {
   async function handleStart(firstRequest: string) {
     setSubmitting(true)
     try {
-      const apiUrl = localStorage.getItem(STORAGE_KEYS.apiUrl) ?? ''
-      const authToken = localStorage.getItem(STORAGE_KEYS.authToken) ?? ''
+      const apiUrl = localStorage.getItem('mumega_api_url') ?? ''
+      const authToken = localStorage.getItem('mumega_auth_token') ?? ''
 
       if (apiUrl && authToken) {
         // Create squads for selected teams
@@ -457,14 +458,7 @@ export function OnboardingWizard() {
     } catch {
       // best-effort — complete onboarding regardless
     } finally {
-      const authToken = localStorage.getItem(STORAGE_KEYS.authToken) || ''
-      const apiUrl = localStorage.getItem(STORAGE_KEYS.apiUrl) ?? ''
-      await fetch(`${apiUrl}/api/organism/activate`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: 'haiku' }),
-      }).catch(() => {})
-      localStorage.setItem(STORAGE_KEYS.onboarded, 'true')
+      localStorage.setItem('mumega_onboarded', 'true')
       window.location.href = '/dashboard'
     }
   }

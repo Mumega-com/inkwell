@@ -8,10 +8,17 @@ import { getEntry, render } from 'astro:content'
 const page = await getEntry('pages', 'about')
 if (!page) throw new Error('About page not found')
 const { Content } = await render(page)
+
+const jsonLdContent = {
+  slug: '/about/',
+  title: page.data.title,
+  type: 'page',
+  description: page.data.description,
+}
 ---
 
 <Base title={page.data.title} description={page.data.description}>
-  <JsonLd siteOnly />
+  <JsonLd content={jsonLdContent} />
   <Header />
 
   <main class="page">

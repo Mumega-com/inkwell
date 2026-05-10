@@ -266,6 +266,19 @@ function buildCourse(content: ContentMeta, site: SiteConfig): object {
   }
 }
 
+function buildCollectionPage(content: ContentMeta, site: SiteConfig): object {
+  const url = contentUrl(content.slug, site)
+  return {
+    '@type': 'CollectionPage',
+    '@id': `${url}#collection`,
+    url,
+    name: content.title,
+    description: content.description,
+    inLanguage: content.lang ?? 'en',
+    isPartOf: { '@id': `${stripTrailingSlash(site.url)}/#website` },
+  }
+}
+
 function buildItemList(content: ContentMeta, site: SiteConfig): object {
   const url = contentUrl(content.slug, site)
   const items = content.items ?? []
@@ -298,6 +311,7 @@ const TYPE_BUILDERS: Record<
   product: buildProduct,
   course: buildCourse,
   list: buildItemList,
+  collection: buildCollectionPage,
 }
 
 // ─── Public API ────────────────────────────────────────────────────────────

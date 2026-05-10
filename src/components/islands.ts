@@ -14,12 +14,4 @@ export { TOC } from './navigation/TOC'
 export { KnowledgeGraph } from './visualization/KnowledgeGraph'
 export type { GraphNode, GraphEdge, KnowledgeGraphProps } from './visualization/KnowledgeGraph'
 export { VideoHero } from './visualization/VideoHero'
-export { KernelAnimation } from './visualization/KernelAnimation'
-
-// Chat
-export { ChatWidget } from './ChatWidget'
-
-// Contracts & forms
-export { ContractForm } from './ContractForm'
-export { ContractPortal } from './ContractPortal'
-export { MovingQuoteForm } from './MovingQuoteForm'
+export { OrganismAnimation } from './visualization/OrganismAnimation'

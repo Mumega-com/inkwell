@@ -9,11 +9,15 @@ account_id = "e39eaf94f33092c4efd029d94ae1e9dd"
 # Set to your domain
 SITE_URL = "https://mumega.com"
 # SaaS origin for tenant resolution (subdomains → tenant config)
-SOS_SAAS_URL = ""
-# PUBLISH_TOKEN — set via: npx wrangler secret put PUBLISH_TOKEN
-# Do NOT put a real token here. Use wrangler secrets for production.
-# Dev/test token below is overridden by wrangler secret in production.
-PUBLISH_TOKEN = "dev-inkwell-local-test-token-do-not-use-in-prod"
+SOS_SAAS_URL = "https://api.mumega.com"
+# SOS_BUS_URL, INKWELL_MCP_TOKEN, and GOOGLE_CREDENTIALS are set via wrangler secrets (not vars)
+# DataForSEO — optional, enables real keyword research in CampaignWorkflow
+DATAFORSEO_LOGIN = ""
+DATAFORSEO_PASSWORD = ""
+# Google Analytics 4 property ID (numeric, no "properties/" prefix)
+GA4_PROPERTY_ID = "532397691"
+# Google Search Console site URL (must match exactly what's in GSC)
+GSC_SITE_URL = "https://mumega.com/"
 
 [[d1_databases]]
 binding = "DB_ANALYTICS"
@@ -33,6 +37,16 @@ database_name = "inkwell-marketing"
 database_id = "e4010c8f-5f61-4c04-aa14-cf42d1afc481"
 migrations_dir = "migrations/marketing"
 
+[[d1_databases]]
+binding = "DB_CORE"
+database_name = "inkwell-core"
+database_id = "abd1fc3e-2bd8-411a-bec8-2686ea9a51f5"
+
+[[d1_databases]]
+binding = "DB_MARKETING"
+database_name = "inkwell-marketing"
+database_id = "e4010c8f-5f61-4c04-aa14-cf42d1afc481"
+
 [[kv_namespaces]]
 binding = "CONTENT"
 id = "c303003bd718427c97f978773fce4f3a"
@@ -41,34 +55,26 @@ id = "c303003bd718427c97f978773fce4f3a"
 binding = "SESSIONS"
 id = "512331050ea04a35b23843b28af75c2c"
 
-# R2 bucket for media uploads (images, videos, files)
 [[r2_buckets]]
 binding = "MEDIA"
 bucket_name = "inkwell-media"
 
-# Workers AI — vision, transcription, image generation
+# Audit log archive — create bucket: wrangler r2 bucket create inkwell-logs
+[[r2_buckets]]
+binding = "LOGS"
+bucket_name = "inkwell-logs"
+
 [ai]
 binding = "AI"
 
-# CF Workflows — native durable execution at the edge
-# Uncomment after deploying workflow classes (they extend cloudflare:workflows
-# which isn't available in vitest). Export GenericWorkflow + OutreachSequenceWorkflow
-# from src/index.ts before enabling.
-# [[workflows]]
-# name = "inkwell-generic"
-# binding = "INKWELL_WORKFLOW"
-# class_name = "GenericWorkflow"
-#
-# [[workflows]]
-# name = "inkwell-outreach"
-# binding = "INKWELL_OUTREACH_WORKFLOW"
-# class_name = "OutreachSequenceWorkflow"
+[[workflows]]
+name = "campaign-workflow"
+binding = "CAMPAIGN_WORKFLOW"
+class_name = "CampaignWorkflow"
 
-# Daily flywheel — ingest GSC/GA4, store snapshots, score WoW
 [triggers]
-crons = ["0 6 * * *"]
+crons = ["0 6 * * *", "0 14 * * *", "0 7 * * 1"]
 
-# Wildcard subdomain routing for tenant sites
 [[routes]]
 pattern = "*.mumega.com/*"
 zone_name = "mumega.com"

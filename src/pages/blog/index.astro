@@ -13,10 +13,17 @@ const posts = allPosts.sort(
 function formatDate(date: Date): string {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
+
+const jsonLdContent = {
+  slug: '/blog/',
+  title: 'Mumega Blog',
+  type: 'collection',
+  description: 'Build journals, ship dispatches, and technical deep-dives from the Mumega team — AI agents, MCP tools, SOS architecture, and real deployment logs.',
+}
 ---
 
-<Base title="Blog" description="Dispatches, build journals, experiments, and release notes from the Inkwell reference implementation.">
-  <JsonLd siteOnly />
+<Base title="AI Agent Blog — Mumega | MCP, Squads, Commerce" description="Build journals, ship dispatches, and technical deep-dives from the Mumega team — AI agents, MCP tools, SOS architecture, and real deployment logs.">
+  <JsonLd content={jsonLdContent} />
   <Header />
 
   <main class="blog-listing">

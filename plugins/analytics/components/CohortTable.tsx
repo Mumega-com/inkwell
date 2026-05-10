@@ -36,8 +36,8 @@ export function CohortTable({ days = 30 }: CohortTableProps) {
   const [error, setError] = useState(false)
 
   useEffect(() => {
-    const apiUrl = localStorage.getItem('inkwell_api_url') ?? ''
-    const token = localStorage.getItem('inkwell_auth_token') ?? ''
+    const apiUrl = localStorage.getItem('mumega_api_url') ?? ''
+    const token = localStorage.getItem('mumega_auth_token') ?? ''
     fetch(`${apiUrl}/api/analytics/cohorts?days=${days}`, {
       headers: { 'Authorization': `Bearer ${token}` },
     })

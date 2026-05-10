@@ -2,7 +2,6 @@
 import Base from '../../layouts/Base.astro'
 import Header from '../../components/layout/Header.astro'
 import Footer from '../../components/layout/Footer.astro'
-import JsonLd from '../../components/seo/JsonLd.astro'
 import { getCollection, render } from 'astro:content'
 
 export async function getStaticPaths() {
@@ -14,8 +13,7 @@ const { product } = Astro.props
 const { Content } = await render(product)
 ---
 
-<Base title={`${product.data.title} — Inkwell`} description={product.data.description}>
-  <JsonLd siteOnly />
+<Base title={`${product.data.title} — Mumega`} description={product.data.description}>
   <Header />
 
   <main class="page">

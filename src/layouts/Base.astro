@@ -3,7 +3,7 @@ import '../styles/base.css'
 import { generateCssVars } from '../lib/theme'
 import { config } from '../lib/config'
 import { CommandPalette } from '../components/navigation/CommandPalette'
-import { getCollection } from 'astro:content'
+import JsonLd from '../components/seo/JsonLd.astro'
 
 interface Props {
   title: string
@@ -104,6 +104,9 @@ const commandPaletteItems = [
     {description && <meta name="twitter:description" content={description} />}
     <meta name="twitter:image" content={new URL(image, `https://${config.domain}`).href} />
 
+    {/* RSS autodiscovery */}
+    <link rel="alternate" type="application/rss+xml" title={`${config.name} Blog`} href="/rss.xml" />
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16/dist/katex.min.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
@@ -111,6 +114,9 @@ const commandPaletteItems = [
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" />
     <meta name="generator" content={Astro.generator} />
+
+    {/* JSON-LD — site-level schemas (Organization, WebSite) on every page */}
+    <JsonLd siteOnly />
 
     {/* Analytics */}
     {analytics.googleAnalytics && (
@@ -173,8 +179,7 @@ const commandPaletteItems = [
   </head>
   <body>
     <slot />
-    <CommandPalette client:load items={commandPaletteItems} />
-    {/* ChatWidget: enable by adding your own chat component and importing it here */}
+    <CommandPalette client:idle items={commandPaletteItems} />
 
     {/* Mermaid diagram rendering — only loads if diagrams exist on the page */}
     <script is:inline>

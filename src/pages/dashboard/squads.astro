@@ -1,8 +1,12 @@
 ---
 import Dashboard from '../../layouts/Dashboard.astro'
 import { SquadPanel } from '../../../plugins/dashboard/components/SquadPanel'
+import { SquadMemoryPanel } from '../../../plugins/dashboard/components/SquadMemoryPanel'
+
+const defaultSquadId = 'default'
 ---
 
 <Dashboard title="Squads" active="squads">
   <SquadPanel client:load />
+  <SquadMemoryPanel squadId={defaultSquadId} client:load />
 </Dashboard>

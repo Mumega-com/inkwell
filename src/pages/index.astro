@@ -2,8 +2,8 @@
 import Base from '../layouts/Base.astro'
 import Header from '../components/layout/Header.astro'
 import Footer from '../components/layout/Footer.astro'
-import JsonLd from '../components/seo/JsonLd.astro'
-import { KernelAnimation } from '../components/visualization/KernelAnimation'
+import { NetworkHero } from '../components/visualization/NetworkHero'
+import { OrganismAnimation } from '../components/visualization/OrganismAnimation'
 import { getCollection } from 'astro:content'
 import { config } from '../lib/config'
 
@@ -19,34 +19,17 @@ function timeAgo(date: Date): string {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-// Plugin categories matching what's actually in the kernel
-const pluginSurface = ['content', 'dashboard', 'commerce', 'auth', 'contracts', 'courses', 'onboarding', 'questionnaire', 'feedback']
-const pluginService = ['payments', 'notifications', 'sync', 'analytics', 'seo', 'media', 'crm', 'discovery', 'diagnostics', 'organism']
-const pluginAI      = ['mcp', 'chat', 'telegram', 'agency', 'automation']
-
-const ports = [
-  { name: 'DatabasePort',      swap: 'D1 → Postgres, PlanetScale, Neon' },
-  { name: 'AuthPort',          swap: 'CF Access → Auth.js, SOS tokens' },
-  { name: 'StoragePort',       swap: 'R2 → S3, GCS, any blob store' },
-  { name: 'MediaPort',         swap: 'Workers AI → OpenAI, Replicate' },
-  { name: 'BusPort',           swap: 'No-op → SOS Redis bus' },
-  { name: 'MemoryPort',        swap: 'KV → Mirror vectors, Pinecone' },
-  { name: 'AgentPort',         swap: 'Stub → Anthropic Managed Agents' },
-  { name: 'EconomyPort',       swap: 'No-op → SOS Economy, Stripe' },
-]
-
-const mcpTools = [
-  { group: 'Content', tools: ['publish_content', 'content_strategy', 'auto_tag_content', 'generate_pages', 'prune_content'] },
-  { group: 'CRM',     tools: ['create_contact', 'update_contact', 'list_contacts', 'manage_pipeline', 'find_leads', 'run_outreach'] },
-  { group: 'SEO',     tools: ['seo_crawl_stats', 'manage_redirects', 'seo_audit'] },
-  { group: 'Media',   tools: ['upload_media', 'describe_image', 'generate_image', 'search_media'] },
-  { group: 'Agency',  tools: ['onboard_client', 'client_dashboard', 'client_report'] },
-  { group: 'Ops',     tools: ['get_dashboard', 'trigger_workflow', 'list_workflows', 'subscription_status', 'get_feedback_summary'] },
+const squads = [
+  { name: 'Content', desc: 'Blog posts, landing pages, wikis, auto-publishing', agents: 'Writer, Editor', icon: '>' },
+  { name: 'SEO', desc: 'Audits, meta tags, geo pages, scale content', agents: 'Analyst, Builder', icon: '^' },
+  { name: 'CRM', desc: 'Contacts, pipeline, deals, outreach sequences', agents: 'Sales, Outreach', icon: '◇' },
+  { name: 'Agency', desc: 'Client onboarding, dashboards, reports', agents: 'Manager, Ops', icon: '◆' },
+  { name: 'Growth', desc: 'Analytics, funnels, feedback, churn signals', agents: 'Metrics, Insight', icon: '@' },
+  { name: 'Automation', desc: 'Workflows, social posting, media pipeline', agents: 'Workflow, Media', icon: '#' },
 ]
 ---
 
-<Base title={`${config.name} — Fork once. One config. Agents operate it.`} description="Inkwell is a forkable SaaS microkernel — Astro 6 + Cloudflare Workers. 24 plugins, 16 swappable ports, 41 MCP tools. Ship a full SaaS by editing one config file.">
-  <JsonLd siteOnly />
+<Base title={`${config.name} — Tesla for your Business`} description="The destination-driven AI platform. You provide the destination and guidelines — we implement automated performance loops to drive your business forward.">
   <Header />
 
   <main>
@@ -54,29 +37,25 @@ const mcpTools = [
     {/* ── Hero ── */}
     <section class="hero">
       <div class="hero-content">
-        <div class="hero-eyebrow">
-          <span class="badge">v8.5</span>
-          <span class="badge badge-dim">Astro 6 · Cloudflare Workers · ~430 LOC kernel</span>
+        <span class="hero-eyebrow">The Destination-Driven Business Platform</span>
+        <h1 class="hero-title">Tesla for Business</h1>
+        <p class="hero-tagline">Set your destination. Our AI squads build the documentation, implement the performance loops, and automate your growth on autopilot.</p>
+        <div class="hero-cta-row">
+          <a href="/onboarding" class="hero-cta-primary">Set Your Destination &rarr;</a>
+          <a href="/vision" class="hero-cta-secondary">The Vision</a>
         </div>
-        <h1 class="hero-title">Fork once.<br/>One config file.<br/>Agents operate it.</h1>
-        <p class="hero-sub">
-          Inkwell is a SaaS microkernel — 24 plugins, 16 swappable ports, 41 MCP tools.
-          Ship contracts, CRM, courses, commerce, SEO, and media by editing <code>inkwell.config.ts</code>.
-          Claude runs the whole stack via MCP.
-        </p>
-        <div class="hero-actions">
-          <a href="/docs" class="btn-primary">Read the docs</a>
-          <a href="/dashboard" class="btn-secondary">Open dashboard</a>
-        </div>
-        <div class="hero-stats">
-          <div class="stat"><span class="stat-n">24</span><span class="stat-l">plugins</span></div>
-          <div class="stat-sep"></div>
-          <div class="stat"><span class="stat-n">16</span><span class="stat-l">hex ports</span></div>
-          <div class="stat-sep"></div>
-          <div class="stat"><span class="stat-n">41</span><span class="stat-l">MCP tools</span></div>
-          <div class="stat-sep"></div>
-          <div class="stat"><span class="stat-n">430</span><span class="stat-l">LOC kernel</span></div>
-        </div>
+        <p class="hero-compat">41 MCP tools &middot; Agency management &middot; CRM &middot; SEO &middot; Content</p>
+      </div>
+    </section>
+
+    {/* ── Organism Animation ── */}
+    <section class="anim-section">
+      <div class="anim-label-bar">
+        <span class="anim-label">ORGANISM RUNTIME</span>
+        <span class="anim-sub">How Mumega operates a customer end-to-end</span>
+      </div>
+      <div class="anim-stage">
+        <OrganismAnimation client:visible height="100%" />
       </div>
     </section>
 
@@ -131,23 +110,8 @@ const mcpTools = [
       <div class="section-inner">
         <div class="section-header">
           <div>
-            <h2 class="section-title">24 plugins, ready to fork</h2>
-            <p class="section-desc">Surface (user-facing), Service (backend), AI (agent-native). All declared in one config array.</p>
-          </div>
-          <a href="/docs" class="section-link">Plugin manifest →</a>
-        </div>
-        <div class="plugin-columns">
-          <div class="plugin-col">
-            <div class="plugin-col-header orange">surface</div>
-            {pluginSurface.map(p => <div class="plugin-chip orange">{p}</div>)}
-          </div>
-          <div class="plugin-col">
-            <div class="plugin-col-header cyan">service</div>
-            {pluginService.map(p => <div class="plugin-chip cyan">{p}</div>)}
-          </div>
-          <div class="plugin-col">
-            <div class="plugin-col-header green">ai</div>
-            {pluginAI.map(p => <div class="plugin-chip green">{p}</div>)}
+            <h2 class="section-title">Agent Squads</h2>
+            <p class="section-desc">Specialized teams that operate your business around the clock.</p>
           </div>
         </div>
         <p class="plugin-note">
@@ -161,8 +125,8 @@ const mcpTools = [
       <div class="section-inner">
         <div class="section-header">
           <div>
-            <h2 class="section-title">16 hexagonal ports</h2>
-            <p class="section-desc">Change infra without touching plugin code. Every adapter is a single config key.</p>
+            <h2 class="section-title">What ships with Mumega</h2>
+            <p class="section-desc">Everything your business needs — built in, not bolted on.</p>
           </div>
         </div>
         <div class="ports-grid">
@@ -185,13 +149,31 @@ adapters: {
       </div>
     </section>
 
-    {/* ── MCP Tools ── */}
-    <section class="section">
-      <div class="section-inner">
-        <div class="section-header">
-          <div>
-            <h2 class="section-title">41 MCP tools — Claude operates the stack</h2>
-            <p class="section-desc">Every tool is RBAC-gated. Agents call tools. Plugins respond. No custom prompt engineering.</p>
+    {/* ── Products ── */}
+    {products.length > 0 && (
+      <section class="section">
+        <div class="section-inner">
+          <div class="section-header">
+            <div>
+              <h2 class="section-title">Products</h2>
+              <p class="section-desc">Turnkey solutions built on the Mumega platform.</p>
+            </div>
+            <a href="/products" class="section-link">All products &rarr;</a>
+          </div>
+          <div class="products-grid">
+            {products.map((p) => (
+              <a href={`/products/${p.id}`} class="product-card">
+                <div class="product-top">
+                  {p.data.marketplace && <span class="product-market">{p.data.marketplace}</span>}
+                  {p.data.price && <span class="product-price">{p.data.price}</span>}
+                </div>
+                <h3 class="product-title">{p.data.title}</h3>
+                <p class="product-desc">{p.data.description}</p>
+                <ul class="product-feats">
+                  {p.data.features.slice(0, 3).map((f) => <li>{f}</li>)}
+                </ul>
+              </a>
+            ))}
           </div>
         </div>
         <div class="mcp-groups">
@@ -216,8 +198,8 @@ adapters: {
       <div class="section-inner">
         <div class="section-header">
           <div>
-            <h2 class="section-title">Fork in 4 steps</h2>
-            <p class="section-desc">From zero to a live SaaS for a customer.</p>
+            <h2 class="section-title">The Team</h2>
+            <p class="section-desc">{team.length} humans and AI agents building Mumega.</p>
           </div>
         </div>
         <div class="steps">
@@ -296,42 +278,141 @@ adapters: {
 <style>
   main { padding-top: 3.5rem; }
 
+  /* ── Organism Animation ── */
+  .anim-section {
+    margin: 0 auto var(--space-3xl);
+    max-width: var(--page-width);
+    padding: 0 var(--space-lg);
+  }
+  .anim-label-bar {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-md);
+    padding: var(--space-sm) var(--space-md);
+    background: rgba(212,160,23,0.06);
+    border: 1px solid rgba(212,160,23,0.18);
+    border-bottom: none;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .anim-label {
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    color: var(--ink-primary);
+  }
+  .anim-sub {
+    font-size: 0.75rem;
+    color: var(--ink-muted);
+  }
+  .anim-stage {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #060810;
+    border: 1px solid rgba(212,160,23,0.18);
+  }
+
   /* ── Hero ── */
   .hero {
     padding: 5rem 1.5rem 4rem;
     text-align: center;
     border-bottom: 1px solid var(--ink-border);
   }
-  .hero-content { max-width: 720px; margin: 0 auto; }
-
   .hero-eyebrow {
-    display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 1.75rem; flex-wrap: wrap;
-  }
-  .badge {
     font-family: var(--ink-font-mono);
     font-size: 0.6875rem;
-    font-weight: 600;
-    letter-spacing: 0.08em;
     text-transform: uppercase;
-    padding: 0.25rem 0.625rem;
-    border-radius: calc(var(--ink-radius) - 2px);
-    background: var(--ink-primary);
-    color: #000;
+    letter-spacing: 0.12em;
+    color: var(--ink-primary);
+    font-weight: 600;
+    display: block;
+    margin-bottom: 0.75rem;
   }
-  .badge-dim {
-    background: transparent;
-    border: 1px solid var(--ink-border);
-    color: var(--ink-dim);
-  }
-
   .hero-title {
     font-family: var(--ink-font-display);
     font-size: clamp(2.5rem, 6vw, 4rem);
     font-weight: 700;
     color: var(--ink-text);
     letter-spacing: -0.04em;
-    line-height: 1.05;
-    margin: 0 0 1.5rem;
+    margin: 0 0 1rem;
+  }
+  .hero-tagline {
+    font-size: 1.125rem;
+    color: var(--ink-muted);
+    max-width: 540px;
+    margin: 0 auto 1.75rem;
+    line-height: 1.5;
+  }
+  .hero-cta-row {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+  .hero-cta-primary {
+    display: inline-block;
+    padding: 0.75rem 1.75rem;
+    background: var(--ink-primary);
+    color: var(--ink-bg);
+    font-family: var(--ink-font-display);
+    font-weight: 700;
+    font-size: 0.9375rem;
+    border-radius: var(--ink-radius);
+    text-decoration: none;
+    transition: opacity 0.15s;
+  }
+  .hero-cta-primary:hover { opacity: 0.85; }
+  .hero-cta-secondary {
+    display: inline-block;
+    padding: 0.75rem 1.75rem;
+    background: transparent;
+    color: var(--ink-text);
+    font-family: var(--ink-font-display);
+    font-weight: 600;
+    font-size: 0.9375rem;
+    border-radius: var(--ink-radius);
+    border: 1px solid var(--ink-border);
+    text-decoration: none;
+    transition: border-color 0.15s;
+    backdrop-filter: blur(4px);
+  }
+  .hero-cta-secondary:hover { border-color: var(--ink-primary); }
+  .hero-compat {
+    font-family: var(--ink-font-mono);
+    font-size: 0.6875rem;
+    color: var(--ink-dim);
+    margin: 0;
+  }
+  .hero-two {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    max-width: 680px;
+    margin: 0 auto;
+  }
+  .hero-card {
+    padding: 1.5rem;
+    background: color-mix(in srgb, var(--ink-surface) 80%, transparent);
+    border: 1px solid var(--ink-border);
+    border-radius: var(--ink-radius);
+    backdrop-filter: blur(8px);
+    text-align: left;
+  }
+  .hero-label {
+    font-family: var(--ink-font-mono);
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-primary);
+    font-weight: 600;
+  }
+  .hero-pitch {
+    font-family: var(--ink-font-display);
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--ink-text);
+    margin: 0.5rem 0 0.375rem;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
   }
   .hero-sub {
     font-size: 1.0625rem;

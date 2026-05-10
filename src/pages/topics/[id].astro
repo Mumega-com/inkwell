@@ -2,7 +2,6 @@
 import Base from '../../layouts/Base.astro'
 import Header from '../../components/layout/Header.astro'
 import Footer from '../../components/layout/Footer.astro'
-import JsonLd from '../../components/seo/JsonLd.astro'
 import { getCollection, render } from 'astro:content'
 
 export async function getStaticPaths() {
@@ -19,8 +18,7 @@ const relatedPosts = allPosts.sort((a, b) => new Date(b.data.date).getTime() - n
 const platformIcons: Record<string, string> = { youtube: 'YT', x: 'X', tiktok: 'TT', article: 'ART', paper: 'PDF', github: 'GH', podcast: 'POD' }
 ---
 
-<Base title={`${topic.data.title} — Inkwell Topics`} description={topic.data.description}>
-  <JsonLd siteOnly />
+<Base title={`${topic.data.title} — Mumega Topics`} description={topic.data.description}>
   <Header />
 
   <main class="page">

@@ -1,13 +1,8 @@
 {
   "name": "@mumega/inkwell",
   "type": "module",
-  "version": "7.6.0",
-  "author": "Mumega Labs <hello@mumega.com>",
-  "homepage": "https://mumega.com/labs/inkwell",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/Mumega-com/inkwell"
-  },
+  "version": "5.2.0",
+  "private": true,
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
@@ -20,13 +15,9 @@
     "upload": "tsx scripts/upload-media.ts",
     "cache": "tsx scripts/cache-to-kv.ts",
     "publish": "bash scripts/publish.sh",
-    "qa": "bash scripts/qa.sh",
-    "migrate": "cd workers/inkwell-api && npx wrangler d1 migrations apply inkwell-core --local && npx wrangler d1 migrations apply inkwell-analytics --local && npx wrangler d1 migrations apply inkwell-marketing --local",
-    "migrate:prod": "cd workers/inkwell-api && npx wrangler d1 migrations apply inkwell-core --remote && npx wrangler d1 migrations apply inkwell-analytics --remote && npx wrangler d1 migrations apply inkwell-marketing --remote",
-    "test": "cd kernel && npx vitest run",
-    "test:worker": "cd workers/inkwell-api && npm test",
-    "gen:types": "bash /mnt/HC_Volume_104325311/SOS/scripts/gen_ts_types.sh",
-    "generate-types": "wrangler types"
+    "test": "cd workers/inkwell-api && npm test",
+    "publish:portal": "npm run build && node scripts/publish-portal.mjs",
+    "publish:tenant": "node scripts/publish-tenant.mjs"
   },
   "dependencies": {
     "@assistant-ui/react": "^0.12.25",
@@ -66,7 +57,7 @@
     "unist-util-visit": "^5.1.0"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20260418.1",
+    "@cloudflare/workers-types": "^4.20260415.1",
     "@types/d3-force": "^3.0.0",
     "@types/d3-scale": "^4.0.0",
     "@types/d3-selection": "^3.0.0",

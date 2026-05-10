@@ -5,6 +5,34 @@ import { Progress } from '../../../src/components/ui/progress'
 import { Avatar, AvatarFallback } from '../../../src/components/ui/avatar'
 import { cn } from '../../../src/lib/utils'
 
+// ── KPI types ──────────────────────────────────────────────────────────────
+
+interface KPIData {
+  kpi_score: number
+  velocity: number
+  success_rate: number
+  tokens_used: number
+  tokens_by_grade: Record<string, number>
+  total_earned_cents: number
+  balance_cents: number
+}
+
+// ── KPI formatters ─────────────────────────────────────────────────────────
+
+function formatMoney(cents: number): string {
+  return new Intl.NumberFormat('en-CA', {
+    style: 'currency',
+    currency: 'CAD',
+    maximumFractionDigits: 0,
+  }).format(cents / 100)
+}
+
+function formatTokens(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
+  if (n >= 1_000) return `${(n / 1_000).toFixed(0)}K`
+  return String(n)
+}
+
 interface SquadAgent {
   name: string
   role?: string
@@ -41,6 +69,173 @@ function agentInitials(name: string): string {
     .join('')
 }
 
+// ── KpiBar ─────────────────────────────────────────────────────────────────
+
+function KpiBar({ label, value, max = 100 }: { label: string; value: number; max?: number }) {
+  const pct = Math.min((value / max) * 100, 100)
+  const barColor =
+    pct >= 80
+      ? 'var(--ink-primary)'
+      : pct >= 50
+        ? 'var(--ink-secondary)'
+        : 'var(--ink-muted)'
+  return (
+    <div style={{ marginBottom: '0.4rem' }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          fontSize: '0.72rem',
+          color: 'var(--ink-muted)',
+          marginBottom: '3px',
+        }}
+      >
+        <span>{label}</span>
+        <span>{Math.round(pct)}%</span>
+      </div>
+      <div
+        style={{
+          height: '4px',
+          background: 'var(--ink-border)',
+          borderRadius: '2px',
+        }}
+      >
+        <div
+          style={{
+            width: `${pct}%`,
+            height: '100%',
+            background: barColor,
+            borderRadius: '2px',
+            transition: 'width 0.4s',
+          }}
+        />
+      </div>
+    </div>
+  )
+}
+
+// ── KpiSection ────────────────────────────────────────────────────────────
+
+function KpiSection({ squadId, apiUrl, authToken }: { squadId: string; apiUrl: string; authToken: string }) {
+  const [kpi, setKpi] = useState<KPIData | null>(null)
+
+  useEffect(() => {
+    fetch(`${apiUrl}/squads/${squadId}/kpis`, {
+      headers: { Authorization: `Bearer ${authToken}` },
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => d && setKpi(d as KPIData))
+      .catch(() => {})
+  }, [squadId, apiUrl, authToken])
+
+  if (!kpi) return null
+
+  return (
+    <div
+      style={{
+        marginTop: '0.75rem',
+        paddingTop: '0.75rem',
+        borderTop: '1px solid var(--ink-border)',
+      }}
+    >
+      <KpiBar label="Performance score" value={kpi.kpi_score} />
+      <KpiBar label="Task velocity" value={kpi.velocity} max={5} />
+      <KpiBar label="Success rate" value={kpi.success_rate * 100} />
+      <div
+        style={{
+          display: 'flex',
+          gap: '1rem',
+          marginTop: '0.5rem',
+          fontSize: '0.78rem',
+        }}
+      >
+        <span style={{ color: 'var(--ink-primary)' }}>
+          💰 {formatMoney(kpi.total_earned_cents)}
+        </span>
+        <span style={{ color: 'var(--ink-muted)' }}>
+          🔋 {formatTokens(kpi.tokens_used)} tokens
+        </span>
+      </div>
+    </div>
+  )
+}
+
+// ── AchievementBadges ─────────────────────────────────────────────────────
+
+interface Achievement {
+  id: string
+  badge: string
+  name: string
+  description: string | null
+  earned_at: string
+}
+
+const BADGE_ICONS: Record<string, string> = {
+  first_memory: '🧠',
+  ten_tasks: '⚡',
+  hundred_tasks: '💯',
+  first_bounty: '🏆',
+  tier_up_fortress: '🏰',
+  tier_up_construct: '🏗',
+  streak_30d: '🔥',
+}
+
+function AchievementBadges({
+  squadId,
+  apiUrl,
+  authToken,
+}: {
+  squadId: string
+  apiUrl: string
+  authToken: string
+}) {
+  const [achievements, setAchievements] = useState<Achievement[]>([])
+
+  useEffect(() => {
+    fetch(`${apiUrl}/api/squads/${squadId}/achievements`, {
+      headers: { Authorization: `Bearer ${authToken}` },
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (d && Array.isArray(d.achievements)) {
+          setAchievements(d.achievements as Achievement[])
+        }
+      })
+      .catch(() => {})
+  }, [squadId, apiUrl, authToken])
+
+  if (achievements.length === 0) return null
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '0.375rem',
+        marginTop: '0.5rem',
+        paddingTop: '0.5rem',
+        borderTop: '1px solid var(--ink-border)',
+      }}
+    >
+      {achievements.map((a) => (
+        <span
+          key={a.badge}
+          title={`${a.name}${a.description ? ': ' + a.description : ''}`}
+          style={{
+            fontSize: '1.1rem',
+            cursor: 'default',
+            filter: 'drop-shadow(0 0 4px rgba(212,160,23,0.4))',
+          }}
+        >
+          {BADGE_ICONS[a.badge] ?? '🎖'}
+        </span>
+      ))}
+    </div>
+  )
+}
+
+// ── BudgetGauge ───────────────────────────────────────────────────────────
+
 function BudgetGauge({ used, total }: { used: number; total: number }) {
   const pct = total > 0 ? Math.min(100, Math.round((used / total) * 100)) : 0
   const indicatorClass =
@@ -62,7 +257,7 @@ function BudgetGauge({ used, total }: { used: number; total: number }) {
   )
 }
 
-function SquadCard({ squad }: { squad: Squad }) {
+function SquadCard({ squad, apiUrl, authToken }: { squad: Squad; apiUrl: string; authToken: string }) {
   const counts = squad.task_counts ?? { backlog: 0, in_progress: 0, done: 0 }
   const agents = squad.agents ?? []
 
@@ -73,7 +268,7 @@ function SquadCard({ squad }: { squad: Squad }) {
           <CardTitle className="flex-1 text-base">{squad.name}</CardTitle>
           {squad.hired && (
             <Badge variant="secondary" className="text-amber-500 border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 uppercase tracking-wider text-[0.6rem]">
-              Network
+              Mumega
             </Badge>
           )}
         </div>
@@ -132,14 +327,23 @@ function SquadCard({ squad }: { squad: Squad }) {
           squad.budget_total > 0 && (
             <BudgetGauge used={squad.budget_used} total={squad.budget_total} />
           )}
+
+        {/* KPI gauges */}
+        <KpiSection squadId={squad.id} apiUrl={apiUrl} authToken={authToken} />
+
+        {/* Achievement badges */}
+        <AchievementBadges squadId={squad.id} apiUrl={apiUrl} authToken={authToken} />
       </CardContent>
     </Card>
   )
 }
 
-export function SquadPanel({ apiUrl, authToken }: { apiUrl: string; authToken: string }) {
+export function SquadPanel() {
   const [squads, setSquads] = useState<Squad[]>([])
   const [loading, setLoading] = useState(true)
+
+  const apiUrl = typeof window !== 'undefined' ? (localStorage.getItem('mumega_api_url') ?? '') : ''
+  const authToken = typeof window !== 'undefined' ? (localStorage.getItem('mumega_auth_token') ?? '') : ''
 
   useEffect(() => {
     fetch(`${apiUrl}/my/squads`, {
@@ -172,7 +376,7 @@ export function SquadPanel({ apiUrl, authToken }: { apiUrl: string; authToken: s
   return (
     <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
       {squads.map((squad) => (
-        <SquadCard key={squad.id} squad={squad} />
+        <SquadCard key={squad.id} squad={squad} apiUrl={apiUrl} authToken={authToken ?? ''} />
       ))}
     </div>
   )

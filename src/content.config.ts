@@ -152,7 +152,7 @@ const products = defineCollection({
     title: z.string(),
     description: z.string(),
     price: z.string().optional(),
-    marketplace: z.enum(['codecanyon', 'ghl', 'wordpress', 'github', 'direct']).optional(),
+    marketplace: z.enum(['codecanyon', 'ghl', 'wordpress', 'github', 'direct', 'mumega']).optional(),
     marketplace_url: z.string().optional(),
     cover_image: z.string().optional(),
     tags: z.array(z.string()).default([]),

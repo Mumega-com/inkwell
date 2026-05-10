@@ -30,8 +30,8 @@ export function FunnelChart({ steps = 'Page Viewed,Form Started,Form Submitted',
   const [error, setError] = useState(false)
 
   useEffect(() => {
-    const apiUrl = localStorage.getItem('inkwell_api_url') ?? ''
-    const token = localStorage.getItem('inkwell_auth_token') ?? ''
+    const apiUrl = localStorage.getItem('mumega_api_url') ?? ''
+    const token = localStorage.getItem('mumega_auth_token') ?? ''
     fetch(`${apiUrl}/api/analytics/funnel?steps=${encodeURIComponent(steps)}&days=${days}`, {
       headers: { 'Authorization': `Bearer ${token}` },
     })
@@ -94,8 +94,8 @@ export function FunnelChart({ steps = 'Page Viewed,Form Started,Form Submitted',
                   color: 'var(--ink-text)',
                   fontSize: '0.82rem',
                 }}
-                formatter={(value: number, _name: string, props: { payload?: FunnelStep }) => [
-                  `${value} visitors${props.payload ? ` (${(props.payload.conversionRate * 100).toFixed(1)}%)` : ''}`,
+                formatter={(value: number, _name: string, props: { payload: FunnelStep }) => [
+                  `${value} visitors (${(props.payload.conversionRate * 100).toFixed(1)}%)`,
                   'Unique Visitors',
                 ]}
               />

@@ -1,9 +1,9 @@
 ---
-title: "About"
-description: "How a forkable CMS turns Markdown, config, and optional integrations into a publishable system."
+title: "About Mumega — AI Business Operating System"
+description: "Mumega is an AI business operating system — multi-agent squads, Mirror memory, and MCP tools that run real operations across content, SEO, and commerce."
 ---
 
-# About Inkwell
+## About Inkwell
 
 Inkwell is a forkable CMS for agent-first publishing. It is designed to be readable, configurable, and easy to adapt to a new brand without rewriting the whole system.
 
