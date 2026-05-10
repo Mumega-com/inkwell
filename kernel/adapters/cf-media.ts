@@ -111,7 +111,7 @@ function rowToAsset(row: MediaRow): MediaAsset {
     thumbhash: row.thumbhash ?? undefined,
     nsfwScore: row.nsfw_score ?? undefined,
     transcript: row.transcript ?? undefined,
-    chapters: parseJsonSafe<Array<{ time: number; title: string }>>(row.chapters, undefined),
+    chapters: parseJsonSafe<Array<{ time: number; title: string }> | undefined>(row.chapters, undefined),
     variants: parseJsonSafe<Record<string, string>>(row.variants, {}),
     graphSlug: row.graph_slug ?? undefined,
     sourceType: row.source_type as MediaAsset['sourceType'],

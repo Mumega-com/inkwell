@@ -31,3 +31,7 @@ graphify-out/
 
 # Build check artifacts
 .build-check/
+
+.dev.vars*
+!.dev.vars.example
+!.env.example

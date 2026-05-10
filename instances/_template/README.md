@@ -23,6 +23,23 @@ It is NOT a deployable site on its own — placeholders must be interpolated fir
 5. `wrangler pages deploy dist --project-name acme` pushes to Cloudflare Pages.
 6. Step D then writes `standing_workflows.json` from the interpolated stub.
 
+## Site-Type Presets
+
+Use `--preset` to start with a curated plugin set:
+
+| Preset | Plugins | Best for |
+|--------|---------|----------|
+| `agency` | agency, crm, analytics, automation, seo, media, feedback | Marketing agencies |
+| `company` | content, analytics, crm, seo, media, feedback | SMBs with website + dashboard |
+| `creator` | content, analytics, media, courses, commerce, feedback | Writers, artists, podcasters |
+| `saas` | content, analytics, crm, commerce, contracts, feedback, automation | Software products |
+
+```bash
+sos init --slug acme --preset agency ...
+```
+
+Each preset provides a theme, plugin list, and SEO defaults. See `presets/` for details.
+
 ## Adding Pages / Content
 
 After init, edit files inside `instances/<slug>/` freely.

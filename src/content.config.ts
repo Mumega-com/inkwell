@@ -1,6 +1,21 @@
 import { defineCollection, z } from 'astro:content'
 import { glob } from 'astro/loaders'
 
+/**
+ * Content-tier fields — added to collections that support per-item access control.
+ * See workers/inkwell-api/src/middleware/content-tier.ts for enforcement logic.
+ */
+const tierFields = {
+  /** Five-tier access model. Defaults to 'public'. */
+  tier: z.enum(['public', 'squad', 'project', 'entity', 'private']).default('public'),
+  /** Required when tier = 'entity'. Must match entity_id claim in the session token. */
+  entity_id: z.string().optional(),
+  /** Tracks the creating agent/user ID. Required for tier = 'private' enforcement. */
+  created_by: z.string().optional(),
+  /** Optional role allowlist. If set, caller must have one of these roles regardless of tier. */
+  permitted_roles: z.array(z.string()).optional(),
+}
+
 const blog = defineCollection({
   loader: glob({ pattern: '**/*.{md,mdx}', base: './content/en/blog' }),
   schema: z.object({
@@ -24,6 +39,7 @@ const blog = defineCollection({
     weight: z.number().default(5),
     connections: z.array(z.string()).default([]),
     contributors: z.array(z.string()).default([]),
+    ...tierFields,
   }),
 })
 
@@ -152,6 +168,7 @@ const pages = defineCollection({
   schema: z.object({
     title: z.string(),
     description: z.string().optional(),
+    ...tierFields,
   }),
 })
 
@@ -165,6 +182,7 @@ const docs = defineCollection({
     tags: z.array(z.string()).default([]),
     date: z.coerce.date().optional(),
     updated: z.coerce.date().optional(),
+    ...tierFields,
   }),
 })
 

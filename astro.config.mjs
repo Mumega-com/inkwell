@@ -10,17 +10,23 @@ import rehypeKatex from 'rehype-katex'
 
 export default defineConfig({
   site: process.env.SITE_URL || 'https://example.com',
+
   // Auth handled at the edge by Cloudflare Access (JWT injection via inkwell-api Worker).
   // auth-astro removed — CF Access replaces the need for OAuth/magic-link flows.
   integrations: [react(), mdx()],
+
   image: { remotePatterns: [{ protocol: 'https' }] },
+
   markdown: {
     remarkPlugins: [remarkWikilinks, remarkBlocks, remarkMath],
     rehypePlugins: [rehypeKatex],
   },
+
   i18n: {
     defaultLocale: 'en',
     locales: ['en'],
     routing: { prefixDefaultLocale: false },
   },
+
+  adapter: cloudflare(),
 })

@@ -1,5 +1,6 @@
 import type { D1Database, KVNamespace } from '@cloudflare/workers-types'
 import type { DatabasePort, SessionPort, ContentPort, StoragePort, GraphPort, AgentPort, BusPort, MemoryPort, EconomyPort, MediaPort, SeoPort, FeedbackPort } from '../../../kernel/types'
+import type { ContentTierContext } from './middleware/content-tier'
 
 export interface Env {
   DB_ANALYTICS: D1Database
@@ -93,6 +94,8 @@ export type AppBindings = {
     media: MediaPort
     seo: SeoPort
     feedback: FeedbackPort
+    // Content-tier access control — set by route handlers before contentTierMiddleware runs
+    content_tier: ContentTierContext | undefined
     // First-party data collection
     utm: { source: string | null; medium: string | null; campaign: string | null; content: string | null; term: string | null; clickId: string | null; clickSource: string | null } | null
     visitor_hash: string | null

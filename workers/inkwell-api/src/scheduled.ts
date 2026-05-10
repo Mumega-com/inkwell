@@ -308,26 +308,26 @@ async function syncContentSources(env: Env): Promise<SyncResult[]> {
 // ── Main Scheduled Handler ─────────────────────────────────────────────
 
 export async function scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext) {
-  console.log(`[flywheel] Starting scheduled run at ${new Date().toISOString()}`)
+  console.info(`[flywheel] Starting scheduled run at ${new Date().toISOString()}`)
 
   const allMetrics: NormalizedMetric[] = []
 
   // Ingest from all enabled connectors
   const gscMetrics = await ingestGSC(env)
   allMetrics.push(...gscMetrics)
-  console.log(`[flywheel] GSC: ${gscMetrics.length} metrics`)
+  console.info(`[flywheel] GSC: ${gscMetrics.length} metrics`)
 
   const ga4Metrics = await ingestGA4(env)
   allMetrics.push(...ga4Metrics)
-  console.log(`[flywheel] GA4: ${ga4Metrics.length} metrics`)
+  console.info(`[flywheel] GA4: ${ga4Metrics.length} metrics`)
 
   // Store snapshots
   const stored = await storeSnapshots(env.DB_MARKETING, allMetrics)
-  console.log(`[flywheel] Stored ${stored} snapshots to D1`)
+  console.info(`[flywheel] Stored ${stored} snapshots to D1`)
 
   // Score week-over-week
   const score = await scoreWeekOverWeek(env.DB_MARKETING)
-  console.log(`[flywheel] Score: ${score}`)
+  console.info(`[flywheel] Score: ${score}`)
 
   // Sync content from configured sources (GitHub, Notion, Google Drive)
   try {
@@ -335,7 +335,7 @@ export async function scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionC
     const totalSynced = syncResults.reduce((sum, r) => sum + r.synced, 0)
     const totalErrors = syncResults.reduce((sum, r) => sum + r.errors.length, 0)
     if (syncResults.length > 0) {
-      console.log(`[flywheel] Content sync: ${totalSynced} items from ${syncResults.length} sources, ${totalErrors} errors`)
+      console.info(`[flywheel] Content sync: ${totalSynced} items from ${syncResults.length} sources, ${totalErrors} errors`)
       for (const r of syncResults) {
         if (r.errors.length > 0) {
           console.error(`[flywheel] Sync errors for ${r.source}:`, r.errors.join('; '))
@@ -404,7 +404,7 @@ export async function scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionC
           }
         }
         feedbackDigest = `Feedback: ${classified}/${unclassified.length} classified`
-        console.log(`[flywheel] ${feedbackDigest}`)
+        console.info(`[flywheel] ${feedbackDigest}`)
       }
     } catch (e) {
       console.error('[flywheel] Feedback classification failed:', e)
@@ -471,11 +471,11 @@ export async function scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionC
         } catch { /* meta parse failed — non-critical */ }
       }
 
-      console.log(`[auto-publish] Published: ${entry.title} (${entry.slug})`)
+      console.info(`[auto-publish] Published: ${entry.title} (${entry.slug})`)
     }
 
     if (scheduled.length > 0) {
-      console.log(`[auto-publish] ${scheduled.length} entries published`)
+      console.info(`[auto-publish] ${scheduled.length} entries published`)
     }
   } catch (e) {
     console.error('[auto-publish] Failed:', e)
@@ -513,7 +513,7 @@ export async function scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionC
     }
 
     if (aggregated > 0) {
-      console.log(`[flywheel] Event aggregates: ${aggregated} event types rolled up for ${today}`)
+      console.info(`[flywheel] Event aggregates: ${aggregated} event types rolled up for ${today}`)
     }
   } catch (e) {
     console.error('[flywheel] Event aggregation failed:', e)
@@ -565,10 +565,10 @@ export async function scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionC
     // Write to KV — accessible at /api/glass/daily and /api/glass/:date
     await env.CONTENT.put(`glass:daily`, JSON.stringify(glassPage), { expirationTtl: 86400 * 7 })
     await env.CONTENT.put(`glass:${today}`, JSON.stringify(glassPage))
-    console.log(`[glass] Daily snapshot published to KV: glass:${today}`)
+    console.info(`[glass] Daily snapshot published to KV: glass:${today}`)
   } catch (e) {
     console.error('[glass] Failed to publish snapshot:', e)
   }
 
-  console.log(`[flywheel] Completed. ${allMetrics.length} metrics ingested, ${stored} stored.`)
+  console.info(`[flywheel] Completed. ${allMetrics.length} metrics ingested, ${stored} stored.`)
 }

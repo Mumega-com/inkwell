@@ -12,3 +12,19 @@ export {
   buildExpiredSessionCookie,
   getSessionTokenFromCookieHeader,
 } from '../workers/inkwell-api/src/middleware/auth'
+
+/**
+ * Content-tier access control — per-item five-tier enforcement.
+ * Source of truth: workers/inkwell-api/src/middleware/content-tier.ts
+ */
+export {
+  checkContentTier,
+  contentTierMiddleware,
+} from '../workers/inkwell-api/src/middleware/content-tier'
+
+export type {
+  ContentTier,
+  ContentTierContext,
+  TierSession,
+  TierCheckResult,
+} from '../workers/inkwell-api/src/middleware/content-tier'

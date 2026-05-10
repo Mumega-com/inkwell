@@ -32,95 +32,14 @@ export type {
   ContentSourcePort,
   MediaAsset,
   MediaPort,
-} from "../types"
+} from "../../types"
 
-export { ROLE_HIERARCHY, hasRole } from "../types"
+export { ROLE_HIERARCHY, hasRole } from "../../types"
 
-// Generated data models
-export * from "./agent_AgentConfig";
-export * from "./agent_AgentConfigPatch";
-export * from "./agent_AgentUsage";
-export * from "./agent_BudgetCheckRequest";
-export * from "./agent_BudgetCheckResult";
-export * from "./agent_GetConfigRequest";
-export * from "./agent_GetUsageRequest";
-export * from "./agent_McpServerRef";
-export * from "./agent_ProvisionRequest";
-export * from "./agent_RecordAgentUsageRequest";
-export * from "./agent_UpdateConfigRequest";
-export * from "./auth_AuthUser";
-export * from "./auth_GetUserRequest";
-export * from "./bus_BroadcastRequest";
-export * from "./bus_BusMessage";
-export * from "./bus_InboxRequest";
-export * from "./bus_SendRequest";
-export * from "./content_ContentGetRequest";
-export * from "./content_ContentGetResult";
-export * from "./content_ContentInvalidateRequest";
-export * from "./content_ContentPutRequest";
-export * from "./content_source_ContentSourceItem";
-export * from "./content_source_ListRequest";
-export * from "./content_source_SyncRequest";
-export * from "./crm_Contact";
-export * from "./crm_ContactData";
-export * from "./crm_CreateContactRequest";
-export * from "./crm_CreateContactResult";
-export * from "./crm_GetContactRequest";
-export * from "./crm_ListContactsFilters";
-export * from "./crm_ListContactsRequest";
-export * from "./crm_MessageContent";
-export * from "./crm_SendMessageRequest";
-export * from "./crm_SendMessageResult";
-export * from "./crm_UpdateContactRequest";
-export * from "./database_BatchRequest";
-export * from "./database_BatchStatement";
-export * from "./database_ExecuteRequest";
-export * from "./database_ExecuteResult";
-export * from "./database_QueryRequest";
-export * from "./economy_Balance";
-export * from "./economy_ChargeRequest";
-export * from "./economy_ChargeResult";
-export * from "./economy_GetBalanceRequest";
-export * from "./economy_RecordUsageRequest";
-export * from "./economy_TransferRequest";
-export * from "./graph_GetBacklinksRequest";
-export * from "./graph_GetNeighborsRequest";
-export * from "./graph_GetNodeRequest";
-export * from "./graph_GraphData";
-export * from "./graph_GraphEdge";
-export * from "./graph_GraphNode";
-export * from "./graph_NodeFilters";
-export * from "./graph_QueryNodesRequest";
-export * from "./graph_ResolveCrossTenantRequest";
-export * from "./graph_UpsertEdgeRequest";
-export * from "./graph_UpsertNodeRequest";
-export * from "./media_MediaAsset";
-export * from "./media_MediaChapter";
-export * from "./media_MediaDeleteRequest";
-export * from "./media_MediaDescribeResult";
-export * from "./media_MediaGenerateImageRequest";
-export * from "./media_MediaGetRequest";
-export * from "./media_MediaListRequest";
-export * from "./media_MediaListResult";
-export * from "./media_MediaSearchRequest";
-export * from "./media_MediaTranscribeResult";
-export * from "./media_MediaTransformRequest";
-export * from "./media_MediaUploadRequest";
-export * from "./memory_MemoryResult";
-export * from "./memory_RecallRequest";
-export * from "./memory_RememberRequest";
-export * from "./memory_RememberResult";
-export * from "./memory_SearchRequest";
-export * from "./search_DeleteSearchRequest";
-export * from "./search_IndexRequest";
-export * from "./search_SearchDoc";
-export * from "./search_SearchHit";
-export * from "./search_SearchRequest";
-export * from "./session_SessionDeleteRequest";
-export * from "./session_SessionGetRequest";
-export * from "./session_SessionPutRequest";
-export * from "./storage_StorageDeleteRequest";
-export * from "./storage_StorageGetRequest";
-export * from "./storage_StorageGetResult";
-export * from "./storage_StorageListRequest";
-export * from "./storage_StoragePutRequest";
+// Generated data models — star-exports disabled due to duplicate symbol
+// ambiguity across modules (e.g. AgentId, TenantId appear in multiple files).
+// Nothing in the codebase imports from this barrel yet (kernel/types.ts is
+// canonical). Re-enable when SOS contracts regenerates with unique exports.
+//
+// To use a specific generated model, import it directly:
+//   import type { AgentConfig } from '../kernel/ports/generated/agent_AgentConfig'

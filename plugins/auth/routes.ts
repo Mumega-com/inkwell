@@ -28,6 +28,8 @@ type PortalAccountRow = {
   email: string | null
   phone: string | null
   role: string | null
+  password_hash: string | null
+  password_salt: string | null
 }
 
 const authRoutes = new Hono<AppBindings>()
@@ -596,6 +598,282 @@ authRoutes.post('/logout', authSessionMiddleware, async (c) => {
   }
 
   c.header('Set-Cookie', buildExpiredSessionCookie(getAuthCookieName(c)))
+  return c.json({ ok: true })
+})
+
+// ---------------------------------------------------------------------------
+// Password helpers (PBKDF2 via crypto.subtle — CF Workers compatible)
+// ---------------------------------------------------------------------------
+
+async function derivePasswordKey(password: string, saltHex: string): Promise<string> {
+  const encoder = new TextEncoder()
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(password),
+    'PBKDF2',
+    false,
+    ['deriveBits'],
+  )
+  const saltBytes = new Uint8Array(saltHex.match(/.{2}/g)!.map((b) => parseInt(b, 16)))
+  const bits = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', hash: 'SHA-256', salt: saltBytes, iterations: 100_000 },
+    keyMaterial,
+    256,
+  )
+  return Array.from(new Uint8Array(bits), (b) => b.toString(16).padStart(2, '0')).join('')
+}
+
+async function hashPassword(password: string): Promise<{ hash: string; salt: string }> {
+  const salt = randomHex(16)
+  const hash = await derivePasswordKey(password, salt)
+  return { hash, salt }
+}
+
+async function verifyPassword(password: string, saltHex: string, storedHash: string): Promise<boolean> {
+  const derived = await derivePasswordKey(password, saltHex)
+  // Constant-time comparison via SHA-256 of both sides
+  const [a, b] = await Promise.all([sha256Hex(derived), sha256Hex(storedHash)])
+  return a === b
+}
+
+// ---------------------------------------------------------------------------
+// POST /api/auth/password-login
+// Body: { customerSlug, email, password }
+// ---------------------------------------------------------------------------
+
+authRoutes.post('/password-login', async (c) => {
+  const db = c.get('db_core')
+  const parsedBody = await parseJsonBody(c.req.raw)
+  if (parsedBody instanceof Response) return parsedBody
+
+  const customerSlug = normalizeCustomerSlug(
+    isNonEmptyString(parsedBody.customerSlug) ? parsedBody.customerSlug : '',
+  )
+  if (!customerSlug) return jsonError('customer_slug_required', 400)
+
+  const emailRaw = isNonEmptyString(parsedBody.email) ? parsedBody.email.trim() : ''
+  if (!emailRaw) return jsonError('email_required', 400)
+  const email = normalizeEmail(emailRaw)
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return jsonError('invalid_email', 400)
+
+  const password = isNonEmptyString(parsedBody.password) ? parsedBody.password : ''
+  if (!password) return jsonError('password_required', 400)
+
+  // Look up portal account by customer_slug + email
+  const account = await db.queryOne<PortalAccountRow>(
+    `SELECT id, full_name, email, phone, role, password_hash, password_salt
+     FROM portal_accounts
+     WHERE customer_slug = ? AND email = ?
+     LIMIT 1`,
+    [customerSlug, email],
+  )
+
+  if (!account || !account.password_hash || !account.password_salt) {
+    return jsonError('invalid_credentials', 401)
+  }
+
+  const valid = await verifyPassword(password, account.password_salt, account.password_hash)
+  if (!valid) {
+    return jsonError('invalid_credentials', 401)
+  }
+
+  // Record login time on matching identity (best-effort)
+  const loginAt = nowIso()
+  await db.execute(
+    `UPDATE portal_accounts SET updated_at = ? WHERE id = ?`,
+    [loginAt, account.id],
+  )
+
+  const role = account.role ?? 'member'
+  const sessionTtlSeconds = getSessionTtlSeconds(c.env.AUTH_SESSION_TTL_SECONDS)
+  const sessionToken = randomHex(24)
+  const sessionId = crypto.randomUUID()
+  const expiresAt = addSeconds(loginAt, sessionTtlSeconds)
+
+  const session: AuthSession = {
+    id: sessionId,
+    customerSlug,
+    identityId: '',
+    portalAccountId: account.id,
+    channel: 'email',
+    contactValue: email,
+    contactNormalized: email,
+    fullName: account.full_name,
+    role,
+    createdAt: loginAt,
+    expiresAt,
+  }
+
+  await c.get('sessions').set(`session:${sessionToken}`, JSON.stringify(session), sessionTtlSeconds)
+
+  c.header('Set-Cookie', buildSessionCookie(sessionToken, sessionTtlSeconds, getAuthCookieName(c)))
+  return c.json({
+    ok: true,
+    session: {
+      customerSlug: session.customerSlug,
+      channel: session.channel,
+      contactValue: session.contactValue,
+      portalAccountId: session.portalAccountId,
+      fullName: session.fullName,
+      role,
+      expiresAt: session.expiresAt,
+    },
+    sessionToken,
+  })
+})
+
+// ---------------------------------------------------------------------------
+// POST /api/auth/password-register
+// Body: { customerSlug, email, password, fullName }
+// ---------------------------------------------------------------------------
+
+authRoutes.post('/password-register', async (c) => {
+  const db = c.get('db_core')
+  const parsedBody = await parseJsonBody(c.req.raw)
+  if (parsedBody instanceof Response) return parsedBody
+
+  const customerSlug = normalizeCustomerSlug(
+    isNonEmptyString(parsedBody.customerSlug) ? parsedBody.customerSlug : '',
+  )
+  if (!customerSlug) return jsonError('customer_slug_required', 400)
+
+  const emailRaw = isNonEmptyString(parsedBody.email) ? parsedBody.email.trim() : ''
+  if (!emailRaw) return jsonError('email_required', 400)
+  const email = normalizeEmail(emailRaw)
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return jsonError('invalid_email', 400)
+
+  const password = isNonEmptyString(parsedBody.password) ? parsedBody.password : ''
+  if (password.length < 8) return jsonError('password_too_short', 400, { hint: 'Minimum 8 characters' })
+
+  const fullName = isNonEmptyString(parsedBody.fullName) ? parsedBody.fullName.trim().slice(0, 120) : null
+
+  // Prevent duplicate registrations for the same email on the same tenant
+  const existingAccount = await db.queryOne<{ id: string }>(
+    `SELECT id FROM portal_accounts WHERE customer_slug = ? AND email = ? LIMIT 1`,
+    [customerSlug, email],
+  )
+  if (existingAccount) return jsonError('email_already_registered', 409)
+
+  // Create identity
+  const identity = await ensureIdentity(db, customerSlug, 'email', emailRaw, email, null)
+
+  // Mark identity as verified immediately (password-based signup)
+  const registeredAt = nowIso()
+  await db.execute(
+    `UPDATE auth_identities
+     SET status = 'verified',
+         verified_at = COALESCE(verified_at, ?),
+         last_login_at = ?,
+         updated_at = ?
+     WHERE id = ?`,
+    [registeredAt, registeredAt, registeredAt, identity.id],
+  )
+
+  // Hash password
+  const { hash, salt } = await hashPassword(password)
+
+  // Create portal account
+  const portalAccountId = crypto.randomUUID()
+
+  // Determine role: owner if first account for this tenant
+  const accountCount = await db.queryOne<{ cnt: number }>(
+    'SELECT COUNT(*) as cnt FROM portal_accounts WHERE customer_slug = ?',
+    [customerSlug],
+  )
+  const role = (accountCount?.cnt ?? 0) === 0 ? 'owner' : 'member'
+
+  await db.execute(
+    `INSERT INTO portal_accounts (
+      id, customer_slug, identity_id, full_name, email, phone, role, password_hash, password_salt, status, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, NULL, ?, ?, ?, 'active', ?, ?)`,
+    [
+      portalAccountId,
+      customerSlug,
+      identity.id,
+      fullName,
+      email,
+      role,
+      hash,
+      salt,
+      registeredAt,
+      registeredAt,
+    ],
+  )
+
+  // Issue session
+  const sessionTtlSeconds = getSessionTtlSeconds(c.env.AUTH_SESSION_TTL_SECONDS)
+  const sessionToken = randomHex(24)
+  const sessionId = crypto.randomUUID()
+  const expiresAt = addSeconds(registeredAt, sessionTtlSeconds)
+
+  const session: AuthSession = {
+    id: sessionId,
+    customerSlug,
+    identityId: identity.id,
+    portalAccountId,
+    channel: 'email',
+    contactValue: email,
+    contactNormalized: email,
+    fullName,
+    role,
+    createdAt: registeredAt,
+    expiresAt,
+  }
+
+  await c.get('sessions').set(`session:${sessionToken}`, JSON.stringify(session), sessionTtlSeconds)
+
+  c.header('Set-Cookie', buildSessionCookie(sessionToken, sessionTtlSeconds, getAuthCookieName(c)))
+  return c.json({
+    ok: true,
+    session: {
+      customerSlug: session.customerSlug,
+      channel: session.channel,
+      contactValue: session.contactValue,
+      portalAccountId: session.portalAccountId,
+      fullName: session.fullName,
+      role,
+      expiresAt: session.expiresAt,
+    },
+    sessionToken,
+  })
+})
+
+// ---------------------------------------------------------------------------
+// POST /api/auth/set-password  (admin only)
+// Body: { email, password }
+// ---------------------------------------------------------------------------
+
+authRoutes.post('/set-password', authSessionMiddleware, async (c) => {
+  const session = c.get('authSession')
+  if (!session) return jsonError('unauthorized', 401)
+  if (!['admin', 'owner'].includes(session.role)) return jsonError('forbidden', 403)
+
+  const db = c.get('db_core')
+  const parsedBody = await parseJsonBody(c.req.raw)
+  if (parsedBody instanceof Response) return parsedBody
+
+  const emailRaw = isNonEmptyString(parsedBody.email) ? parsedBody.email.trim() : ''
+  if (!emailRaw) return jsonError('email_required', 400)
+  const email = normalizeEmail(emailRaw)
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return jsonError('invalid_email', 400)
+
+  const password = isNonEmptyString(parsedBody.password) ? parsedBody.password : ''
+  if (password.length < 8) return jsonError('password_too_short', 400, { hint: 'Minimum 8 characters' })
+
+  const { hash, salt } = await hashPassword(password)
+  const now = nowIso()
+
+  const result = await db.execute(
+    `UPDATE portal_accounts
+     SET password_hash = ?, password_salt = ?, updated_at = ?
+     WHERE customer_slug = ? AND email = ?`,
+    [hash, salt, now, session.customerSlug, email],
+  )
+
+  // result.meta?.changes is the D1 rows-affected count
+  const changed = (result as unknown as { meta?: { changes?: number } }).meta?.changes ?? 0
+  if (changed === 0) return jsonError('account_not_found', 404)
+
   return c.json({ ok: true })
 })
 

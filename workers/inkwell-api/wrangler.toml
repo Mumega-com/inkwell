@@ -72,3 +72,7 @@ crons = ["0 6 * * *"]
 [[routes]]
 pattern = "*.mumega.com/*"
 zone_name = "mumega.com"
+
+[[routes]]
+pattern = "mumega.com/api/*"
+zone_name = "mumega.com"

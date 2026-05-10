@@ -11,10 +11,10 @@ import { STORAGE_KEYS } from '../../lib/storage-keys'
 const TOTAL_STEPS = 5
 
 const TEAMS = [
-  { id: 'seo',      label: 'Marketing Team' },
-  { id: 'content',  label: 'Content Writers' },
-  { id: 'ops',      label: 'Tech Support' },
-  { id: 'outreach', label: 'Outreach Team' },
+  { id: 'seo',      label: 'Content & SEO' },
+  { id: 'content',  label: 'Lead Management' },
+  { id: 'ops',      label: 'Customer Support' },
+  { id: 'outreach', label: 'Social & Outreach' },
 ] as const
 
 type TeamId = (typeof TEAMS)[number]['id']
@@ -33,7 +33,7 @@ function StepWelcome({ onNext }: { onNext: () => void }) {
       </div>
       <div className="flex flex-col gap-2">
         <h2 className="text-2xl font-bold" style={{ color: 'var(--ink-text)' }}>
-          Welcome
+          Your AI team is ready
         </h2>
         <p style={{ color: 'var(--ink-muted)' }} className="text-sm">
           Let&apos;s set up your AI team in 2 minutes
@@ -457,6 +457,13 @@ export function OnboardingWizard() {
     } catch {
       // best-effort — complete onboarding regardless
     } finally {
+      const authToken = localStorage.getItem(STORAGE_KEYS.authToken) || ''
+      const apiUrl = localStorage.getItem(STORAGE_KEYS.apiUrl) ?? ''
+      await fetch(`${apiUrl}/api/organism/activate`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: 'haiku' }),
+      }).catch(() => {})
       localStorage.setItem(STORAGE_KEYS.onboarded, 'true')
       window.location.href = '/dashboard'
     }

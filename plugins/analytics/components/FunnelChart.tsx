@@ -94,8 +94,8 @@ export function FunnelChart({ steps = 'Page Viewed,Form Started,Form Submitted',
                   color: 'var(--ink-text)',
                   fontSize: '0.82rem',
                 }}
-                formatter={(value: number, _name: string, props: { payload: FunnelStep }) => [
-                  `${value} visitors (${(props.payload.conversionRate * 100).toFixed(1)}%)`,
+                formatter={(value: number, _name: string, props: { payload?: FunnelStep }) => [
+                  `${value} visitors${props.payload ? ` (${(props.payload.conversionRate * 100).toFixed(1)}%)` : ''}`,
                   'Unique Visitors',
                 ]}
               />

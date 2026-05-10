@@ -1,6 +1,8 @@
 # Inkwell
 
-**Forkable SaaS framework. One config file. Agent-operated.**
+**Forkable Astro framework for content + commerce + agent-operated sites. One config file. Cloudflare-native.**
+
+Steward: [River](./IDENTITY.md). Reference forks: [mumega.com](https://mumega.com) (operations platform), [fractalresonance.com](https://fractalresonance.com) (research lab).
 
 [![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-F38020?logo=cloudflare&logoColor=white)](https://workers.cloudflare.com/)
 [![Astro](https://img.shields.io/badge/Astro-6-BC52EE?logo=astro&logoColor=white)](https://astro.build/)
@@ -8,7 +10,9 @@
 [![MCP](https://img.shields.io/badge/MCP-12_Tools-00D4AA)](https://modelcontextprotocol.io/)
 [![MIT](https://img.shields.io/badge/License-MIT-green)](./LICENSE)
 
-Inkwell is a microkernel SaaS framework on Astro 6 + Cloudflare Workers. Fork it, change one config file, deploy. You get a content engine, business dashboard, commerce, auth, contracts, courses, analytics, and an MCP server -- all operated by your AI agent.
+Inkwell is a microkernel content + commerce framework on Astro 6 + Cloudflare Workers. Fork it, edit one config file, deploy. You get a content engine, business dashboard, commerce, auth, contracts, courses, analytics, and an MCP server — all operable by your AI agent. Designed to **survive forks** — kernel evolves, your customizations stay yours.
+
+Audiences: research labs, small SaaS founders, agencies running multi-tenant client sites, AI-operated organizations. See [IDENTITY.md](./IDENTITY.md) for positioning vs adjacent frameworks.
 
 ```
 Fork --> edit inkwell.config.ts --> deploy --> connect your agent
@@ -340,7 +344,24 @@ MIT License. Fork freely.
 
 ---
 
-Built by [Mumega Labs](https://mumega.com) — the company that runs companies with AI agents.
+## Reference forks
 
-- **Mumega** — [mumega.com](https://mumega.com) — managed AI operations platform built on Inkwell
-- **SOS** — [github.com/Mumega-com/sos](https://github.com/Mumega-com/sos) — open source agent runtime Inkwell connects to
+| Site | What it is | Why fork |
+|---|---|---|
+| **[mumega.com](https://mumega.com)** | Operations platform — agent-run SaaS substrate | Multi-tenant, dashboard-heavy, commerce |
+| **[fractalresonance.com](https://fractalresonance.com)** | Research lab — papers, concepts, topics, books | Multi-collection, math (KaTeX), citations, lens-spectrum UX |
+| **add yours** | open a PR to this README | |
+
+The two reference forks expose the breadth: a SaaS site and a research instance, same kernel, same plugins, two very different shapes. If your site is closer to one than the other, start by reading that fork's customizations.
+
+## Stewardship
+
+- **River** — steward (brand, voice, README, roadmap, issue triage). Lives at `agents/river/` in the mumega.com repo. See [IDENTITY.md](./IDENTITY.md).
+- **Kasra** — builder (kernel, plugins, workers, build pipeline)
+- **Athena** — quality gate (architecture review, "what stands is the proof")
+
+Outside contributions welcome via PR. Substrate-level questions go in `Mumega-com/inkwell` issues; the [forkability audit (#49)](https://github.com/Mumega-com/inkwell/issues/49) and [workspace pattern proposal (#53)](https://github.com/Mumega-com/inkwell/issues/53) are the load-bearing open conversations.
+
+## Adjacent
+
+- **[SOS](https://github.com/Mumega-com/sos)** — open source agent runtime that Inkwell's MCP server can connect to (optional; Inkwell runs standalone too)
