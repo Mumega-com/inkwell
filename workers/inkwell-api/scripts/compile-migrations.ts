@@ -32,7 +32,7 @@ for (const dir of ['analytics', 'core', 'marketing']) {
 
   const migrations: Migration[] = files.map(file => ({
     name: basename(file, '.sql'),
-    sql: readFileSync(join(dirPath, file), 'utf-8').trim(),
+    sql: readFileSync(join(dirPath, file), 'utf-8').replace(/\r\n/g, '\n').trim(),
   }))
 
   const binding = dir === 'analytics' ? 'DB_ANALYTICS'
