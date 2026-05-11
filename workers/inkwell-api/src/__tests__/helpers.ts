@@ -78,6 +78,10 @@ export async function seedTables(): Promise<void> {
     'CREATE TABLE IF NOT EXISTS mcp_tokens (token TEXT PRIMARY KEY, tenant_slug TEXT NOT NULL, label TEXT NOT NULL DEFAULT \'default\', role TEXT NOT NULL DEFAULT \'admin\', created_at TEXT NOT NULL DEFAULT (datetime(\'now\')), expires_at TEXT, revoked_at TEXT)'
   ).run()
 
+  await dbCore.prepare(
+    'CREATE TABLE IF NOT EXISTS bounties (id TEXT PRIMARY KEY, customer_slug TEXT NOT NULL, title TEXT NOT NULL, description TEXT, reward_cents INTEGER NOT NULL DEFAULT 0, currency TEXT NOT NULL DEFAULT \'USD\', status TEXT NOT NULL DEFAULT \'open\', creator_id TEXT NOT NULL, claimant_id TEXT, agent_id TEXT, assignee_type TEXT, proof_url TEXT, squad_id TEXT, labels_json TEXT DEFAULT \'[]\', expires_at TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)'
+  ).run()
+
   // Visitor profiles — required by visitor-profile middleware on every request
   await db.prepare(
     'CREATE TABLE IF NOT EXISTS visitor_profiles (visitor_hash TEXT PRIMARY KEY, first_seen TEXT NOT NULL DEFAULT (datetime(\'now\')), last_seen TEXT NOT NULL DEFAULT (datetime(\'now\')), visit_count INTEGER NOT NULL DEFAULT 1, utm_first_source TEXT, utm_first_medium TEXT, utm_first_campaign TEXT, utm_last_source TEXT, utm_last_medium TEXT, utm_last_campaign TEXT, portal_account_id TEXT, email TEXT, total_events INTEGER NOT NULL DEFAULT 0, total_page_views INTEGER NOT NULL DEFAULT 0, last_event_name TEXT, last_path TEXT, country TEXT, device TEXT, tenant TEXT, properties TEXT)'

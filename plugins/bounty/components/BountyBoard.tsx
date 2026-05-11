@@ -15,6 +15,8 @@ interface Bounty {
   status: BountyStatus
   creator_id: string
   claimant_id: string | null
+  agent_id: string | null
+  assignee_type: 'human' | 'agent' | null
   proof_url: string | null
   squad_id: string | null
   labels_json: string

@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
-import { requireAuth } from '../middleware'
-import type { AppBindings, AuthSession } from '../types'
+import type { Context } from 'hono'
+import { readSessionFromRequest } from '../middleware'
+import type { AppBindings } from '../types'
 
 const bountyRoutes = new Hono<AppBindings>()
 
@@ -9,6 +10,7 @@ const bountyRoutes = new Hono<AppBindings>()
 // ---------------------------------------------------------------------------
 
 type BountyStatus = 'open' | 'claimed' | 'submitted' | 'approved' | 'paid'
+type AssigneeType = 'human' | 'agent'
 
 interface BountyRow {
   id: string
@@ -20,12 +22,20 @@ interface BountyRow {
   status: BountyStatus
   creator_id: string
   claimant_id: string | null
+  agent_id: string | null
+  assignee_type: AssigneeType | null
   proof_url: string | null
   squad_id: string | null
   labels_json: string
   expires_at: string | null
   created_at: string
   updated_at: string
+}
+
+interface BountyActor {
+  id: string
+  role: string
+  type: AssigneeType
 }
 
 // ---------------------------------------------------------------------------
@@ -40,18 +50,78 @@ function nanoid(): string {
   return crypto.randomUUID().replace(/-/g, '').slice(0, 20)
 }
 
-function requireSession(c: { get: (key: 'authSession') => AuthSession | null }): AuthSession {
-  const session = c.get('authSession')
-  if (!session) throw new Response(JSON.stringify({ error: 'unauthenticated' }), { status: 401 })
-  return session
+function bearerToken(c: Context<AppBindings>): string | null {
+  const auth = c.req.header('Authorization') ?? ''
+  return auth.startsWith('Bearer ') ? auth.slice(7).trim() : null
+}
+
+function isConfiguredToken(candidate: string | null, tokens: Array<string | undefined>): boolean {
+  return Boolean(candidate && tokens.some((token) => token && token === candidate))
+}
+
+async function getBountyActor(c: Context<AppBindings>): Promise<BountyActor | null> {
+  const { token, session } = await readSessionFromRequest(c)
+  c.set('authSessionToken', token)
+  c.set('authSession', session)
+
+  if (session) {
+    return {
+      id: session.identityId,
+      role: session.role ?? 'viewer',
+      type: 'human',
+    }
+  }
+
+  const tokenFromHeader = bearerToken(c)
+  const env = c.env as AppBindings['Bindings'] & { MUMEGA_TOKEN?: string }
+  const isAgentToken = isConfiguredToken(tokenFromHeader, [
+    env.NETWORK_TOKEN,
+    env.MUMEGA_TOKEN,
+    env.INKWELL_MCP_TOKEN,
+  ])
+  const isSystemToken = isConfiguredToken(tokenFromHeader, [
+    env.PUBLISH_TOKEN,
+    env.CONTRACT_AUTH_TOKEN,
+  ])
+
+  if (!isAgentToken && !isSystemToken) return null
+
+  const headerAgentId = c.req.header('X-Agent-Id')?.trim()
+  const fallbackAgentId = isSystemToken ? 'system' : 'agent'
+
+  return {
+    id: headerAgentId || fallbackAgentId,
+    role: isSystemToken ? 'admin' : 'member',
+    type: 'agent',
+  }
+}
+
+async function requireBountyActor(c: Context<AppBindings>): Promise<BountyActor | Response> {
+  const actor = await getBountyActor(c)
+  if (actor) return actor
+  return c.json({ error: 'unauthenticated' }, 401)
+}
+
+function tenantSlug(c: Context<AppBindings>): string | null {
+  return c.get('tenant_slug') ?? c.req.header('X-Tenant-Slug')?.trim() ?? null
+}
+
+function canSubmitBounty(bounty: BountyRow, actor: BountyActor): boolean {
+  if (bounty.assignee_type === 'agent') {
+    return bounty.agent_id === actor.id || bounty.claimant_id === actor.id
+  }
+  return bounty.claimant_id === actor.id
 }
 
 // ---------------------------------------------------------------------------
 // GET /api/bounties/stats — summary widget (auth required)
 // ---------------------------------------------------------------------------
 
-bountyRoutes.get('/stats', requireAuth, async (c) => {
-  const tenant = c.get('tenant_slug')
+bountyRoutes.get('/stats', async (c) => {
+  const actor = await requireBountyActor(c)
+  if (actor instanceof Response) return actor
+
+  const tenant = tenantSlug(c)
   if (!tenant) return c.json({ error: 'tenant_required' }, 400)
 
   const db = c.get('db_core')
@@ -90,9 +160,11 @@ bountyRoutes.get('/stats', requireAuth, async (c) => {
 // GET /api/bounties/my — my bounties (auth required)
 // ---------------------------------------------------------------------------
 
-bountyRoutes.get('/my', requireAuth, async (c) => {
-  const session = requireSession(c)
-  const tenant = c.get('tenant_slug')
+bountyRoutes.get('/my', async (c) => {
+  const actor = await requireBountyActor(c)
+  if (actor instanceof Response) return actor
+
+  const tenant = tenantSlug(c)
   if (!tenant) return c.json({ error: 'tenant_required' }, 400)
 
   const db = c.get('db_core')
@@ -100,7 +172,7 @@ bountyRoutes.get('/my', requireAuth, async (c) => {
     `SELECT * FROM bounties
      WHERE customer_slug = ? AND claimant_id = ?
      ORDER BY updated_at DESC`,
-    [tenant, session.identityId],
+    [tenant, actor.id],
   )
 
   return c.json({ bounties })
@@ -110,8 +182,11 @@ bountyRoutes.get('/my', requireAuth, async (c) => {
 // GET /api/bounties — list bounties (auth required)
 // ---------------------------------------------------------------------------
 
-bountyRoutes.get('/', requireAuth, async (c) => {
-  const tenant = c.get('tenant_slug')
+bountyRoutes.get('/', async (c) => {
+  const actor = await requireBountyActor(c)
+  if (actor instanceof Response) return actor
+
+  const tenant = tenantSlug(c)
   if (!tenant) return c.json({ error: 'tenant_required' }, 400)
 
   const status = c.req.query('status') as BountyStatus | undefined
@@ -141,12 +216,14 @@ bountyRoutes.get('/', requireAuth, async (c) => {
 // POST /api/bounties — create bounty (manager+)
 // ---------------------------------------------------------------------------
 
-bountyRoutes.post('/', requireAuth, async (c) => {
-  const session = requireSession(c)
-  const tenant = c.get('tenant_slug')
+bountyRoutes.post('/', async (c) => {
+  const actor = await requireBountyActor(c)
+  if (actor instanceof Response) return actor
+
+  const tenant = tenantSlug(c)
   if (!tenant) return c.json({ error: 'tenant_required' }, 400)
 
-  const role = session.role ?? 'viewer'
+  const role = actor.role
   const managerRoles = ['manager', 'admin', 'owner']
   if (!managerRoles.includes(role)) {
     return c.json({ error: 'forbidden', message: 'manager role required to create bounties' }, 403)
@@ -173,8 +250,8 @@ bountyRoutes.post('/', requireAuth, async (c) => {
   await db.execute(
     `INSERT INTO bounties
        (id, customer_slug, title, description, reward_cents, currency,
-        status, creator_id, labels_json, expires_at, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, 'open', ?, ?, ?, ?, ?)`,
+        status, creator_id, squad_id, labels_json, expires_at, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, 'open', ?, ?, ?, ?, ?, ?)`,
     [
       id,
       tenant,
@@ -182,7 +259,8 @@ bountyRoutes.post('/', requireAuth, async (c) => {
       body.description ?? null,
       body.reward_cents,
       body.currency ?? 'USD',
-      session.identityId,
+      actor.id,
+      body.squad_id ?? null,
       JSON.stringify(body.labels ?? []),
       body.expires_at ?? null,
       ts,
@@ -198,9 +276,12 @@ bountyRoutes.post('/', requireAuth, async (c) => {
 // GET /api/bounties/:id — get one bounty (auth required)
 // ---------------------------------------------------------------------------
 
-bountyRoutes.get('/:id', requireAuth, async (c) => {
+bountyRoutes.get('/:id', async (c) => {
+  const actor = await requireBountyActor(c)
+  if (actor instanceof Response) return actor
+
   const id = c.req.param('id')
-  const tenant = c.get('tenant_slug')
+  const tenant = tenantSlug(c)
   if (!tenant) return c.json({ error: 'tenant_required' }, 400)
 
   const db = c.get('db_core')
@@ -216,10 +297,12 @@ bountyRoutes.get('/:id', requireAuth, async (c) => {
 // POST /api/bounties/:id/claim — claim open bounty (any authenticated member)
 // ---------------------------------------------------------------------------
 
-bountyRoutes.post('/:id/claim', requireAuth, async (c) => {
-  const session = requireSession(c)
+bountyRoutes.post('/:id/claim', async (c) => {
+  const actor = await requireBountyActor(c)
+  if (actor instanceof Response) return actor
+
   const id = c.req.param('id')
-  const tenant = c.get('tenant_slug')
+  const tenant = tenantSlug(c)
   if (!tenant) return c.json({ error: 'tenant_required' }, 400)
 
   const db = c.get('db_core')
@@ -233,9 +316,13 @@ bountyRoutes.post('/:id/claim', requireAuth, async (c) => {
 
   await db.execute(
     `UPDATE bounties
-     SET status = 'claimed', claimant_id = ?, updated_at = ?
+     SET status = 'claimed',
+         claimant_id = ?,
+         assignee_type = ?,
+         agent_id = ?,
+         updated_at = ?
      WHERE id = ? AND status = 'open'`,
-    [session.identityId, now(), id],
+    [actor.id, actor.type, actor.type === 'agent' ? actor.id : null, now(), id],
   )
 
   const updated = await db.queryOne<BountyRow>('SELECT * FROM bounties WHERE id = ?', [id])
@@ -246,10 +333,12 @@ bountyRoutes.post('/:id/claim', requireAuth, async (c) => {
 // POST /api/bounties/:id/submit — submit proof (claimant only)
 // ---------------------------------------------------------------------------
 
-bountyRoutes.post('/:id/submit', requireAuth, async (c) => {
-  const session = requireSession(c)
+bountyRoutes.post('/:id/submit', async (c) => {
+  const actor = await requireBountyActor(c)
+  if (actor instanceof Response) return actor
+
   const id = c.req.param('id')
-  const tenant = c.get('tenant_slug')
+  const tenant = tenantSlug(c)
   if (!tenant) return c.json({ error: 'tenant_required' }, 400)
 
   const body = await c.req.json<{ proof_url: string }>()
@@ -263,7 +352,7 @@ bountyRoutes.post('/:id/submit', requireAuth, async (c) => {
 
   if (!bounty) return c.json({ error: 'not_found' }, 404)
   if (bounty.status !== 'claimed') return c.json({ error: 'not_claimable', status: bounty.status }, 409)
-  if (bounty.claimant_id !== session.identityId) {
+  if (!canSubmitBounty(bounty, actor)) {
     return c.json({ error: 'forbidden', message: 'only the claimant can submit proof' }, 403)
   }
 
@@ -282,13 +371,15 @@ bountyRoutes.post('/:id/submit', requireAuth, async (c) => {
 // POST /api/bounties/:id/approve — approve + mark paid (manager+)
 // ---------------------------------------------------------------------------
 
-bountyRoutes.post('/:id/approve', requireAuth, async (c) => {
-  const session = requireSession(c)
+bountyRoutes.post('/:id/approve', async (c) => {
+  const actor = await requireBountyActor(c)
+  if (actor instanceof Response) return actor
+
   const id = c.req.param('id')
-  const tenant = c.get('tenant_slug')
+  const tenant = tenantSlug(c)
   if (!tenant) return c.json({ error: 'tenant_required' }, 400)
 
-  const role = session.role ?? 'viewer'
+  const role = actor.role
   const managerRoles = ['manager', 'admin', 'owner']
   if (!managerRoles.includes(role)) {
     return c.json({ error: 'forbidden', message: 'manager role required to approve bounties' }, 403)

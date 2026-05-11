@@ -47,6 +47,8 @@ export interface Env {
   SOS_SAAS_URL?: string        // Origin SaaS service URL for tenant resolution
   NETWORK_API_URL?: string     // Network API URL for network tools (memory, tasks, marketplace)
   NETWORK_TOKEN?: string       // Bearer token for authenticating with network API
+  MUMEGA_API_URL?: string      // Legacy/network API URL used by MCP tools
+  MUMEGA_TOKEN?: string        // Legacy/network bearer token used by MCP tools and tenant lookup
   // SOS integration (v6.3)
   SOS_ECONOMY_URL?: string     // SOS Economy service URL
   SOS_MIRROR_URL?: string      // SOS Mirror memory service URL

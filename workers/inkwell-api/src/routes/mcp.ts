@@ -162,6 +162,32 @@ const TOOLS: ToolDef[] = [
     },
   },
   {
+    name: 'squad_remember',
+    description: '[Mumega Network] Store a memory for a squad. Requires SOS_MIRROR_URL or SOS_BUS_URL plus a service token.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        squad_id: { type: 'string', description: 'Squad identifier' },
+        text: { type: 'string', description: 'Memory text to store' },
+        agent_id: { type: 'string', description: 'Optional agent identifier' },
+      },
+      required: ['squad_id', 'text'],
+    },
+  },
+  {
+    name: 'squad_recall',
+    description: '[Mumega Network] Search memories scoped to a squad. Requires SOS_MIRROR_URL or SOS_BUS_URL plus a service token.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        squad_id: { type: 'string', description: 'Squad identifier' },
+        query: { type: 'string', description: 'Semantic search query' },
+        limit: { type: 'number', description: 'Max results (default 10)' },
+      },
+      required: ['squad_id', 'query'],
+    },
+  },
+  {
     name: 'create_task',
     description: '[Mumega Network] Create a task in the Mumega Squad Service for this site. Requires Mumega connection.',
     inputSchema: {
@@ -660,6 +686,95 @@ async function toolRecall(
   return mumegaPost(env, '/mcp/recall', { agent: tenantSlug, query })
 }
 
+function mirrorBaseUrl(env: AppBindings['Bindings']): string | null {
+  const base = env.SOS_MIRROR_URL ?? env.SOS_BUS_URL
+  return base ? base.replace(/\/$/, '') : null
+}
+
+function mirrorToken(env: AppBindings['Bindings']): string | null {
+  return env.INKWELL_MCP_TOKEN ?? env.NETWORK_TOKEN ?? env.CONTRACT_AUTH_TOKEN ?? null
+}
+
+async function mirrorPost(
+  env: AppBindings['Bindings'],
+  path: string,
+  body: unknown,
+): Promise<unknown> {
+  const base = mirrorBaseUrl(env)
+  const token = mirrorToken(env)
+  if (!base || !token) {
+    return {
+      error: 'mirror_required',
+      message: 'Set SOS_MIRROR_URL or SOS_BUS_URL, plus INKWELL_MCP_TOKEN or NETWORK_TOKEN.',
+    }
+  }
+
+  try {
+    const res = await fetch(`${base}${path}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(body),
+    })
+    if (!res.ok) {
+      const text = await res.text().catch(() => '')
+      return { error: 'mirror_error', status: res.status, detail: text.slice(0, 300) }
+    }
+    return await res.json()
+  } catch {
+    return { error: 'mirror_unreachable' }
+  }
+}
+
+async function toolSquadRemember(
+  env: AppBindings['Bindings'],
+  a: Record<string, unknown>,
+): Promise<unknown> {
+  const squadId = typeof a.squad_id === 'string' ? a.squad_id.trim() : ''
+  const text = typeof a.text === 'string' ? a.text.trim() : ''
+  const agentId = typeof a.agent_id === 'string' && a.agent_id.trim()
+    ? a.agent_id.trim()
+    : 'inkwell'
+
+  if (!squadId) return { error: 'squad_id required' }
+  if (!text) return { error: 'text required' }
+
+  return mirrorPost(env, '/remember', {
+    agent: agentId,
+    context_id: `squad:${squadId}:${Date.now()}`,
+    text,
+    project: `squad:${squadId}`,
+    series: `squad:${squadId}`,
+    metadata: {
+      squad_id: squadId,
+      agent_id: agentId,
+      source: 'inkwell-mcp',
+    },
+  })
+}
+
+async function toolSquadRecall(
+  env: AppBindings['Bindings'],
+  a: Record<string, unknown>,
+): Promise<unknown> {
+  const squadId = typeof a.squad_id === 'string' ? a.squad_id.trim() : ''
+  const query = typeof a.query === 'string' ? a.query.trim() : ''
+  const limit = typeof a.limit === 'number' ? Math.min(Math.max(1, Math.floor(a.limit)), 50) : 10
+
+  if (!squadId) return { error: 'squad_id required' }
+  if (!query) return { error: 'query required' }
+
+  return mirrorPost(env, '/recall', {
+    query,
+    limit,
+    project: `squad:${squadId}`,
+    series: `squad:${squadId}`,
+    filters: { squad_id: squadId },
+  })
+}
+
 async function toolCreateTask(
   env: AppBindings['Bindings'],
   a: Record<string, unknown>,
@@ -714,6 +829,8 @@ async function callTool(
     // Network tools
     case 'remember': return toolRemember(env, a)
     case 'recall': return toolRecall(env, a)
+    case 'squad_remember': return toolSquadRemember(env, a)
+    case 'squad_recall': return toolSquadRecall(env, a)
     case 'create_task': return toolCreateTask(env, a)
     case 'browse_marketplace': return toolBrowseMarketplace(env, a)
     case 'recall_content': {
