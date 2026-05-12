@@ -30,12 +30,21 @@ async function apiFetch(url: string, options?: RequestInit): Promise<Response> {
   })
 }
 
+// ⚡ Bolt Performance: Cache Intl.NumberFormat instances to prevent expensive re-creation
+// Note: We create a simple cache since the currency code might vary. In practice, CAD is most common.
+const formatters = new Map<string, Intl.NumberFormat>()
+
 function formatCurrency(amount: number, currency = 'CAD'): string {
-  return new Intl.NumberFormat('en-CA', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2,
-  }).format(amount)
+  let formatter = formatters.get(currency)
+  if (!formatter) {
+    formatter = new Intl.NumberFormat('en-CA', {
+      style: 'currency',
+      currency,
+      minimumFractionDigits: 2,
+    })
+    formatters.set(currency, formatter)
+  }
+  return formatter.format(amount)
 }
 
 function formatDate(dateStr: string): string {

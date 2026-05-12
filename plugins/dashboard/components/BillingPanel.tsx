@@ -67,13 +67,22 @@ function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   })
 }
 
+// ⚡ Bolt Performance: Cache Intl.NumberFormat instances to prevent expensive re-creation
+const formatters = new Map<string, Intl.NumberFormat>()
+
 function formatCurrency(cents: number, currency: string): string {
-  return new Intl.NumberFormat('en-CA', {
-    style: 'currency',
-    currency: currency.toUpperCase(),
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(cents / 100)
+  const code = currency.toUpperCase()
+  let formatter = formatters.get(code)
+  if (!formatter) {
+    formatter = new Intl.NumberFormat('en-CA', {
+      style: 'currency',
+      currency: code,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })
+    formatters.set(code, formatter)
+  }
+  return formatter.format(cents / 100)
 }
 
 function formatDate(iso: string): string {

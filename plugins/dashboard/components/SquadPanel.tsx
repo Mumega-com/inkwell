@@ -19,12 +19,15 @@ interface KPIData {
 
 // ── KPI formatters ─────────────────────────────────────────────────────────
 
+// ⚡ Bolt Performance: Cache Intl.NumberFormat instances to prevent expensive re-creation
+const currencyFormatter = new Intl.NumberFormat('en-CA', {
+  style: 'currency',
+  currency: 'CAD',
+  maximumFractionDigits: 0,
+})
+
 function formatMoney(cents: number): string {
-  return new Intl.NumberFormat('en-CA', {
-    style: 'currency',
-    currency: 'CAD',
-    maximumFractionDigits: 0,
-  }).format(cents / 100)
+  return currencyFormatter.format(cents / 100)
 }
 
 function formatTokens(n: number): string {

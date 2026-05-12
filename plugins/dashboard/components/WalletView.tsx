@@ -52,13 +52,16 @@ function humanizeReason(reason: string, type: 'earn' | 'spend'): string {
     .trim()
 }
 
+// ⚡ Bolt Performance: Cache Intl.NumberFormat instances to prevent expensive re-creation
+const cadFormatter = new Intl.NumberFormat('en-CA', {
+  style: 'currency',
+  currency: 'CAD',
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+})
+
 function formatCAD(n: number): string {
-  return new Intl.NumberFormat('en-CA', {
-    style: 'currency',
-    currency: 'CAD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(n)
+  return cadFormatter.format(n)
 }
 
 function formatDate(iso: string): string {
