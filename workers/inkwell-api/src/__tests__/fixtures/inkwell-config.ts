@@ -1,0 +1,27 @@
+export const config = {
+  domain: 'mumega.com',
+  plugins: [
+    'dashboard',
+    'commerce',
+    'content',
+    'mcp',
+    'contracts',
+    'telegram',
+    'chat',
+    'diagnostics',
+    'discovery',
+    'payments',
+    'onboarding',
+    'notifications',
+    'bounty',
+    'automation',
+  ],
+  adapters: {
+    graph: 'd1',
+    agent: 'd1',
+    bus: 'standalone',
+    memory: 'standalone',
+    economy: 'standalone',
+  },
+  contentSources: [],
+}

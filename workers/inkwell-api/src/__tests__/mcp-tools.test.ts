@@ -156,6 +156,8 @@ describe('MCP endpoint', () => {
       expect(names).toContain('site_info')
       expect(names).toContain('remember')
       expect(names).toContain('recall')
+      expect(names).toContain('squad_remember')
+      expect(names).toContain('squad_recall')
       expect(names).toContain('create_task')
       expect(names).toContain('browse_marketplace')
     })
@@ -343,6 +345,24 @@ describe('MCP endpoint', () => {
       expect(result.error).toBe('network_required')
     })
 
+    it('returns network_required error for squad memory tools', async () => {
+      const rememberRes = await callTool('squad_remember', {
+        squad_id: 'seo',
+        text: 'Test squad memory entry',
+        agent_id: 'agent-vitest',
+      })
+      const recallRes = await callTool('squad_recall', {
+        squad_id: 'seo',
+        query: 'test query',
+      })
+
+      const rememberBody = await rememberRes.json<{ result?: { content?: Array<{ text?: string }> } }>()
+      const recallBody = await recallRes.json<{ result?: { content?: Array<{ text?: string }> } }>()
+
+      expect((toolResult(rememberBody) as { error?: string }).error).toBe('network_required')
+      expect((toolResult(recallBody) as { error?: string }).error).toBe('network_required')
+    })
+
     it('returns network_required error for browse_marketplace', async () => {
       const res = await callTool('browse_marketplace', {})
       expect(res.status).toBe(200)
@@ -376,6 +396,22 @@ describe('MCP endpoint', () => {
       expect(result.error).not.toBe('network_required')
 
       // Should be a network/connection failure error since 127.0.0.1:9999 isn't listening
+      expect(['network_unreachable', 'network_error']).toContain(result.error)
+    })
+
+    it('squad_remember calls the configured network API instead of returning network_required', async () => {
+      const res = await callTool('squad_remember', {
+        squad_id: 'seo',
+        text: 'Test squad memory with URL set',
+        agent_id: 'agent-vitest',
+      })
+
+      expect(res.status).toBe(200)
+
+      const body = await res.json<{ result?: { content?: Array<{ text?: string }> } }>()
+      const result = toolResult(body) as { error?: string }
+
+      expect(result.error).not.toBe('network_required')
       expect(['network_unreachable', 'network_error']).toContain(result.error)
     })
   })

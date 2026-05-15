@@ -37,16 +37,6 @@ database_name = "inkwell-marketing"
 database_id = "e4010c8f-5f61-4c04-aa14-cf42d1afc481"
 migrations_dir = "migrations/marketing"
 
-[[d1_databases]]
-binding = "DB_CORE"
-database_name = "inkwell-core"
-database_id = "abd1fc3e-2bd8-411a-bec8-2686ea9a51f5"
-
-[[d1_databases]]
-binding = "DB_MARKETING"
-database_name = "inkwell-marketing"
-database_id = "e4010c8f-5f61-4c04-aa14-cf42d1afc481"
-
 [[kv_namespaces]]
 binding = "CONTENT"
 id = "c303003bd718427c97f978773fce4f3a"

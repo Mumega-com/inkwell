@@ -137,7 +137,7 @@ const TOOLS: ToolDef[] = [
       properties: {},
     },
   },
-  // ── Network tools (require MUMEGA_API_URL + MUMEGA_TOKEN) ─────────────────
+  // ── Network tools (require NETWORK_API_URL + NETWORK_TOKEN) ───────────────
   {
     name: 'remember',
     description: '[Mumega Network] Store a memory engram for this site. Requires Mumega connection. Returns engram ID.',
@@ -159,6 +159,32 @@ const TOOLS: ToolDef[] = [
         query: { type: 'string', description: 'Semantic search query to find relevant memories' },
       },
       required: ['query'],
+    },
+  },
+  {
+    name: 'squad_remember',
+    description: '[Mumega Network] Store a squad-scoped memory through the squad REST API.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        squad_id: { type: 'string', description: 'Squad identifier' },
+        text: { type: 'string', description: 'The memory text to store' },
+        agent_id: { type: 'string', description: 'Optional agent identifier writing the memory' },
+      },
+      required: ['squad_id', 'text'],
+    },
+  },
+  {
+    name: 'squad_recall',
+    description: '[Mumega Network] Search squad-scoped memories through the squad REST API.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        squad_id: { type: 'string', description: 'Squad identifier' },
+        query: { type: 'string', description: 'Search query' },
+        limit: { type: 'number', description: 'Max results (default 10)' },
+      },
+      required: ['squad_id', 'query'],
     },
   },
   {
@@ -576,50 +602,58 @@ function toolSiteInfo(env: AppBindings['Bindings']): unknown {
 
 const NETWORK_REQUIRED_ERROR = (feature: string) => ({
   error: 'network_required',
-  message: `Connect to Mumega for ${feature}. Add MUMEGA_API_URL and MUMEGA_TOKEN to your Worker env. Get a token at mumega.com/connect`,
+  message: `Connect to a network API for ${feature}. Add NETWORK_API_URL and NETWORK_TOKEN to your Worker env.`,
 })
 
-async function mumegaPost(
+function tenantSlugFromEnv(env: AppBindings['Bindings']): string {
+  return env.SITE_URL
+    ? new URL(env.SITE_URL).hostname.replace(/\./g, '-')
+    : 'inkwell'
+}
+
+async function networkPost(
   env: AppBindings['Bindings'],
   path: string,
   body: unknown,
 ): Promise<unknown> {
-  const baseUrl = env.MUMEGA_API_URL ?? 'https://api.mumega.com'
+  const baseUrl = env.NETWORK_API_URL ?? ''
+  if (!baseUrl) return NETWORK_REQUIRED_ERROR('API')
   try {
     const res = await fetch(`${baseUrl}${path}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${env.MUMEGA_TOKEN ?? ''}`,
+        Authorization: `Bearer ${env.NETWORK_TOKEN ?? ''}`,
       },
       body: JSON.stringify(body),
     })
     if (!res.ok) {
       const text = await res.text().catch(() => '')
-      return { error: 'mumega_error', status: res.status, detail: text.slice(0, 300) }
+      return { error: 'network_error', status: res.status, detail: text.slice(0, 300) }
     }
     return await res.json()
   } catch {
-    return { error: 'mumega_unreachable', message: 'Could not reach Mumega API. Check MUMEGA_API_URL and network connectivity.' }
+    return { error: 'network_unreachable', message: 'Could not reach network API. Check NETWORK_API_URL and network connectivity.' }
   }
 }
 
-async function mumegaGet(
+async function networkGet(
   env: AppBindings['Bindings'],
   path: string,
 ): Promise<unknown> {
-  const baseUrl = env.MUMEGA_API_URL ?? 'https://api.mumega.com'
+  const baseUrl = env.NETWORK_API_URL ?? ''
+  if (!baseUrl) return NETWORK_REQUIRED_ERROR('API')
   try {
     const res = await fetch(`${baseUrl}${path}`, {
-      headers: { Authorization: `Bearer ${env.MUMEGA_TOKEN ?? ''}` },
+      headers: { Authorization: `Bearer ${env.NETWORK_TOKEN ?? ''}` },
     })
     if (!res.ok) {
       const text = await res.text().catch(() => '')
-      return { error: 'mumega_error', status: res.status, detail: text.slice(0, 300) }
+      return { error: 'network_error', status: res.status, detail: text.slice(0, 300) }
     }
     return await res.json()
   } catch {
-    return { error: 'mumega_unreachable', message: 'Could not reach Mumega API. Check MUMEGA_API_URL and network connectivity.' }
+    return { error: 'network_unreachable', message: 'Could not reach network API. Check NETWORK_API_URL and network connectivity.' }
   }
 }
 
@@ -627,7 +661,7 @@ async function toolRemember(
   env: AppBindings['Bindings'],
   a: Record<string, unknown>,
 ): Promise<unknown> {
-  if (!env.MUMEGA_API_URL && !env.MUMEGA_TOKEN) return NETWORK_REQUIRED_ERROR('memory (remember/recall)')
+  if (!env.NETWORK_API_URL && !env.NETWORK_TOKEN) return NETWORK_REQUIRED_ERROR('memory (remember/recall)')
 
   const text = typeof a.text === 'string' ? a.text.trim() : ''
   if (!text) return { error: 'text required' }
@@ -636,35 +670,60 @@ async function toolRemember(
     ? (a.tags as unknown[]).filter((t): t is string => typeof t === 'string')
     : []
 
-  // tenantSlug derived from SITE_URL hostname, or fallback to "inkwell"
-  const tenantSlug = env.SITE_URL
-    ? new URL(env.SITE_URL).hostname.replace(/\./g, '-')
-    : 'inkwell'
-
-  return mumegaPost(env, '/mcp/remember', { agent: tenantSlug, text, tags })
+  return networkPost(env, '/mcp/remember', { agent: tenantSlugFromEnv(env), text, tags })
 }
 
 async function toolRecall(
   env: AppBindings['Bindings'],
   a: Record<string, unknown>,
 ): Promise<unknown> {
-  if (!env.MUMEGA_API_URL && !env.MUMEGA_TOKEN) return NETWORK_REQUIRED_ERROR('memory (remember/recall)')
+  if (!env.NETWORK_API_URL && !env.NETWORK_TOKEN) return NETWORK_REQUIRED_ERROR('memory (remember/recall)')
 
   const query = typeof a.query === 'string' ? a.query.trim() : ''
   if (!query) return { error: 'query required' }
 
-  const tenantSlug = env.SITE_URL
-    ? new URL(env.SITE_URL).hostname.replace(/\./g, '-')
-    : 'inkwell'
+  return networkPost(env, '/mcp/recall', { agent: tenantSlugFromEnv(env), query })
+}
 
-  return mumegaPost(env, '/mcp/recall', { agent: tenantSlug, query })
+async function toolSquadRemember(
+  env: AppBindings['Bindings'],
+  a: Record<string, unknown>,
+): Promise<unknown> {
+  if (!env.NETWORK_API_URL && !env.NETWORK_TOKEN) return NETWORK_REQUIRED_ERROR('squad memory')
+
+  const squadId = typeof a.squad_id === 'string' ? a.squad_id.trim() : ''
+  const text = typeof a.text === 'string' ? a.text.trim() : ''
+  const agentId = typeof a.agent_id === 'string' ? a.agent_id.trim() : tenantSlugFromEnv(env)
+
+  if (!squadId) return { error: 'squad_id required' }
+  if (!text) return { error: 'text required' }
+
+  return networkPost(env, `/squads/${encodeURIComponent(squadId)}/memory`, { text, agent_id: agentId })
+}
+
+async function toolSquadRecall(
+  env: AppBindings['Bindings'],
+  a: Record<string, unknown>,
+): Promise<unknown> {
+  if (!env.NETWORK_API_URL && !env.NETWORK_TOKEN) return NETWORK_REQUIRED_ERROR('squad memory')
+
+  const squadId = typeof a.squad_id === 'string' ? a.squad_id.trim() : ''
+  const query = typeof a.query === 'string' ? a.query.trim() : ''
+  const rawLimit = typeof a.limit === 'number' ? a.limit : 10
+  const limit = Math.min(Math.max(1, rawLimit), 50)
+
+  if (!squadId) return { error: 'squad_id required' }
+  if (!query) return { error: 'query required' }
+
+  const params = new URLSearchParams({ q: query, limit: String(limit) })
+  return networkGet(env, `/squads/${encodeURIComponent(squadId)}/memory?${params.toString()}`)
 }
 
 async function toolCreateTask(
   env: AppBindings['Bindings'],
   a: Record<string, unknown>,
 ): Promise<unknown> {
-  if (!env.MUMEGA_API_URL && !env.MUMEGA_TOKEN) return NETWORK_REQUIRED_ERROR('task management')
+  if (!env.NETWORK_API_URL && !env.NETWORK_TOKEN) return NETWORK_REQUIRED_ERROR('task management')
 
   const title = typeof a.title === 'string' ? a.title.trim() : ''
   if (!title) return { error: 'title required' }
@@ -677,22 +736,18 @@ async function toolCreateTask(
     ? (a.labels as unknown[]).filter((l): l is string => typeof l === 'string')
     : []
 
-  const tenantSlug = env.SITE_URL
-    ? new URL(env.SITE_URL).hostname.replace(/\./g, '-')
-    : 'inkwell'
-
-  return mumegaPost(env, '/mcp/task', { title, description, priority, labels, source: tenantSlug })
+  return networkPost(env, '/mcp/task', { title, description, priority, labels, source: tenantSlugFromEnv(env) })
 }
 
 async function toolBrowseMarketplace(
   env: AppBindings['Bindings'],
   a: Record<string, unknown>,
 ): Promise<unknown> {
-  if (!env.MUMEGA_API_URL && !env.MUMEGA_TOKEN) return NETWORK_REQUIRED_ERROR('marketplace')
+  if (!env.NETWORK_API_URL && !env.NETWORK_TOKEN) return NETWORK_REQUIRED_ERROR('marketplace')
 
   const category = typeof a.category === 'string' ? a.category.trim() : ''
   const path = category ? `/mcp/marketplace?category=${encodeURIComponent(category)}` : '/mcp/marketplace'
-  return mumegaGet(env, path)
+  return networkGet(env, path)
 }
 
 // ── Dispatcher ────────────────────────────────────────────────────────────────
@@ -714,6 +769,8 @@ async function callTool(
     // Network tools
     case 'remember': return toolRemember(env, a)
     case 'recall': return toolRecall(env, a)
+    case 'squad_remember': return toolSquadRemember(env, a)
+    case 'squad_recall': return toolSquadRecall(env, a)
     case 'create_task': return toolCreateTask(env, a)
     case 'browse_marketplace': return toolBrowseMarketplace(env, a)
     case 'recall_content': {

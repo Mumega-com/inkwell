@@ -1,14 +1,22 @@
-import { Hono } from 'hono'
-import { requireAuth } from '../middleware'
+import { Hono, type Context } from 'hono'
+import { readSessionFromRequest, requireAuth } from '../middleware'
 import type { AppBindings, AuthSession } from '../types'
 
 const bountyRoutes = new Hono<AppBindings>()
+type BountyContext = Context<AppBindings>
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
 type BountyStatus = 'open' | 'claimed' | 'submitted' | 'approved' | 'paid'
+type AssigneeType = 'user' | 'agent'
+
+interface BountyActor {
+  identityId: string
+  assigneeType: AssigneeType
+  agentId: string | null
+}
 
 interface BountyRow {
   id: string
@@ -20,6 +28,8 @@ interface BountyRow {
   status: BountyStatus
   creator_id: string
   claimant_id: string | null
+  agent_id: string | null
+  assignee_type: AssigneeType | null
   proof_url: string | null
   squad_id: string | null
   labels_json: string
@@ -44,6 +54,59 @@ function requireSession(c: { get: (key: 'authSession') => AuthSession | null }):
   const session = c.get('authSession')
   if (!session) throw new Response(JSON.stringify({ error: 'unauthenticated' }), { status: 401 })
   return session
+}
+
+function bearerToken(c: { req: { header(name: string): string | undefined } }): string | null {
+  const auth = c.req.header('Authorization') ?? ''
+  return auth.startsWith('Bearer ') ? auth.slice(7) : null
+}
+
+function trustedAgentToken(c: { env: AppBindings['Bindings']; req: { header(name: string): string | undefined } }): boolean {
+  const token = bearerToken(c)
+  if (!token) return false
+  const accepted = [c.env.INKWELL_MCP_TOKEN, c.env.NETWORK_TOKEN, c.env.PUBLISH_TOKEN]
+    .filter((value): value is string => Boolean(value))
+  return accepted.includes(token)
+}
+
+async function resolveBountyActor(
+  c: BountyContext,
+  body: { agent_id?: unknown },
+): Promise<BountyActor | Response> {
+  const rawAgentId = typeof body.agent_id === 'string' ? body.agent_id.trim() : ''
+  if (rawAgentId || trustedAgentToken(c)) {
+    if (!trustedAgentToken(c)) {
+      return c.json({ error: 'unauthorized', message: 'valid agent token required' }, 401)
+    }
+    if (!rawAgentId) {
+      return c.json({ error: 'agent_id is required' }, 400)
+    }
+    return {
+      identityId: rawAgentId,
+      assigneeType: 'agent',
+      agentId: rawAgentId,
+    }
+  }
+
+  const { session } = await readSessionFromRequest(c)
+  c.set('authSession', session)
+  if (!session) {
+    return c.json({ error: 'unauthenticated' }, 401)
+  }
+
+  return {
+    identityId: session.identityId,
+    assigneeType: 'user',
+    agentId: null,
+  }
+}
+
+function actorCanSubmit(bounty: BountyRow, actor: BountyActor): boolean {
+  if (actor.assigneeType === 'agent') {
+    return bounty.assignee_type === 'agent' && bounty.agent_id === actor.agentId
+  }
+
+  return bounty.assignee_type !== 'agent' && bounty.claimant_id === actor.identityId
 }
 
 // ---------------------------------------------------------------------------
@@ -173,8 +236,8 @@ bountyRoutes.post('/', requireAuth, async (c) => {
   await db.execute(
     `INSERT INTO bounties
        (id, customer_slug, title, description, reward_cents, currency,
-        status, creator_id, labels_json, expires_at, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, 'open', ?, ?, ?, ?, ?)`,
+        status, creator_id, squad_id, labels_json, expires_at, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, 'open', ?, ?, ?, ?, ?, ?)`,
     [
       id,
       tenant,
@@ -183,6 +246,7 @@ bountyRoutes.post('/', requireAuth, async (c) => {
       body.reward_cents,
       body.currency ?? 'USD',
       session.identityId,
+      body.squad_id ?? null,
       JSON.stringify(body.labels ?? []),
       body.expires_at ?? null,
       ts,
@@ -213,14 +277,17 @@ bountyRoutes.get('/:id', requireAuth, async (c) => {
 })
 
 // ---------------------------------------------------------------------------
-// POST /api/bounties/:id/claim — claim open bounty (any authenticated member)
+// POST /api/bounties/:id/claim — claim open bounty (authenticated member or trusted agent token)
 // ---------------------------------------------------------------------------
 
-bountyRoutes.post('/:id/claim', requireAuth, async (c) => {
-  const session = requireSession(c)
+bountyRoutes.post('/:id/claim', async (c) => {
   const id = c.req.param('id')
   const tenant = c.get('tenant_slug')
   if (!tenant) return c.json({ error: 'tenant_required' }, 400)
+
+  const body = await c.req.json<{ agent_id?: string }>().catch(() => ({}))
+  const actor = await resolveBountyActor(c, body)
+  if (actor instanceof Response) return actor
 
   const db = c.get('db_core')
   const bounty = await db.queryOne<BountyRow>(
@@ -233,9 +300,9 @@ bountyRoutes.post('/:id/claim', requireAuth, async (c) => {
 
   await db.execute(
     `UPDATE bounties
-     SET status = 'claimed', claimant_id = ?, updated_at = ?
+     SET status = 'claimed', claimant_id = ?, agent_id = ?, assignee_type = ?, updated_at = ?
      WHERE id = ? AND status = 'open'`,
-    [session.identityId, now(), id],
+    [actor.identityId, actor.agentId, actor.assigneeType, now(), id],
   )
 
   const updated = await db.queryOne<BountyRow>('SELECT * FROM bounties WHERE id = ?', [id])
@@ -243,17 +310,18 @@ bountyRoutes.post('/:id/claim', requireAuth, async (c) => {
 })
 
 // ---------------------------------------------------------------------------
-// POST /api/bounties/:id/submit — submit proof (claimant only)
+// POST /api/bounties/:id/submit — submit proof (claimant or claimed agent only)
 // ---------------------------------------------------------------------------
 
-bountyRoutes.post('/:id/submit', requireAuth, async (c) => {
-  const session = requireSession(c)
+bountyRoutes.post('/:id/submit', async (c) => {
   const id = c.req.param('id')
   const tenant = c.get('tenant_slug')
   if (!tenant) return c.json({ error: 'tenant_required' }, 400)
 
-  const body = await c.req.json<{ proof_url: string }>()
+  const body = await c.req.json<{ proof_url: string; agent_id?: string }>()
   if (!body.proof_url) return c.json({ error: 'proof_url is required' }, 400)
+  const actor = await resolveBountyActor(c, body)
+  if (actor instanceof Response) return actor
 
   const db = c.get('db_core')
   const bounty = await db.queryOne<BountyRow>(
@@ -263,7 +331,7 @@ bountyRoutes.post('/:id/submit', requireAuth, async (c) => {
 
   if (!bounty) return c.json({ error: 'not_found' }, 404)
   if (bounty.status !== 'claimed') return c.json({ error: 'not_claimable', status: bounty.status }, 409)
-  if (bounty.claimant_id !== session.identityId) {
+  if (!actorCanSubmit(bounty, actor)) {
     return c.json({ error: 'forbidden', message: 'only the claimant can submit proof' }, 403)
   }
 

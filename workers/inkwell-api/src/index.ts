@@ -16,7 +16,6 @@ import discoveryManifest from '../../../plugins/discovery/manifest'
 import paymentsManifest from '../../../plugins/payments/manifest'
 import onboardingManifest from '../../../plugins/onboarding/manifest'
 import notificationsManifest from '../../../plugins/notifications/manifest'
-import salesDeskManifest from '../../../plugins/sales-desk/manifest'
 import bountyManifest from '../../../plugins/bounty/manifest'
 import automationManifest from '../../../plugins/automation/manifest'
 
@@ -33,7 +32,6 @@ registerPlugin(discoveryManifest)
 registerPlugin(paymentsManifest)
 registerPlugin(onboardingManifest)
 registerPlugin(notificationsManifest)
-registerPlugin(salesDeskManifest)
 registerPlugin(bountyManifest)
 registerPlugin(automationManifest)
 
@@ -58,8 +56,8 @@ import { portalRoutes } from './routes/portal'
 import { identityRoutes } from './routes/identity'
 import { questionnaireRoutes } from './routes/questionnaire'
 import { telegramRoutes } from './routes/telegram'
-import { salesRoutes } from '../../../plugins/sales-desk/routes'
 import { bountyRoutes } from '../../../plugins/bounty/routes'
+import { adapterMiddleware } from './middleware/adapters'
 import { auditLogger } from './middleware/audit'
 import { routeGate } from './middleware/route-gate'
 import { tenantResolver } from './middleware/tenant'
@@ -152,6 +150,9 @@ app.use('*', cors({
   allowHeaders: ['Content-Type', 'Authorization'],
 }))
 
+// Port adapters are required before tenant/auth/plugin routes read c.get(...)
+app.use('*', adapterMiddleware)
+
 // Tenant resolution (non-breaking: null = single-site mode)
 app.use('*', tenantResolver())
 
@@ -215,9 +216,6 @@ app.route('/api/questionnaire', questionnaireRoutes)
 
 app.use('/api/telegram/*', routeGate('telegram'))
 app.route('/api/telegram', telegramRoutes)
-
-app.use('/api/sales/*', routeGate('sales-desk'))
-app.route('/api/sales', salesRoutes)
 
 app.use('/api/bounties/*', routeGate('bounty'))
 app.route('/api/bounties', bountyRoutes)
