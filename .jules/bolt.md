@@ -1,0 +1,3 @@
+## 2026-05-15 - [Optimize Intl.* Creation]
+**Learning:** Instantiating new `Intl.NumberFormat` or `Intl.DateTimeFormat` objects during every React render cycle (or repeatedly within helpers like `DataTable.tsx` mapping logic) causes significant CPU overhead and garbage collection pressure, leading to poor rendering performance, particularly for tables or lists processing many numbers.
+**Action:** Always cache `Intl.NumberFormat` and `Intl.DateTimeFormat` instances using module-level constants (for static setups) or maps (for dynamic attributes like currency codes) to ensure formatters are reused across renders.

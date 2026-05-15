@@ -67,13 +67,20 @@ function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   })
 }
 
+// Cache formatters by currency to avoid recreation overhead on each render
+const currencyFormatters = new Map<string, Intl.NumberFormat>()
+
 function formatCurrency(cents: number, currency: string): string {
-  return new Intl.NumberFormat('en-CA', {
-    style: 'currency',
-    currency: currency.toUpperCase(),
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(cents / 100)
+  const code = currency.toUpperCase()
+  if (!currencyFormatters.has(code)) {
+    currencyFormatters.set(code, new Intl.NumberFormat('en-CA', {
+      style: 'currency',
+      currency: code,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }))
+  }
+  return currencyFormatters.get(code)!.format(cents / 100)
 }
 
 function formatDate(iso: string): string {
