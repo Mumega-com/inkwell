@@ -9,15 +9,20 @@ interface KPICardProps {
   trend?: boolean
 }
 
+// Cache expensive Intl.NumberFormat instances at the module level
+// to avoid unnecessary CPU overhead and GC during render cycles.
+const currencyFormatter = new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 })
+const compactNumberFormatter = new Intl.NumberFormat('en-CA', { notation: 'compact', maximumFractionDigits: 1 })
+
 function formatValue(value: number, format: KPICardProps['format']): string {
   if (value === null || value === undefined) return '—'
   switch (format) {
     case 'currency':
-      return new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 }).format(value)
+      return currencyFormatter.format(value)
     case 'percent':
       return `${value.toFixed(1)}%`
     default:
-      return new Intl.NumberFormat('en-CA', { notation: 'compact', maximumFractionDigits: 1 }).format(value)
+      return compactNumberFormatter.format(value)
   }
 }
 
