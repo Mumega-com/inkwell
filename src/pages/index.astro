@@ -48,7 +48,7 @@ const squads = [
       </div>
     </section>
 
-    {/* ── Organism Animation ── */}
+    <!-- ── Organism Animation ── -->
     <section class="anim-section">
       <div class="anim-label-bar">
         <span class="anim-label">ORGANISM RUNTIME</span>
@@ -59,7 +59,7 @@ const squads = [
       </div>
     </section>
 
-    {/* ── Kernel Animation ── */}
+    <!-- ── Kernel Animation ── -->
     <section class="anim-section">
       <div class="anim-label">
         <span class="anim-tag">LIVE DEMO</span>
@@ -71,32 +71,32 @@ const squads = [
       <div class="anim-legend">
         <span class="legend-dot orange"></span> surface plugins &nbsp;
         <span class="legend-dot cyan"></span> service plugins &nbsp;
-        <span class="legend-dot green"></span> AI plugins &nbsp;·&nbsp;
-        space to pause · ←→ seek · 0 reset
+        <span class="legend-dot green"></span> AI plugins &nbsp;&middot;&nbsp;
+        space to pause &middot; &larr;&rarr; seek &middot; 0 reset
       </div>
     </section>
 
-    {/* ── Architecture strip ── */}
+    <!-- ── Architecture strip ── -->
     <section class="arch-strip">
       <div class="arch-inner">
         <div class="arch-block">
           <div class="arch-block-label">KERNEL</div>
           <div class="arch-block-n">~430 LOC</div>
-          <div class="arch-block-desc">Contracts only — types, plugin loader, adapter registry, RBAC, theme. Zero business logic.</div>
+          <div class="arch-block-desc">Contracts only &mdash; types, plugin loader, adapter registry, RBAC, theme. Zero business logic.</div>
         </div>
-        <div class="arch-arrow">→</div>
+        <div class="arch-arrow">&rarr;</div>
         <div class="arch-block">
           <div class="arch-block-label">24 PLUGINS</div>
           <div class="arch-block-n">self-contained</div>
           <div class="arch-block-desc">Each plugin owns routes, widgets, MCP tools, and migrations. No cross-plugin imports.</div>
         </div>
-        <div class="arch-arrow">→</div>
+        <div class="arch-arrow">&rarr;</div>
         <div class="arch-block">
           <div class="arch-block-label">16 PORTS</div>
           <div class="arch-block-n">hexagonal</div>
-          <div class="arch-block-desc">Every infra concern is a swappable adapter. Cloudflare → Postgres in one config line.</div>
+          <div class="arch-block-desc">Every infra concern is a swappable adapter. Cloudflare &rarr; Postgres in one config line.</div>
         </div>
-        <div class="arch-arrow">→</div>
+        <div class="arch-arrow">&rarr;</div>
         <div class="arch-block">
           <div class="arch-block-label">41 MCP TOOLS</div>
           <div class="arch-block-n">RBAC-gated</div>
