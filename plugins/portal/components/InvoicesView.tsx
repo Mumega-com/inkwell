@@ -49,6 +49,7 @@ const DATE_FORMATTER = new Intl.DateTimeFormat('en-CA', { year: 'numeric', month
 
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr)
+  if (isNaN(d.getTime())) return 'Invalid Date'
   return DATE_FORMATTER.format(d)
 }
 

@@ -70,7 +70,9 @@ const DATE_FORMATTER = new Intl.DateTimeFormat('en-CA', {
 })
 
 function formatDate(iso: string): string {
-  return DATE_FORMATTER.format(new Date(iso))
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return 'Invalid Date'
+  return DATE_FORMATTER.format(d)
 }
 
 function MiniSparkline({ series, color }: { series: number[]; color: string }) {
