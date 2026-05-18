@@ -74,8 +74,14 @@ function getApiConfig() {
   }
 }
 
+const CENTS_FORMATTER = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
+  minimumFractionDigits: 0,
+})
+
 function formatCents(cents: number): string {
-  return `$${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: 0 })}`
+  return CENTS_FORMATTER.format(cents / 100)
 }
 
 function timeAgo(ts: string): string {

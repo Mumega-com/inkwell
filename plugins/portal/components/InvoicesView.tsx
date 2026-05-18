@@ -30,17 +30,26 @@ async function apiFetch(url: string, options?: RequestInit): Promise<Response> {
   })
 }
 
+const CURRENCY_FORMATTERS = new Map<string, Intl.NumberFormat>()
+
 function formatCurrency(amount: number, currency = 'CAD'): string {
-  return new Intl.NumberFormat('en-CA', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2,
-  }).format(amount)
+  let formatter = CURRENCY_FORMATTERS.get(currency)
+  if (!formatter) {
+    formatter = new Intl.NumberFormat('en-CA', {
+      style: 'currency',
+      currency,
+      minimumFractionDigits: 2,
+    })
+    CURRENCY_FORMATTERS.set(currency, formatter)
+  }
+  return formatter.format(amount)
 }
+
+const DATE_FORMATTER = new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: 'short', day: 'numeric' })
 
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr)
-  return d.toLocaleDateString('en-CA', { year: 'numeric', month: 'short', day: 'numeric' })
+  return DATE_FORMATTER.format(d)
 }
 
 // ── Status badge ─────────────────────────────────────────────────────────────

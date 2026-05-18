@@ -67,21 +67,31 @@ function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   })
 }
 
+const CURRENCY_FORMATTERS = new Map<string, Intl.NumberFormat>()
+
 function formatCurrency(cents: number, currency: string): string {
-  return new Intl.NumberFormat('en-CA', {
-    style: 'currency',
-    currency: currency.toUpperCase(),
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(cents / 100)
+  const upperCurrency = currency.toUpperCase()
+  let formatter = CURRENCY_FORMATTERS.get(upperCurrency)
+  if (!formatter) {
+    formatter = new Intl.NumberFormat('en-CA', {
+      style: 'currency',
+      currency: upperCurrency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })
+    CURRENCY_FORMATTERS.set(upperCurrency, formatter)
+  }
+  return formatter.format(cents / 100)
 }
 
+const DATE_FORMATTER = new Intl.DateTimeFormat('en-CA', {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+})
+
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('en-CA', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  })
+  return DATE_FORMATTER.format(new Date(iso))
 }
 
 function statusBadgeClass(status: string): string {
