@@ -1,0 +1,157 @@
+---
+import Base from '../../layouts/Base.astro'
+import Header from '../../components/layout/Header.astro'
+import Footer from '../../components/layout/Footer.astro'
+import { contentCollectionLabels, contentCollectionRoutes, loadContentDirectory, sortDirectoryEntries } from '../../lib/content-directory'
+
+const directory = await loadContentDirectory()
+
+export async function getStaticPaths() {
+  const directory = await loadContentDirectory()
+  return [...directory.tagIndex.keys()].sort((a, b) => a.localeCompare(b)).map((tag) => ({
+    params: { tag },
+    props: { tag },
+  }))
+}
+
+const { tag } = Astro.props
+const items = sortDirectoryEntries(directory.tagIndex.get(tag) ?? [])
+
+function formatDate(entry: { date?: Date; updated?: Date }): string {
+  const date = entry.updated ?? entry.date
+  if (!date) return ''
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+}
+---
+
+<Base title={`${tag} — Inkwell`} description={`Content tagged "${tag}" across the Inkwell graph`}>
+  <Header />
+  <main class="tag-page">
+    <header class="tag-header">
+      <a href="/explore" class="tag-back">← Explore</a>
+      <h1 class="tag-title">#{tag}</h1>
+      <p class="tag-count">{items.length} item{items.length !== 1 ? 's' : ''}</p>
+    </header>
+
+    <div class="tag-grid">
+      {items.map((item) => {
+        const href = contentCollectionRoutes[item.collection](item.id)
+        const kind = contentCollectionLabels[item.collection]
+
+        return (
+          <a href={href} class="tag-card">
+            <div class="tag-card-meta">
+              <span class="tag-card-kind">{kind}</span>
+              <span class="tag-card-date">{formatDate(item)}</span>
+            </div>
+            <h2 class="tag-card-title">{item.title}</h2>
+            {item.description && <p class="tag-card-desc">{item.description}</p>}
+          </a>
+        )
+      })}
+    </div>
+  </main>
+  <Footer />
+</Base>
+
+<style>
+  main { padding-top: 3.5rem; }
+
+  .tag-page {
+    max-width: var(--ink-page-width);
+    margin: 0 auto;
+    padding: 4rem 1.5rem;
+  }
+
+  .tag-header {
+    margin-bottom: 2.5rem;
+  }
+
+  .tag-back {
+    font-family: var(--ink-font-mono);
+    font-size: 0.875rem;
+    color: var(--ink-dim);
+    text-decoration: none;
+    display: inline-block;
+    margin-bottom: 1rem;
+  }
+
+  .tag-back:hover { color: var(--ink-text); }
+
+  .tag-title {
+    font-family: var(--ink-font-display);
+    font-size: clamp(2rem, 4vw, 2.75rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--ink-primary);
+  }
+
+  .tag-count {
+    font-family: var(--ink-font-mono);
+    font-size: 0.875rem;
+    color: var(--ink-muted);
+    margin-top: 0.5rem;
+  }
+
+  .tag-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem;
+  }
+
+  .tag-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1.25rem;
+    border: 1px solid var(--ink-border);
+    border-radius: var(--ink-radius);
+    text-decoration: none;
+    color: inherit;
+    background: var(--ink-surface);
+    transition: border-color 0.15s ease, transform 0.15s ease;
+  }
+
+  .tag-card:hover {
+    border-color: var(--ink-primary);
+    transform: translateY(-1px);
+  }
+
+  .tag-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .tag-card-kind {
+    font-family: var(--ink-font-mono);
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-primary);
+    font-weight: 600;
+  }
+
+  .tag-card-date {
+    font-family: var(--ink-font-mono);
+    font-size: 0.6875rem;
+    color: var(--ink-dim);
+  }
+
+  .tag-card-title {
+    font-family: var(--ink-font-display);
+    font-size: 1.2rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--ink-text);
+    margin: 0;
+  }
+
+  .tag-card-desc {
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: var(--ink-muted);
+    margin: 0;
+  }
+</style>

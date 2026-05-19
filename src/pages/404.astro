@@ -1,0 +1,15 @@
+---
+import Base from '../layouts/Base.astro'
+import Header from '../components/layout/Header.astro'
+import Footer from '../components/layout/Footer.astro'
+---
+
+<Base title="Not found">
+  <Header />
+  <main style="max-width: var(--ink-content-width); margin: 0 auto; padding: 12rem 1.5rem; text-align: center;">
+    <h1 style="font-family: var(--ink-font-display); font-size: 4rem; color: var(--ink-dim); margin-bottom: 0.5rem;">404</h1>
+    <p style="color: var(--ink-muted); margin-bottom: 2rem;">This page doesn't exist.</p>
+    <a href="/" style="color: var(--ink-primary); font-family: var(--ink-font-mono); font-size: 0.875rem; text-decoration: none;">Go home</a>
+  </main>
+  <Footer />
+</Base>

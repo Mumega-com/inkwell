@@ -1,0 +1,76 @@
+---
+type StatusColor = 'green' | 'yellow' | 'red'
+
+interface Props {
+  title: string
+  status: StatusColor
+  text: string
+}
+
+const { title, status, text } = Astro.props
+
+const dotColor: Record<StatusColor, string> = {
+  green:  '#22c55e',
+  yellow: '#eab308',
+  red:    '#ef4444',
+}
+
+const statusLabel: Record<StatusColor, string> = {
+  green:  'Healthy',
+  yellow: 'Degraded',
+  red:    'Down',
+}
+---
+
+<div class="glass-tile glass-tile--statuslight">
+  <span class="glass-tile-title">{title}</span>
+  <div class="glass-status-row">
+    <span
+      class="glass-status-dot"
+      style={`background: ${dotColor[status]};`}
+      aria-label={statusLabel[status]}
+    ></span>
+    <span class="glass-status-text">{text}</span>
+  </div>
+</div>
+
+<style>
+  .glass-tile {
+    background: var(--ink-surface);
+    border: 1px solid var(--ink-border);
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .glass-tile-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-muted);
+  }
+
+  .glass-status-row {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+  }
+
+  .glass-status-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    box-shadow: 0 0 6px currentColor;
+  }
+
+  .glass-status-text {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--ink-text);
+    line-height: 1.3;
+  }
+</style>

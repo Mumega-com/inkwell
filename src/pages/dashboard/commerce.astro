@@ -1,0 +1,8 @@
+---
+import Dashboard from '../../layouts/Dashboard.astro'
+import { RevenueOverview } from '../../../plugins/commerce/components/RevenueOverview'
+---
+
+<Dashboard title="Commerce" active="commerce">
+  <RevenueOverview client:load />
+</Dashboard>

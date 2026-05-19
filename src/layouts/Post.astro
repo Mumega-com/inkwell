@@ -1,0 +1,596 @@
+---
+import Base from './Base.astro'
+import { config } from '../lib/config'
+
+interface Props {
+  post: {
+    title: string
+    date: string
+    author?: string
+    tags?: string[]
+    readingTime?: number
+    cover?: string
+    description?: string
+    body: string
+    slug: string
+    relatedPosts?: Array<{
+      title: string
+      slug: string
+      date: string
+      description?: string
+    }>
+    relatedLinks?: Array<{
+      title: string
+      href: string
+      label?: string
+      description?: string
+      external?: boolean
+    }>
+    connections?: Array<{
+      title: string
+      href: string
+      label?: string
+      description?: string
+      external?: boolean
+    }>
+  }
+}
+
+const { post } = Astro.props
+
+const formattedDate = new Date(post.date).toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+})
+---
+
+<Base
+  title={post.title}
+  description={post.description}
+  image={post.cover}
+  type="article"
+  publishedTime={post.date}
+  author={post.author}
+>
+  <div class="post-layout">
+    {/* Main content */}
+    <main class="post-main">
+      {/* Header */}
+      <header class="post-header">
+        {post.tags && post.tags.length > 0 && (
+          <div class="post-tags">
+            {post.tags.map((tag) => (
+              <a href={`/tag/${tag}`} class="post-tag">{tag}</a>
+            ))}
+          </div>
+        )}
+
+        <h1 class="post-title">{post.title}</h1>
+
+        <div class="post-meta">
+          <time datetime={post.date}>{formattedDate}</time>
+          {post.author && (
+            <Fragment>
+              <span class="post-meta-sep">&middot;</span>
+              <span>{post.author}</span>
+            </Fragment>
+          )}
+          {post.readingTime && (
+            <Fragment>
+              <span class="post-meta-sep">&middot;</span>
+              <span>{post.readingTime} min read</span>
+            </Fragment>
+          )}
+        </div>
+      </header>
+
+      {/* Cover image */}
+      {post.cover && (
+        <img
+          src={post.cover}
+          alt={post.title}
+          class="post-cover"
+          loading="eager"
+        />
+      )}
+
+      {/* Article body */}
+      <article class="ink-prose" set:html={post.body} />
+
+      {/* Feedback widget */}
+      <div class="post-feedback-section">
+        <Feedback client:load slug={post.slug} />
+      </div>
+
+      {/* Engagement: Reactions + Share */}
+      {(config.features.reactions || config.features.shareButtons) && (
+        <div class="post-engagement">
+          {/* React islands will mount here */}
+          <div id="ink-reactions" data-slug={post.slug}></div>
+          <div id="ink-share" data-title={post.title} data-url={`/blog/${post.slug}`}></div>
+        </div>
+      )}
+
+      {/* Newsletter CTA */}
+      {config.features.newsletter && (
+        <div id="ink-newsletter" class="post-newsletter"></div>
+      )}
+
+      {/* Author card */}
+      {post.author && (
+        <div class="post-author-card">
+          <div class="post-author-info">
+            <span class="post-author-label">Written by</span>
+            <span class="post-author-name">{post.author}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Related posts */}
+      {post.relatedPosts && post.relatedPosts.length > 0 && (
+        <section class="post-related">
+          <h2>Related posts</h2>
+          <div class="post-related-grid">
+            {post.relatedPosts.map((related) => (
+              <a href={`/blog/${related.slug}`} class="post-related-card">
+                <h3>{related.title}</h3>
+                {related.description && <p>{related.description}</p>}
+                <time datetime={related.date}>
+                  {new Date(related.date).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                  })}
+                </time>
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {(post.relatedLinks && post.relatedLinks.length > 0 || post.connections && post.connections.length > 0) && (
+        <section class="post-links">
+          {post.relatedLinks && post.relatedLinks.length > 0 && (
+            <div class="post-links-group">
+              <h2>Related links</h2>
+              <div class="post-links-grid">
+                {post.relatedLinks.map((link) => (
+                  <a href={link.href} class="post-link-card" target={link.external ? '_blank' : undefined} rel={link.external ? 'noopener noreferrer' : undefined}>
+                    {link.label && <span class="post-link-label">{link.label}</span>}
+                    <h3>{link.title}</h3>
+                    {link.description && <p>{link.description}</p>}
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {post.connections && post.connections.length > 0 && (
+            <div class="post-links-group">
+              <h2>Connections</h2>
+              <div class="post-links-list">
+                {post.connections.map((link) => (
+                  <a href={link.href} class="post-link-row" target={link.external ? '_blank' : undefined} rel={link.external ? 'noopener noreferrer' : undefined}>
+                    {link.label && <span class="post-link-label">{link.label}</span>}
+                    <span class="post-link-title">{link.title}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+        </section>
+      )}
+    </main>
+
+    {/* TOC sidebar */}
+    {config.features.toc && (
+      <aside class="post-toc ink-hide-mobile">
+        <nav id="ink-toc" class="post-toc-nav">
+          <span class="post-toc-title">On this page</span>
+          {/* Auto-populated by client script */}
+        </nav>
+      </aside>
+    )}
+  </div>
+
+  {/* Reading progress */}
+  {config.features.readingProgress && (
+    <div class="ink-progress" id="ink-progress" style="width: 0%"></div>
+  )}
+
+  {/* Client scripts */}
+  <script is:inline>
+    // TOC generation
+    ;(function () {
+      const article = document.querySelector('.ink-prose')
+      const tocNav = document.getElementById('ink-toc')
+      if (!article || !tocNav) return
+
+      const headings = article.querySelectorAll('h2, h3')
+      if (headings.length === 0) return
+
+      const list = document.createElement('ul')
+      headings.forEach((heading, i) => {
+        if (!heading.id) heading.id = `heading-${i}`
+        const li = document.createElement('li')
+        li.className = heading.tagName === 'H3' ? 'toc-h3' : 'toc-h2'
+        const a = document.createElement('a')
+        a.href = `#${heading.id}`
+        a.textContent = heading.textContent
+        li.appendChild(a)
+        list.appendChild(li)
+      })
+      tocNav.appendChild(list)
+
+      // Active heading tracking
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            const link = tocNav.querySelector(`a[href="#${entry.target.id}"]`)
+            if (link) {
+              link.classList.toggle('active', entry.isIntersecting)
+            }
+          })
+        },
+        { rootMargin: '-80px 0px -75% 0px' }
+      )
+      headings.forEach((h) => observer.observe(h))
+    })()
+
+    // Reading progress
+    ;(function () {
+      const bar = document.getElementById('ink-progress')
+      if (!bar) return
+      function updateProgress() {
+        const scrollTop = window.scrollY
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight
+        const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0
+        bar.style.width = `${Math.min(progress, 100)}%`
+      }
+      window.addEventListener('scroll', updateProgress, { passive: true })
+      updateProgress()
+    })()
+  </script>
+</Base>
+
+<style>
+  .post-layout {
+    display: flex;
+    gap: 3rem;
+    max-width: var(--ink-page-width);
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+  }
+
+  .post-main {
+    flex: 1;
+    min-width: 0;
+    max-width: var(--ink-content-width);
+  }
+
+  /* Header */
+  .post-header {
+    margin-bottom: 2rem;
+  }
+
+  .post-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .post-tag {
+    font-family: var(--ink-font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-primary);
+    background: rgba(212, 160, 23, 0.1);
+    padding: 0.25em 0.75em;
+    border-radius: 9999px;
+    text-decoration: none;
+    transition: background 150ms ease;
+  }
+
+  .post-tag:hover {
+    background: rgba(212, 160, 23, 0.2);
+  }
+
+  .post-title {
+    font-family: var(--ink-font-display);
+    font-size: clamp(1.75rem, 5vw, 2.75rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    color: var(--ink-text);
+    margin-bottom: 0.75rem;
+  }
+
+  .post-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--ink-muted);
+    font-size: 0.875rem;
+  }
+
+  .post-meta-sep {
+    opacity: 0.5;
+  }
+
+  /* Cover */
+  .post-cover {
+    width: 100%;
+    max-width: var(--ink-content-width);
+    border-radius: var(--ink-radius);
+    margin-bottom: 2rem;
+  }
+
+  /* Engagement */
+  .post-engagement {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 0;
+    border-top: 1px solid var(--ink-border);
+    border-bottom: 1px solid var(--ink-border);
+    margin: 2rem 0;
+  }
+
+  /* Newsletter */
+  .post-newsletter {
+    margin: 2rem 0;
+  }
+
+  /* Author card */
+  .post-author-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: var(--ink-surface);
+    border-radius: var(--ink-radius);
+    margin: 2rem 0;
+  }
+
+  .post-author-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+  }
+
+  .post-author-label {
+    font-size: 0.75rem;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .post-author-name {
+    font-family: var(--ink-font-display);
+    font-weight: 600;
+    color: var(--ink-text);
+  }
+
+  /* Related posts */
+  .post-related {
+    margin-top: 3rem;
+  }
+
+  .post-related h2 {
+    font-family: var(--ink-font-display);
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 1rem;
+    color: var(--ink-text);
+  }
+
+  .post-related-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
+  }
+
+  .post-related-card {
+    display: block;
+    padding: 1.25rem;
+    background: var(--ink-surface);
+    border: 1px solid var(--ink-border);
+    border-radius: var(--ink-radius);
+    text-decoration: none;
+    transition: border-color 150ms ease;
+  }
+
+  .post-related-card:hover {
+    border-color: var(--ink-primary);
+  }
+
+  .post-related-card h3 {
+    font-family: var(--ink-font-display);
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--ink-text);
+    margin-bottom: 0.5rem;
+  }
+
+  .post-related-card p {
+    font-size: 0.825rem;
+    color: var(--ink-muted);
+    margin-bottom: 0.5rem;
+    line-height: 1.5;
+  }
+
+  .post-related-card time {
+    font-size: 0.75rem;
+    color: var(--ink-dim);
+  }
+
+  .post-links {
+    margin-top: 3rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .post-links-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--ink-border);
+  }
+
+  .post-links-group h2 {
+    font-family: var(--ink-font-display);
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--ink-text);
+  }
+
+  .post-links-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+
+  .post-links-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .post-link-card,
+  .post-link-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 1rem 1.1rem;
+    background: var(--ink-surface);
+    border: 1px solid var(--ink-border);
+    border-radius: var(--ink-radius);
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 150ms ease, transform 150ms ease;
+  }
+
+  .post-link-row {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 0.75rem;
+  }
+
+  .post-link-card:hover,
+  .post-link-row:hover {
+    border-color: var(--ink-primary);
+    transform: translateY(-1px);
+  }
+
+  .post-link-label {
+    font-family: var(--ink-font-mono);
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-primary);
+    font-weight: 600;
+  }
+
+  .post-link-title {
+    font-family: var(--ink-font-display);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--ink-text);
+  }
+
+  .post-link-card h3 {
+    font-family: var(--ink-font-display);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink-text);
+    margin: 0;
+  }
+
+  .post-link-card p {
+    font-size: 0.825rem;
+    color: var(--ink-muted);
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  /* TOC sidebar */
+  .post-toc {
+    width: 240px;
+    flex-shrink: 0;
+    align-self: flex-start;
+    position: sticky;
+    top: 5rem;
+  }
+
+  .post-toc-nav {
+    font-size: 0.8125rem;
+  }
+
+  .post-toc-title {
+    display: block;
+    font-family: var(--ink-font-mono);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-dim);
+    margin-bottom: 0.75rem;
+  }
+
+  .post-toc-nav :global(ul) {
+    list-style: none;
+    padding: 0;
+  }
+
+  .post-toc-nav :global(li) {
+    margin-bottom: 0.25rem;
+  }
+
+  .post-toc-nav :global(.toc-h3) {
+    padding-left: 0.75rem;
+  }
+
+  .post-toc-nav :global(a) {
+    display: block;
+    color: var(--ink-muted);
+    text-decoration: none;
+    padding: 0.2em 0;
+    border-left: 2px solid transparent;
+    padding-left: 0.75rem;
+    transition: color 150ms ease, border-color 150ms ease;
+  }
+
+  .post-toc-nav :global(a:hover) {
+    color: var(--ink-text);
+  }
+
+  .post-toc-nav :global(a.active) {
+    color: var(--ink-primary);
+    border-left-color: var(--ink-primary);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .post-layout {
+      padding: 1rem;
+    }
+
+    .post-engagement {
+      flex-direction: column;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+
+    .post-related-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

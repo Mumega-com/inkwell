@@ -1,0 +1,309 @@
+---
+import '../styles/base.css'
+import { generateCssVars } from '../lib/theme'
+import { config } from '../lib/config'
+// Auth: handled at the edge by Cloudflare Access (CF-Access-JWT-Assertion).
+// The inkwell-api Worker injects a localStorage auto-config script on first dashboard load.
+
+interface Props {
+  title: string
+  active: 'dashboard' | 'seo' | 'leads' | 'campaigns' | 'calendar' | 'tasks' | 'wallet' | 'chat' | 'squads' | 'league' | 'settings' | 'media' | 'crm' | 'feedback' | 'agency' | 'courses' | 'analytics' | 'bounties' | 'billing' | 'seats' | 'usage' | 'admin' | 'compliance' | 'workflows'
+}
+
+const { title, active } = Astro.props
+const cssVars = generateCssVars()
+const fullTitle = `${title} — ${config.name} Dashboard`
+
+const navItems = [
+  { key: 'dashboard', label: 'Home',       href: '/dashboard',            icon: '⌂', requiredRole: 'viewer'  },
+  { key: 'leads',     label: 'Leads',      href: '/dashboard/leads',      icon: '◎', requiredRole: 'manager' },
+  { key: 'campaigns', label: 'Campaigns',  href: '/dashboard/campaigns',  icon: '◈', requiredRole: 'manager' },
+  { key: 'seo',       label: 'Search',     href: '/dashboard/seo',        icon: '⊕', requiredRole: 'manager' },
+  { key: 'calendar',  label: 'Calendar',   href: '/dashboard/calendar',   icon: '◷', requiredRole: 'member'  },
+  { key: 'tasks',     label: 'Work',       href: '/dashboard/tasks',      icon: '☐', requiredRole: 'member'  },
+  { key: 'squads',    label: 'Team',       href: '/dashboard/squads',     icon: '◎', requiredRole: 'manager' },
+  { key: 'league',    label: 'League',     href: '/dashboard/league',     icon: '⚔', requiredRole: 'member'  },
+  { key: 'wallet',    label: 'Money',      href: '/dashboard/wallet',     icon: '◈', requiredRole: 'owner'   },
+  { key: 'crm',       label: 'CRM',        href: '/dashboard/crm',        icon: '◇', requiredRole: 'member'  },
+  { key: 'media',     label: 'Media',      href: '/dashboard/media',      icon: '▣', requiredRole: 'member'  },
+  { key: 'feedback',  label: 'Feedback',   href: '/dashboard/feedback',   icon: '✦', requiredRole: 'viewer'  },
+  { key: 'agency',    label: 'Agency',     href: '/dashboard/agency',     icon: '◆', requiredRole: 'admin'   },
+  { key: 'admin',     label: 'Admin',      href: '/dashboard/admin',      icon: '◉', requiredRole: 'admin'   },
+  { key: 'compliance', label: 'Compliance', href: '/dashboard/compliance', icon: '⊞', requiredRole: 'admin'   },
+  { key: 'workflows',  label: 'Workflows',  href: '/dashboard/workflows',  icon: '⟳', requiredRole: 'admin'   },
+  { key: 'courses',   label: 'Courses',    href: '/dashboard/courses',    icon: '▸', requiredRole: 'member'  },
+  { key: 'analytics', label: 'Analytics',  href: '/dashboard/analytics',  icon: '◫', requiredRole: 'manager' },
+  { key: 'bounties',  label: 'Bounties',   href: '/dashboard/bounties',   icon: '◎', requiredRole: 'member'  },
+  { key: 'chat',      label: 'Chat',       href: '/dashboard/chat',       icon: '◉', requiredRole: 'member'  },
+  { key: 'billing',   label: 'Billing',    href: '/dashboard/billing',    icon: '◈', requiredRole: 'owner'   },
+  { key: 'seats',     label: 'Team seats', href: '/dashboard/seats',      icon: '◎', requiredRole: 'admin'   },
+  { key: 'usage',     label: 'Usage',      href: '/dashboard/usage',      icon: '◫', requiredRole: 'owner'   },
+  { key: 'settings',  label: 'Settings',   href: '/dashboard/settings',   icon: '⚙', requiredRole: 'owner'   },
+]
+---
+
+<html lang="en" dir="ltr" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style set:html={cssVars}></style>
+    <title>{fullTitle}</title>
+    <meta name="robots" content="noindex" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      body {
+        background: var(--ink-bg);
+        color: var(--ink-text);
+        font-family: system-ui, -apple-system, sans-serif;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .dash-shell {
+        display: flex;
+        flex: 1;
+        min-height: 0;
+      }
+
+      /* Sidebar */
+      .dash-sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        background: var(--ink-surface);
+        border-right: 1px solid var(--ink-border);
+        display: flex;
+        flex-direction: column;
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        overflow-y: auto;
+      }
+
+      .dash-logo {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--ink-border);
+        font-weight: 700;
+        font-size: 1rem;
+        color: var(--ink-primary);
+        letter-spacing: -0.02em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .dash-nav {
+        padding: 1rem 0;
+        flex: 1;
+      }
+
+      .dash-nav a {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.6rem 1.5rem;
+        color: var(--ink-muted);
+        text-decoration: none;
+        font-size: 0.88rem;
+        font-weight: 500;
+        transition: color 0.15s, background 0.15s;
+        border-left: 3px solid transparent;
+      }
+
+      .dash-nav a:hover {
+        color: var(--ink-text);
+        background: rgba(255,255,255,0.04);
+      }
+
+      .dash-nav a.active {
+        color: var(--ink-primary);
+        border-left-color: var(--ink-primary);
+        background: rgba(212,160,23,0.07);
+      }
+
+      .dash-nav-icon {
+        font-size: 0.85rem;
+        width: 1rem;
+        text-align: center;
+      }
+
+      /* Header */
+      .dash-header {
+        background: var(--ink-surface);
+        border-bottom: 1px solid var(--ink-border);
+        padding: 0.9rem 1.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-shrink: 0;
+      }
+
+      .dash-header-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--ink-text);
+      }
+
+      .dash-header-meta {
+        font-size: 0.78rem;
+        color: var(--ink-muted);
+      }
+
+      /* Main content */
+      .dash-main-wrap {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        overflow-x: hidden;
+      }
+
+      .dash-content {
+        flex: 1;
+        padding: 1.75rem;
+        overflow-y: auto;
+      }
+
+      /* Bottom nav (mobile) */
+      .dash-bottom-nav {
+        display: none;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: var(--ink-surface);
+        border-top: 1px solid var(--ink-border);
+        z-index: 50;
+      }
+
+      .dash-bottom-nav-inner {
+        display: flex;
+        align-items: stretch;
+      }
+
+      .dash-bottom-nav a {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        padding: 0.5rem 0.25rem;
+        color: var(--ink-muted);
+        text-decoration: none;
+        font-size: 0.62rem;
+        font-weight: 500;
+        transition: color 0.15s;
+      }
+
+      .dash-bottom-nav a.active {
+        color: var(--ink-primary);
+      }
+
+      .dash-bottom-nav-icon {
+        font-size: 1rem;
+      }
+
+      @media (max-width: 768px) {
+        .dash-sidebar { display: none; }
+        .dash-bottom-nav { display: block; }
+        .dash-content { padding: 1rem; padding-bottom: 5rem; }
+        .dash-header { padding: 0.75rem 1rem; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="dash-shell">
+      <!-- Sidebar (desktop) -->
+      <aside class="dash-sidebar">
+        <div class="dash-logo">{config.name}</div>
+        <nav class="dash-nav">
+          {navItems.map(item => (
+            <a href={item.href} class={active === item.key ? 'active' : ''} data-required-role={item.requiredRole}>
+              <span class="dash-nav-icon">{item.icon}</span>
+              {item.label}
+            </a>
+          ))}
+        </nav>
+      </aside>
+
+      <!-- Main -->
+      <div class="dash-main-wrap">
+        <header class="dash-header">
+          <span class="dash-header-title">{title}</span>
+          <div style="display:flex;align-items:center;gap:0.75rem;">
+            <div id="notification-bell-mount"></div>
+            <span class="dash-header-meta" id="dash-last-updated">Loading…</span>
+          </div>
+        </header>
+
+        <main class="dash-content">
+          <slot />
+        </main>
+      </div>
+    </div>
+
+    <!-- Bottom nav (mobile) -->
+    <nav class="dash-bottom-nav">
+      <div class="dash-bottom-nav-inner">
+        {navItems.map(item => (
+          <a href={item.href} class={active === item.key ? 'active' : ''} data-required-role={item.requiredRole}>
+            <span class="dash-bottom-nav-icon">{item.icon}</span>
+            {item.label}
+          </a>
+        ))}
+      </div>
+    </nav>
+
+    <script is:inline>
+      ;(function () {
+        const el = document.getElementById('dash-last-updated')
+        if (!el) return
+        const now = new Date()
+        const mins = Math.floor((Date.now() - now.getTime()) / 60000)
+        el.textContent = mins === 0 ? 'Last updated: just now' : `Last updated: ${mins} min ago`
+        // Update every minute
+        setInterval(() => {
+          const m = Math.floor((Date.now() - now.getTime()) / 60000)
+          el.textContent = `Last updated: ${m} min ago`
+        }, 60000)
+      })()
+    </script>
+
+    <!-- Auth context: seeded server-side by inkwell-api Worker via CF Access JWT.
+         On first dashboard visit after CF Access login, localStorage is auto-configured
+         with inkwell_auth_token, inkwell_tenant_slug, and inkwell_api_url. -->
+
+    <script is:inline>
+      ;(function() {
+        var role = (localStorage.getItem('inkwell_user_role') || 'viewer')
+        var h = { viewer:1, member:2, manager:3, admin:4, owner:5 }
+        var level = h[role] || 1
+        document.querySelectorAll('[data-required-role]').forEach(function(el) {
+          var req = el.getAttribute('data-required-role')
+          if ((h[req] || 1) > level) el.style.display = 'none'
+        })
+      })()
+    </script>
+
+    <script is:inline>
+      if (!localStorage.getItem('inkwell_onboarded') && !window.location.pathname.includes('/onboarding')) {
+        window.location.href = '/dashboard/onboarding'
+      }
+    </script>
+
+    <script>
+      import { NotificationBell } from '../../plugins/notifications/components/NotificationBell'
+      import { createElement } from 'react'
+      import { createRoot } from 'react-dom/client'
+      const mount = document.getElementById('notification-bell-mount')
+      if (mount) {
+        createRoot(mount).render(createElement(NotificationBell))
+      }
+    </script>
+  </body>
+</html>

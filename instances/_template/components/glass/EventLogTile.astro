@@ -1,0 +1,94 @@
+---
+interface LogEntry {
+  ts: string
+  message: string
+}
+
+interface Props {
+  title: string
+  entries: LogEntry[]
+}
+
+const { title, entries } = Astro.props
+
+// Show most recent first, cap at 8 entries to keep tile compact
+const visible = [...entries].reverse().slice(0, 8)
+
+function formatTs(ts: string): string {
+  try {
+    return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  } catch {
+    return ts
+  }
+}
+---
+
+<div class="glass-tile glass-tile--eventlog">
+  <span class="glass-tile-title">{title}</span>
+  {visible.length === 0 ? (
+    <p class="glass-eventlog-empty">No events</p>
+  ) : (
+    <ol class="glass-eventlog-list" reversed>
+      {visible.map(entry => (
+        <li class="glass-eventlog-row">
+          <time class="glass-eventlog-ts" datetime={entry.ts}>{formatTs(entry.ts)}</time>
+          <span class="glass-eventlog-msg">{entry.message}</span>
+        </li>
+      ))}
+    </ol>
+  )}
+</div>
+
+<style>
+  .glass-tile {
+    background: var(--ink-surface);
+    border: 1px solid var(--ink-border);
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .glass-tile-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-muted);
+  }
+
+  .glass-eventlog-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+
+  .glass-eventlog-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    font-size: 0.82rem;
+    line-height: 1.4;
+  }
+
+  .glass-eventlog-ts {
+    flex-shrink: 0;
+    color: var(--ink-muted);
+    font-variant-numeric: tabular-nums;
+    font-size: 0.75rem;
+    padding-top: 0.05em;
+  }
+
+  .glass-eventlog-msg {
+    color: var(--ink-text);
+    word-break: break-word;
+  }
+
+  .glass-eventlog-empty {
+    font-size: 0.85rem;
+    color: var(--ink-muted);
+    font-style: italic;
+  }
+</style>

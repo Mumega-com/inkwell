@@ -1,0 +1,32 @@
+{
+  "version": "1",
+  "tenant": "acme",
+  "workflows": [
+    {
+      "name": "acme-daily",
+      "schedule": "0 9 * * *",
+      "description": "Daily operations pulse for Acme Co",
+      "steps": [
+        "pulse",
+        "journal",
+        "report"
+      ],
+      "assigned_squads": []
+    },
+    {
+      "name": "acme-growth-intel",
+      "description": "Daily growth intelligence pull + dossier",
+      "schedule": "0 10 * * *",
+      "steps": [
+        "trend-finder",
+        "narrative-synth",
+        "dossier-writer"
+      ],
+      "bounty_mind": 50,
+      "trigger": "auto",
+      "owner": "sos.growth_intel",
+      "assigned_squads": []
+    }
+  ],
+  "squads": []
+}

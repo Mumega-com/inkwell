@@ -1,0 +1,83 @@
+---
+import Base from '../layouts/Base.astro'
+import Header from '../components/layout/Header.astro'
+import Footer from '../components/layout/Footer.astro'
+import JsonLd from '../components/seo/JsonLd.astro'
+import { render } from 'astro:content'
+import { safeGetEntry } from '../lib/safe-content'
+
+const page = await safeGetEntry('pages', 'vision')
+const fallback = {
+  title: 'Inkwell Vision',
+  description: 'Build sites as configurable systems: content, commerce, integrations, and agent workflows in one forkable framework.',
+}
+const rendered = page ? await render(page) : null
+const Content = rendered?.Content
+const title = page?.data.title ?? fallback.title
+const description = page?.data.description ?? fallback.description
+
+const jsonLdContent = {
+  slug: '/vision/',
+  title,
+  type: 'page',
+  description,
+}
+---
+
+<Base title={title} description={description}>
+  <JsonLd content={jsonLdContent} />
+  <Header />
+
+  <main class="vision-page">
+    <div class="vision-inner">
+      {Content ? <Content /> : <><h1>{title}</h1><p>{description}</p></>}
+    </div>
+  </main>
+
+  <Footer />
+</Base>
+
+<style>
+  main { padding-top: 3.5rem; }
+
+  .vision-page {
+    max-width: var(--ink-page-width);
+    margin: 0 auto;
+    padding: 6rem 1.5rem 4rem;
+  }
+
+  .vision-inner {
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  .vision-inner :global(h1) {
+    font-family: var(--ink-font-display);
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--ink-text);
+    letter-spacing: -0.04em;
+    margin: 0 0 4rem;
+    text-align: center;
+  }
+
+  .vision-inner :global(h2) {
+    font-family: var(--ink-font-display);
+    font-size: 1.375rem;
+    font-weight: 700;
+    color: var(--ink-primary);
+    letter-spacing: -0.02em;
+    margin: 3rem 0 0.75rem;
+  }
+
+  .vision-inner :global(h2:first-of-type) {
+    margin-top: 0;
+  }
+
+  .vision-inner :global(p) {
+    font-size: 1.0625rem;
+    color: var(--ink-muted);
+    line-height: 1.7;
+    margin: 0;
+  }
+</style>

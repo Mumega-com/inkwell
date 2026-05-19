@@ -1,0 +1,53 @@
+# Inkwell — Forkable Agent-First Publishing Framework
+
+> Astro + Cloudflare framework for content, commerce, dashboards, and MCP-enabled agent workflows.
+
+## What Inkwell Provides
+
+- Config-driven site identity, theme, analytics, SEO, and feature flags
+- Markdown/MDX publishing with optional agent inbox and API publishing
+- Cloudflare Worker API for analytics, publishing, dashboard, MCP, and plugin routes
+- Plugin architecture for content, commerce, auth, dashboard, media, SEO, feedback, and automation
+- Hexagonal ports for database, session, content, storage, graph, agent, bus, memory, economy, media, SEO, and feedback adapters
+- `create-inkwell` scaffold for new forks
+
+## Common Routes
+
+- `/` — Framework homepage or fork landing page
+- `/blog` — Published articles
+- `/docs` — Documentation collection when present
+- `/products` — Product collection when present
+- `/tools` — Tool and integration collection when present
+- `/topics` — Topic hubs when present
+- `/search` — Static Pagefind search
+- `/connect` — MCP connection helper
+- `/dashboard` — Optional dashboard shell
+- `/sitemap.xml` — Sitemap
+- `/rss.xml` — RSS feed
+
+## Agent Interfaces
+
+Deploy the Worker and connect an MCP-compatible client to:
+
+- `POST /mcp`
+- `POST /api/publish`
+- `GET /api/dashboard`
+- `GET /api/stats/:slug`
+
+Use `PUBLISH_TOKEN`, `INKWELL_MCP_TOKEN`, and Worker environment variables from `.env.example` / `workers/inkwell-api/.env.example`.
+
+## Technical Stack
+
+- Astro
+- React islands
+- Cloudflare Workers
+- Hono
+- D1, KV, R2
+- Pagefind
+- Model Context Protocol
+
+## Links
+
+- Repository: https://github.com/Mumega-com/inkwell
+- Setup: `npx create-inkwell my-site`
+- Config: `inkwell.config.ts`

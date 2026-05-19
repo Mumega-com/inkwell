@@ -1,0 +1,8 @@
+---
+import Dashboard from '../../layouts/Dashboard.astro'
+import { CalendarView } from '../../../plugins/content/components/CalendarView'
+---
+
+<Dashboard title="Content Calendar" active="calendar">
+  <CalendarView client:load />
+</Dashboard>

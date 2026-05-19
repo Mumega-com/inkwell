@@ -1,0 +1,221 @@
+---
+import Base from '../layouts/Base.astro'
+import Header from '../components/layout/Header.astro'
+import Footer from '../components/layout/Footer.astro'
+import { render } from 'astro:content'
+import { safeGetEntry } from '../lib/safe-content'
+
+const page = await safeGetEntry('pages', 'whitepaper')
+const rendered = page ? await render(page) : null
+const Content = rendered?.Content
+
+const tocItems = rendered?.headings.filter((h) => h.depth === 2) ?? []
+const description = page?.data.description ?? 'Technical overview for the Inkwell framework.'
+---
+
+<Base title="Whitepaper — Inkwell" description={description}>
+  <Header />
+
+  <main class="wp-page">
+    <div class="wp-layout">
+      <!-- TOC sidebar -->
+      <aside class="wp-toc">
+        <span class="wp-toc-label">Contents</span>
+        <nav>
+          {tocItems.map((h) => (
+            <a href={`#${h.slug}`} class="wp-toc-link">{h.text}</a>
+          ))}
+        </nav>
+      </aside>
+
+      <!-- Content -->
+      <article class="wp-content ink-prose">
+        {Content ? <Content /> : <><h1>Inkwell Whitepaper</h1><p>{description}</p></>}
+      </article>
+    </div>
+  </main>
+
+  <Footer />
+</Base>
+
+<style>
+  main { padding-top: 3.5rem; }
+
+  .wp-page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 4rem 1.5rem;
+  }
+
+  .wp-layout {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 3rem;
+  }
+
+  /* TOC */
+  .wp-toc {
+    position: sticky;
+    top: 5rem;
+    align-self: start;
+    max-height: calc(100vh - 6rem);
+    overflow-y: auto;
+  }
+
+  .wp-toc-label {
+    display: block;
+    font-family: var(--ink-font-mono);
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-dim);
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+  }
+
+  .wp-toc nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .wp-toc-link {
+    font-size: 0.75rem;
+    color: var(--ink-muted);
+    text-decoration: none;
+    padding: 0.25rem 0;
+    border-left: 2px solid transparent;
+    padding-left: 0.75rem;
+    transition: color 0.15s, border-color 0.15s;
+    line-height: 1.3;
+  }
+
+  .wp-toc-link:hover {
+    color: var(--ink-primary);
+    border-left-color: var(--ink-primary);
+  }
+
+  /* Content */
+  .wp-content {
+    max-width: 720px;
+  }
+
+  .wp-content :global(h1) {
+    font-family: var(--ink-font-display);
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--ink-text);
+    letter-spacing: -0.03em;
+    margin: 0 0 0.5rem;
+  }
+
+  .wp-content :global(h1 + p) {
+    font-size: 1rem;
+    color: var(--ink-dim);
+    font-style: italic;
+  }
+
+  .wp-content :global(h2) {
+    font-family: var(--ink-font-display);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--ink-primary);
+    letter-spacing: -0.02em;
+    margin: 3rem 0 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--ink-border);
+  }
+
+  .wp-content :global(h3) {
+    font-family: var(--ink-font-display);
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--ink-text);
+    margin: 2rem 0 0.75rem;
+  }
+
+  .wp-content :global(hr) {
+    border: none;
+    border-top: 1px solid var(--ink-border);
+    margin: 2rem 0;
+  }
+
+  .wp-content :global(blockquote) {
+    border-left: 3px solid var(--ink-primary);
+    padding-left: 1rem;
+    color: var(--ink-muted);
+    font-style: italic;
+  }
+
+  .wp-content :global(table) {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+
+  .wp-content :global(th) {
+    text-align: left;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 2px solid var(--ink-border);
+    font-family: var(--ink-font-mono);
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-dim);
+  }
+
+  .wp-content :global(td) {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--ink-border);
+    color: var(--ink-text);
+  }
+
+  .wp-content :global(code) {
+    font-family: var(--ink-font-mono);
+    font-size: 0.8125rem;
+    padding: 0.125rem 0.375rem;
+    background: var(--ink-surface);
+    border-radius: 3px;
+  }
+
+  .wp-content :global(pre) {
+    background: var(--ink-surface);
+    border: 1px solid var(--ink-border);
+    border-radius: var(--ink-radius);
+    padding: 1rem;
+    overflow-x: auto;
+  }
+
+  .wp-content :global(pre code) {
+    padding: 0;
+    background: none;
+  }
+
+  @media (max-width: 768px) {
+    .wp-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .wp-toc {
+      position: static;
+      border-bottom: 1px solid var(--ink-border);
+      padding-bottom: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .wp-toc nav {
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .wp-toc-link {
+      border-left: none;
+      padding-left: 0;
+      padding: 0.25rem 0.5rem;
+      background: var(--ink-surface);
+      border-radius: var(--ink-radius);
+      font-size: 0.6875rem;
+    }
+  }
+</style>

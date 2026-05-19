@@ -1,0 +1,60 @@
+---
+interface Props {
+  stats: Array<{ value: string; label: string }>
+}
+
+const { stats } = Astro.props
+---
+
+<div class="ink-statsbar">
+  {stats.map((stat) => (
+    <div class="ink-stat-card">
+      <span class="ink-stat-value">{stat.value}</span>
+      <span class="ink-stat-label">{stat.label}</span>
+    </div>
+  ))}
+</div>
+
+<style>
+  .ink-statsbar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin: 2rem 0;
+  }
+
+  .ink-stat-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 1.25rem 0.75rem;
+    background: var(--ink-surface);
+    border: 1px solid var(--ink-border);
+    border-radius: var(--ink-radius);
+    text-align: center;
+  }
+
+  .ink-stat-value {
+    font-family: var(--ink-font-display);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--ink-primary);
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+
+  .ink-stat-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  @media (max-width: 640px) {
+    .ink-statsbar {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>

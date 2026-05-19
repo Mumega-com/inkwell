@@ -1,0 +1,195 @@
+---
+import '../styles/base.css'
+import { generateCssVars } from '../lib/theme'
+import { config } from '../lib/config'
+import { CommandPalette } from '../components/navigation/CommandPalette'
+import JsonLd from '../components/seo/JsonLd.astro'
+import { safeGetCollection } from '../lib/safe-content'
+
+interface Props {
+  title: string
+  description?: string
+  image?: string
+  type?: 'website' | 'article'
+  publishedTime?: string
+  author?: string
+}
+
+const {
+  title,
+  description = config.tagline,
+  image = '/og-default.png',
+  type = 'website',
+  publishedTime,
+  author,
+} = Astro.props
+
+const cssVars = generateCssVars()
+const canonicalUrl = new URL(Astro.url.pathname, `https://${config.domain}`)
+const fullTitle = title === config.name ? title : `${title} — ${config.name}`
+
+const lang = Astro.currentLocale ?? config.i18n.defaultLang
+const isRtl = config.i18n.rtl.includes(lang)
+
+const { analytics } = config
+
+const allDocs = await safeGetCollection('docs')
+const docItems = allDocs.map((doc) => ({
+  title: doc.data.title,
+  slug: doc.id,
+  type: 'doc',
+  url: doc.id === 'index' ? '/docs' : `/docs/${doc.id}`
+}))
+
+const commandPaletteItems = [
+  { title: 'Home', slug: 'home', type: 'nav', url: '/' },
+  { title: 'Blog', slug: 'blog', type: 'nav', url: '/blog' },
+  { title: 'Explore', slug: 'explore', type: 'nav', url: '/explore' },
+  { title: 'Search', slug: 'search', type: 'nav', url: '/search' },
+  { title: 'About', slug: 'about', type: 'nav', url: '/about' },
+  ...docItems,
+]
+---
+
+<html lang={lang} dir={isRtl ? 'rtl' : 'ltr'} data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    {/* Theme detection — runs before paint to prevent flash */}
+    <script is:inline>
+      ;(function () {
+        function getTheme() {
+          const cookie = document.cookie
+            .split('; ')
+            .find((c) => c.startsWith('ink-theme='))
+          if (cookie) return cookie.split('=')[1]
+          return window.matchMedia('(prefers-color-scheme: light)').matches
+            ? 'light'
+            : 'dark'
+        }
+        const theme = getTheme()
+        const root = document.documentElement
+        root.classList.toggle('dark', theme === 'dark')
+        root.classList.toggle('light', theme === 'light')
+        root.setAttribute('data-theme', theme)
+      })()
+    </script>
+
+    {/* CSS custom properties from config */}
+    <style set:html={cssVars}></style>
+
+    <title>{fullTitle}</title>
+    {description && <meta name="description" content={description} />}
+    <link rel="canonical" href={canonicalUrl.href} />
+
+    {/* Hreflang tags — currently only English. When more languages are added,
+        loop through config.i18n.languages and generate alternate hrefs for each
+        translated version of the current page. */}
+    <link rel="alternate" hreflang="en" href={canonicalUrl.href} />
+    <link rel="alternate" hreflang="x-default" href={canonicalUrl.href} />
+
+    {/* Open Graph */}
+    <meta property="og:title" content={fullTitle} />
+    {description && <meta property="og:description" content={description} />}
+    <meta property="og:type" content={type} />
+    <meta property="og:url" content={canonicalUrl.href} />
+    <meta property="og:image" content={new URL(image, `https://${config.domain}`).href} />
+    <meta property="og:site_name" content={config.name} />
+    {publishedTime && <meta property="article:published_time" content={publishedTime} />}
+    {author && <meta property="article:author" content={author} />}
+
+    {/* Twitter Card */}
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    {description && <meta name="twitter:description" content={description} />}
+    <meta name="twitter:image" content={new URL(image, `https://${config.domain}`).href} />
+
+    {/* RSS autodiscovery */}
+    <link rel="alternate" type="application/rss+xml" title={`${config.name} Blog`} href="/rss.xml" />
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16/dist/katex.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="generator" content={Astro.generator} />
+
+    {/* JSON-LD — site-level schemas (Organization, WebSite) on every page */}
+    <JsonLd siteOnly />
+
+    {/* Analytics */}
+    {analytics.googleAnalytics && (
+      <Fragment>
+        <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${analytics.googleAnalytics}`}></script>
+        <script is:inline define:vars={{ gaId: analytics.googleAnalytics }}>
+          window.dataLayer = window.dataLayer || []
+          function gtag() { dataLayer.push(arguments) }
+          gtag('js', new Date())
+          gtag('config', gaId)
+        </script>
+      </Fragment>
+    )}
+
+    {analytics.tagManager && (
+      <script is:inline define:vars={{ gtmId: analytics.tagManager }}>
+        ;(function (w, d, s, l, i) {
+          w[l] = w[l] || []
+          w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' })
+          var f = d.getElementsByTagName(s)[0],
+            j = d.createElement(s),
+            dl = l !== 'dataLayer' ? '&l=' + l : ''
+          j.async = true
+          j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl
+          f.parentNode.insertBefore(j, f)
+        })(window, document, 'script', 'dataLayer', gtmId)
+      </script>
+    )}
+
+    {analytics.clarity && (
+      <script is:inline define:vars={{ clarityId: analytics.clarity }}>
+        ;(function (c, l, a, r, i, t, y) {
+          c[a] = c[a] || function () { (c[a].q = c[a].q || []).push(arguments) }
+          t = l.createElement(r)
+          t.async = 1
+          t.src = 'https://www.clarity.ms/tag/' + i
+          y = l.getElementsByTagName(r)[0]
+          y.parentNode.insertBefore(t, y)
+        })(window, document, 'clarity', 'script', clarityId)
+      </script>
+    )}
+
+    {analytics.hotjar && (
+      <script is:inline define:vars={{ hotjarId: analytics.hotjar }}>
+        ;(function (h, o, t, j, a, r) {
+          h.hj = h.hj || function () { (h.hj.q = h.hj.q || []).push(arguments) }
+          h._hjSettings = { hjid: hotjarId, hjsv: 6 }
+          a = o.getElementsByTagName('head')[0]
+          r = o.createElement('script')
+          r.async = 1
+          r.src = t + h._hjSettings.hjid + j + h._hjSettings.hjsv
+          a.appendChild(r)
+        })(window, document, 'https://static.hotjar.com/c/hotjar-', '.js?sv=')
+      </script>
+    )}
+
+    {analytics.plausible && (
+      <script is:inline async defer data-domain={analytics.plausible} src="https://plausible.io/js/script.js"></script>
+    )}
+  </head>
+  <body>
+    <slot />
+    <CommandPalette client:idle items={commandPaletteItems} />
+
+    {/* Mermaid diagram rendering — only loads if diagrams exist on the page */}
+    <script is:inline>
+      if (document.querySelector('.mermaid')) {
+        const s = document.createElement('script')
+        s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js'
+        s.onload = () => mermaid.initialize({ theme: 'dark', themeVariables: { primaryColor: '#D4A017' } })
+        document.head.appendChild(s)
+      }
+    </script>
+  </body>
+</html>

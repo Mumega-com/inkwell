@@ -1,0 +1,39 @@
+---
+import CoursePlayer from '../../components/CoursePlayer'
+
+export function getStaticPaths() {
+  return [
+    { params: { slug: 'ai-governance' } },
+  ]
+}
+
+const { slug } = Astro.params
+
+const COURSE_META: Record<string, { title: string; description: string; price: number }> = {
+  'ai-governance': {
+    title: 'AI Governance Starter Kit',
+    description: 'Everything you need to start your ISO 42001 journey.',
+    price: 47,
+  },
+}
+
+const meta = slug ? COURSE_META[slug] : undefined
+if (!meta) return Astro.redirect('/404')
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{meta.title}</title>
+  </head>
+  <body>
+    <CoursePlayer
+      client:load
+      courseSlug={slug!}
+      courseTitle={meta.title}
+      courseDescription={meta.description}
+      coursePrice={meta.price}
+    />
+  </body>
+</html>

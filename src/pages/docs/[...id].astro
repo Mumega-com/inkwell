@@ -1,0 +1,275 @@
+---
+import Base from '../../layouts/Base.astro'
+import Header from '../../components/layout/Header.astro'
+import Footer from '../../components/layout/Footer.astro'
+import { render } from 'astro:content'
+import { safeGetCollection } from '../../lib/safe-content'
+import { Feedback } from '../../components/engagement/Feedback'
+
+export async function getStaticPaths() {
+  const docs = await safeGetCollection('docs')
+  return docs.map((entry) => ({
+    params: { id: entry.id },
+    props: { entry },
+  }))
+}
+
+const { entry } = Astro.props
+const { Content } = await render(entry)
+
+const allDocs = await safeGetCollection('docs')
+const sortedDocs = allDocs.sort((a, b) => a.data.order - b.data.order)
+
+const prevDoc = sortedDocs[sortedDocs.findIndex(d => d.id === entry.id) - 1]
+const nextDoc = sortedDocs[sortedDocs.findIndex(d => d.id === entry.id) + 1]
+---
+
+<Base title={`${entry.data.title} — Inkwell Docs`} description={entry.data.description}>
+  <Header />
+
+  <div class="docs-layout">
+    {/* Sidebar */}
+    <aside class="docs-sidebar">
+      <nav class="docs-nav">
+        <span class="docs-nav-title">Documentation</span>
+        <ul>
+          {sortedDocs.map((doc) => (
+            <li class={doc.id === entry.id ? 'active' : ''}>
+              <a href={doc.id === 'index' ? '/docs' : `/docs/${doc.id}`}>{doc.data.title}</a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </aside>
+
+    {/* Main Content */}
+    <main class="docs-main">
+      <article class="ink-prose docs-content">
+        <header class="docs-header">
+          {entry.data.parent && <span class="docs-parent">{entry.data.parent}</span>}
+          <h1 class="docs-title">{entry.data.title}</h1>
+          {entry.data.description && <p class="docs-description">{entry.data.description}</p>}
+        </header>
+
+        <Content />
+
+        {/* Feedback Component */}
+        <div class="docs-footer-feedback">
+          <Feedback id={entry.id} client:visible />
+        </div>
+
+        {/* Next / Prev Navigation */}
+        <div class="docs-pagination">
+          {prevDoc ? (
+            <a href={prevDoc.id === 'index' ? '/docs' : `/docs/${prevDoc.id}`} class="pagination-link prev">
+              <span class="pagination-label">Previous</span>
+              <span class="pagination-title">{prevDoc.data.title}</span>
+            </a>
+          ) : <div></div>}
+          {nextDoc ? (
+            <a href={`/docs/${nextDoc.id}`} class="pagination-link next">
+              <span class="pagination-label">Next</span>
+              <span class="pagination-title">{nextDoc.data.title}</span>
+            </a>
+          ) : <div></div>}
+        </div>
+      </article>
+
+      {/* On This Page (TOC) */}
+      <aside class="docs-toc ink-hide-mobile">
+        <nav id="ink-toc">
+          <span class="docs-toc-title">On this page</span>
+          {/* Populated by JS */}
+        </nav>
+      </aside>
+    </main>
+  </div>
+
+  <Footer />
+
+  <script is:inline>
+    // TOC generation for docs
+    ;(function () {
+      const article = document.querySelector('.docs-content')
+      const tocNav = document.getElementById('ink-toc')
+      if (!article || !tocNav) return
+
+      const headings = article.querySelectorAll('h2, h3')
+      if (headings.length === 0) return
+
+      const list = document.createElement('ul')
+      headings.forEach((heading, i) => {
+        if (!heading.id) heading.id = `docs-heading-${i}`
+        const li = document.createElement('li')
+        li.className = heading.tagName === 'H3' ? 'toc-h3' : 'toc-h2'
+        const a = document.createElement('a')
+        a.href = `#${heading.id}`
+        a.textContent = heading.textContent
+        li.appendChild(a)
+        list.appendChild(li)
+      })
+      tocNav.appendChild(list)
+    })()
+  </script>
+</Base>
+
+<style>
+  .docs-layout {
+    display: flex;
+    max-width: var(--ink-page-width);
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+    gap: 3rem;
+  }
+
+  /* Sidebar */
+  .docs-sidebar {
+    width: 240px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 5rem;
+    height: calc(100vh - 8rem);
+    overflow-y: auto;
+  }
+
+  .docs-nav-title {
+    display: block;
+    font-family: var(--ink-font-mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-primary);
+    margin-bottom: 1.5rem;
+  }
+
+  .docs-nav ul { list-style: none; padding: 0; margin: 0; }
+  .docs-nav li { margin-bottom: 0.5rem; }
+  .docs-nav a {
+    font-size: 0.9375rem;
+    color: var(--ink-muted);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .docs-nav a:hover { color: var(--ink-text); }
+  .docs-nav li.active a { color: var(--ink-primary); font-weight: 600; }
+
+  /* Main */
+  .docs-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    gap: 3rem;
+  }
+
+  .docs-content { flex: 1; min-width: 0; }
+
+  .docs-footer-feedback {
+    margin-top: 4rem;
+    padding: 2rem;
+    background: var(--ink-surface);
+    border-radius: var(--ink-radius);
+    border: 1px solid var(--ink-border);
+  }
+
+  /* Global feedback styles */
+  :global(.feedback-container) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  :global(.feedback-label) {
+    font-family: var(--ink-font-display);
+    font-weight: 600;
+    color: var(--ink-text);
+  }
+  :global(.feedback-buttons) {
+    display: flex;
+    gap: 0.5rem;
+  }
+  :global(.feedback-btn) {
+    padding: 0.5rem 1rem;
+    border-radius: var(--ink-radius);
+    border: 1px solid var(--ink-border);
+    background: var(--ink-bg);
+    color: var(--ink-text);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.875rem;
+    transition: all 0.15s;
+  }
+  :global(.feedback-btn:hover) {
+    border-color: var(--ink-primary);
+    color: var(--ink-primary);
+  }
+  :global(.feedback-thanks) {
+    font-weight: 600;
+    color: var(--ink-primary);
+  }
+
+  .docs-header { margin-bottom: 3rem; }
+  .docs-parent {
+    font-family: var(--ink-font-mono);
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    color: var(--ink-primary);
+    letter-spacing: 0.05em;
+  }
+  .docs-title {
+    font-family: var(--ink-font-display);
+    font-size: 2.75rem;
+    font-weight: 700;
+    color: var(--ink-text);
+    margin: 0.5rem 0 0.75rem;
+    letter-spacing: -0.03em;
+  }
+  .docs-description { font-size: 1.125rem; color: var(--ink-muted); line-height: 1.5; margin: 0; }
+
+  /* Pagination */
+  .docs-pagination {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-top: 4rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--ink-border);
+  }
+
+  .pagination-link {
+    display: flex;
+    flex-direction: column;
+    padding: 1.25rem;
+    background: var(--ink-surface);
+    border: 1px solid var(--ink-border);
+    border-radius: var(--ink-radius);
+    text-decoration: none;
+    transition: border-color 0.15s;
+  }
+  .pagination-link:hover { border-color: var(--ink-primary); }
+  .pagination-link.next { text-align: right; align-items: flex-end; }
+  .pagination-label { font-size: 0.75rem; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .pagination-title { font-family: var(--ink-font-display); font-weight: 600; color: var(--ink-text); font-size: 1rem; margin-top: 0.25rem; }
+
+  /* TOC */
+  .docs-toc { width: 200px; flex-shrink: 0; position: sticky; top: 5rem; height: fit-content; }
+  .docs-toc-title {
+    display: block;
+    font-family: var(--ink-font-mono);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-bottom: 1rem;
+  }
+
+  .docs-toc :global(ul) { list-style: none; padding: 0; margin: 0; }
+  .docs-toc :global(li) { margin-bottom: 0.5rem; font-size: 0.8125rem; }
+  .docs-toc :global(.toc-h3) { padding-left: 0.75rem; }
+  .docs-toc :global(a) { color: var(--ink-muted); text-decoration: none; transition: color 0.15s; }
+  .docs-toc :global(a:hover) { color: var(--ink-primary); }
+
+  @media (max-width: 1024px) {
+    .docs-sidebar { display: none; }
+  }
+</style>

@@ -1,0 +1,34 @@
+---
+import { generateJsonLd, generateSiteMeta, toJsonLdString } from '../../lib/seo'
+import type { ContentMeta, SiteConfig } from '../../lib/seo'
+import { config } from '../../lib/config'
+
+interface Props {
+  content?: ContentMeta
+  siteOnly?: boolean
+}
+
+const { content, siteOnly = false } = Astro.props
+
+const site: SiteConfig = {
+  name: config.name,
+  url: `https://${config.domain}`,
+  logo: config.seo.organization.logo,
+  description: config.tagline,
+  knowsAbout: [...config.seo.organization.knowsAbout],
+}
+
+let schemas: object[] = []
+
+if (siteOnly) {
+  schemas = generateSiteMeta(site)
+} else if (content) {
+  schemas = [...generateSiteMeta(site), ...generateJsonLd(content, site)]
+} else {
+  schemas = generateSiteMeta(site)
+}
+
+const jsonLdString = toJsonLdString(schemas)
+---
+
+<script type="application/ld+json" set:html={jsonLdString} />

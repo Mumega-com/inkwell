@@ -1,0 +1,39 @@
+node_modules/
+dist/
+.astro/
+content/en/
+instances/mumega/
+.env
+.env.local
+*.log
+
+# Cloudflare
+workers/**/node_modules/
+wrangler.toml
+wrangler.production.toml
+.dev.vars
+
+# Smoke test backup
+*.smoke-backup
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+.claude/
+
+# Graphify (local build artifacts)
+graphify-out/
+.graphify_*.json
+.code-review-graph/
+.wrangler/
+
+# Build check artifacts
+.build-check/
+
+.dev.vars*
+!.dev.vars.example
+!.env.example

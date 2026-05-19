@@ -1,0 +1,371 @@
+---
+// Auth.js redirects here when the user is not authenticated.
+// No layout wrapper — standalone page with its own shell.
+// TODO: switch to auth-astro SignIn components when Cloudflare adapter works
+// import { SignIn } from 'auth-astro/components'
+import { generateCssVars } from '../../lib/theme'
+
+const cssVars = generateCssVars()
+---
+
+<html lang="en" dir="ltr" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style set:html={cssVars}></style>
+    <title>Log In</title>
+    <meta name="robots" content="noindex" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      body {
+        background: var(--ink-bg);
+        color: var(--ink-text);
+        font-family: system-ui, -apple-system, sans-serif;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+      }
+
+      .login-card {
+        background: var(--ink-surface);
+        border: 1px solid var(--ink-border);
+        border-radius: 12px;
+        padding: 2.5rem 2rem;
+        width: 100%;
+        max-width: 400px;
+      }
+
+      .login-logo {
+        text-align: center;
+        font-size: 2.5rem;
+        color: var(--ink-primary);
+        line-height: 1;
+        margin-bottom: 0.5rem;
+      }
+
+      .login-heading {
+        text-align: center;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--ink-text);
+        margin-bottom: 2rem;
+      }
+
+      .oauth-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.625rem;
+        width: 100%;
+        padding: 0.625rem 1rem;
+        border: 1px solid var(--ink-border);
+        border-radius: 8px;
+        background: transparent;
+        color: var(--ink-text);
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background 0.15s, border-color 0.15s;
+        margin-bottom: 0.625rem;
+      }
+
+      .oauth-btn:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: var(--ink-muted);
+      }
+
+      .oauth-icon {
+        font-size: 1rem;
+        width: 1.25rem;
+        text-align: center;
+        flex-shrink: 0;
+      }
+
+      .divider {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin: 1.25rem 0;
+        color: var(--ink-dim);
+        font-size: 0.8rem;
+      }
+
+      .divider::before,
+      .divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: var(--ink-border);
+      }
+
+      .form-group {
+        margin-bottom: 1rem;
+      }
+
+      .form-label {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: var(--ink-muted);
+        margin-bottom: 0.375rem;
+      }
+
+      .form-input {
+        width: 100%;
+        padding: 0.625rem 0.875rem;
+        background: var(--ink-bg);
+        border: 1px solid var(--ink-border);
+        border-radius: 8px;
+        color: var(--ink-text);
+        font-size: 0.9rem;
+        font-family: inherit;
+        transition: border-color 0.15s;
+        outline: none;
+      }
+
+      .form-input:focus {
+        border-color: var(--ink-primary);
+      }
+
+      .form-input::placeholder {
+        color: var(--ink-dim);
+      }
+
+      .submit-btn {
+        width: 100%;
+        padding: 0.75rem;
+        background: var(--ink-primary);
+        color: #0A0A10;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: opacity 0.15s;
+        margin-top: 0.5rem;
+        font-family: inherit;
+      }
+
+      .submit-btn:hover {
+        opacity: 0.88;
+      }
+
+      .forgot-link {
+        display: block;
+        text-align: right;
+        font-size: 0.78rem;
+        color: var(--ink-muted);
+        text-decoration: none;
+        margin-top: 0.5rem;
+      }
+
+      .forgot-link:hover {
+        color: var(--ink-primary);
+      }
+
+      .signup-prompt {
+        text-align: center;
+        font-size: 0.82rem;
+        color: var(--ink-muted);
+        margin-top: 1.5rem;
+      }
+
+      .signup-prompt a {
+        color: var(--ink-primary);
+        text-decoration: none;
+        font-weight: 500;
+      }
+
+      .signup-prompt a:hover {
+        text-decoration: underline;
+      }
+
+      .error-msg {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #f87171;
+        border-radius: 8px;
+        padding: 0.625rem 0.875rem;
+        font-size: 0.82rem;
+        margin-bottom: 1rem;
+        display: none;
+      }
+
+      .success-msg {
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        color: #34d399;
+        border-radius: 8px;
+        padding: 0.625rem 0.875rem;
+        font-size: 0.82rem;
+        margin-bottom: 1rem;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="login-card">
+      <div class="login-logo">◎</div>
+      <h1 class="login-heading">Welcome back</h1>
+
+      <!-- OAuth buttons via Auth.js -->
+      <button type="button" class="oauth-btn" onclick="alert('Google login coming soon')">
+        <span class="oauth-icon">G</span>
+        Continue with Google
+      </button>
+
+      <button type="button" class="oauth-btn" onclick="alert('Facebook login coming soon')">
+        <span class="oauth-icon">f</span>
+        Continue with Facebook
+      </button>
+
+      <button type="button" class="oauth-btn" onclick="alert('Apple login coming soon')">
+        <span class="oauth-icon"></span>
+        Continue with Apple
+      </button>
+
+      <div class="divider">or</div>
+
+      <!-- OTP login form -->
+      <div id="error-msg" class="error-msg"></div>
+      <div id="success-msg" class="success-msg"></div>
+
+      <!-- Step 1: Request code -->
+      <form id="request-code-form" novalidate>
+        <div class="form-group">
+          <label class="form-label" for="contact">Email or phone</label>
+          <input
+            id="contact"
+            name="contact"
+            type="text"
+            class="form-input"
+            placeholder="you@example.com"
+            autocomplete="email"
+            required
+          />
+        </div>
+
+        <button type="submit" class="submit-btn">Send login code</button>
+      </form>
+
+      <!-- Step 2: Verify code (hidden initially) -->
+      <form id="verify-code-form" novalidate style="display:none">
+        <div class="form-group">
+          <label class="form-label" for="code">Enter your 6-digit code</label>
+          <input
+            id="code"
+            name="code"
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]{6}"
+            maxlength="6"
+            class="form-input"
+            placeholder="000000"
+            autocomplete="one-time-code"
+            required
+          />
+        </div>
+
+        <button type="submit" class="submit-btn">Verify</button>
+        <button type="button" class="forgot-link" id="back-btn" style="display:block;text-align:center;margin-top:0.75rem;cursor:pointer;border:none;background:none;width:100%">Use a different email</button>
+      </form>
+
+      <p class="signup-prompt">
+        Don't have an account?
+        <a href="/dashboard/signup">Sign up</a>
+      </p>
+    </div>
+
+    <script is:inline>
+      var apiUrl = localStorage.getItem('inkwell_api_url') || window.location.origin
+      var tenantSlug = localStorage.getItem('inkwell_tenant_slug') || 'default'
+      var contactValue = ''
+
+      var requestForm = document.getElementById('request-code-form')
+      var verifyForm = document.getElementById('verify-code-form')
+      var errorMsg = document.getElementById('error-msg')
+      var successMsg = document.getElementById('success-msg')
+      var backBtn = document.getElementById('back-btn')
+
+      function showError(msg) {
+        errorMsg.textContent = msg
+        errorMsg.style.display = 'block'
+        successMsg.style.display = 'none'
+      }
+
+      function showSuccess(msg) {
+        successMsg.textContent = msg
+        successMsg.style.display = 'block'
+        errorMsg.style.display = 'none'
+      }
+
+      function hideMessages() {
+        errorMsg.style.display = 'none'
+        successMsg.style.display = 'none'
+      }
+
+      requestForm.addEventListener('submit', async function(e) {
+        e.preventDefault()
+        hideMessages()
+        contactValue = document.getElementById('contact').value.trim()
+        if (!contactValue) { showError('Please enter your email or phone.'); return }
+
+        try {
+          var resp = await fetch(apiUrl + '/api/auth/request-code', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ customerSlug: tenantSlug, contact: contactValue }),
+          })
+          var data = await resp.json()
+          if (!resp.ok) { showError(data.error || 'Could not send code.'); return }
+
+          requestForm.style.display = 'none'
+          verifyForm.style.display = 'block'
+          showSuccess('Code sent! Check your ' + (data.channel === 'email' ? 'email' : 'phone') + '.')
+          if (data.testCode) showSuccess('Dev mode — your code is: ' + data.testCode)
+        } catch (_) {
+          showError('Could not reach server. Check your connection.')
+        }
+      })
+
+      verifyForm.addEventListener('submit', async function(e) {
+        e.preventDefault()
+        hideMessages()
+        var code = document.getElementById('code').value.trim()
+        if (!code) { showError('Please enter the 6-digit code.'); return }
+
+        try {
+          var resp = await fetch(apiUrl + '/api/auth/verify-code', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ customerSlug: tenantSlug, contact: contactValue, code: code }),
+          })
+          var data = await resp.json()
+          if (!resp.ok) { showError(data.error === 'code_expired' ? 'Code expired. Request a new one.' : data.error === 'invalid_code' ? 'Invalid code. Try again.' : data.error || 'Verification failed.'); return }
+
+          if (data.session) {
+            localStorage.setItem('inkwell_tenant_slug', data.session.customerSlug)
+            localStorage.setItem('inkwell_auth_token', data.sessionToken)
+            localStorage.setItem('inkwell_user_role', data.session.role || 'viewer')
+            localStorage.setItem('inkwell_api_url', apiUrl)
+            localStorage.setItem('inkwell_onboarded', 'true')
+          }
+          window.location.href = '/dashboard'
+        } catch (_) {
+          showError('Could not reach server. Check your connection.')
+        }
+      })
+
+      backBtn.addEventListener('click', function() {
+        hideMessages()
+        verifyForm.style.display = 'none'
+        requestForm.style.display = 'block'
+      })
+    </script>
+  </body>
+</html>

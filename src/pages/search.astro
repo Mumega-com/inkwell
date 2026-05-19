@@ -1,0 +1,92 @@
+---
+import Base from '../layouts/Base.astro'
+import Header from '../components/layout/Header.astro'
+import Footer from '../components/layout/Footer.astro'
+---
+
+<Base title="Search" description="Search all content on the site.">
+  <Header />
+
+  <main class="search-page">
+    <div class="search-inner">
+      <h1>Search</h1>
+      <div id="search"></div>
+    </div>
+  </main>
+
+  <Footer />
+
+  <link href="/pagefind/pagefind-ui.css" rel="stylesheet" />
+  <script is:inline src="/pagefind/pagefind-ui.js"></script>
+  <script is:inline>
+    window.addEventListener('DOMContentLoaded', function () {
+      new PagefindUI({
+        element: '#search',
+        showSubResults: true,
+      })
+    })
+  </script>
+</Base>
+
+<style>
+  .search-page {
+    padding-top: 5rem;
+    min-height: 100vh;
+  }
+
+  .search-inner {
+    max-width: var(--ink-page-width, 48rem);
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+  }
+
+  .search-inner h1 {
+    font-family: var(--ink-font-display);
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--ink-text);
+    margin-bottom: 1.5rem;
+  }
+
+  /* Pagefind dark theme overrides */
+  :global(.pagefind-ui) {
+    --pagefind-ui-scale: 1;
+    --pagefind-ui-primary: var(--ink-primary);
+    --pagefind-ui-text: var(--ink-text);
+    --pagefind-ui-background: var(--ink-surface);
+    --pagefind-ui-border: var(--ink-border);
+    --pagefind-ui-tag: var(--ink-surface);
+    --pagefind-ui-border-width: 1px;
+    --pagefind-ui-border-radius: var(--ink-radius, 6px);
+    --pagefind-ui-font: var(--ink-font-body);
+  }
+
+  :global(.pagefind-ui .pagefind-ui__search-input) {
+    background: var(--ink-bg);
+    color: var(--ink-text);
+    border-color: var(--ink-border);
+  }
+
+  :global(.pagefind-ui .pagefind-ui__search-input::placeholder) {
+    color: var(--ink-muted);
+  }
+
+  :global(.pagefind-ui .pagefind-ui__result-link) {
+    color: var(--ink-primary);
+  }
+
+  :global(.pagefind-ui .pagefind-ui__result-excerpt) {
+    color: var(--ink-muted);
+  }
+
+  :global(.pagefind-ui mark) {
+    background: color-mix(in srgb, var(--ink-primary) 25%, transparent);
+    color: var(--ink-text);
+  }
+
+  :global(.pagefind-ui .pagefind-ui__button) {
+    background: var(--ink-surface);
+    color: var(--ink-text);
+    border-color: var(--ink-border);
+  }
+</style>

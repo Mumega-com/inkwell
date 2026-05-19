@@ -1,0 +1,306 @@
+import { Hono } from 'hono'
+import type { AppBindings } from '../types'
+import { getContent, getContentMeta, putContent, tenantFilter } from '../lib'
+import { compileMdx } from '../../kernel/processors/mdx-compiler'
+
+const contentRoutes = new Hono<AppBindings>()
+
+const allowedPublishStatuses = new Set(['idea', 'draft', 'review', 'scheduled', 'published', 'archived', 'killed'])
+
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === 'string' && value.trim().length > 0
+}
+
+function normalizeSlug(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80)
+}
+
+function cleanText(value: string, maxLength: number): string {
+  return value.replace(/\s+/g, ' ').trim().slice(0, maxLength)
+}
+
+function parseTags(value: unknown): string[] {
+  if (!Array.isArray(value)) return []
+
+  const seen = new Set<string>()
+  const tags: string[] = []
+
+  for (const item of value) {
+    if (!isNonEmptyString(item)) continue
+    const tag = item.trim().slice(0, 48)
+    if (!tag || seen.has(tag)) continue
+    seen.add(tag)
+    tags.push(tag)
+  }
+
+  return tags.slice(0, 12)
+}
+
+interface PublishValue {
+  title: string; content: string; slug?: string; author: string; tags: string[]; description: string
+  status: string; overwrite: boolean
+  scheduled_at?: string; channel?: string; campaign_id?: string; priority?: string; seo_keyword?: string; assignee?: string
+}
+
+function parsePublishPayload(body: unknown):
+  | { ok: true; value: PublishValue }
+  | { ok: false; status: number; error: string; details?: unknown } {
+  if (!body || typeof body !== 'object') {
+    return { ok: false, status: 400, error: 'invalid_json' }
+  }
+
+  const payload = body as Record<string, unknown>
+  if (!isNonEmptyString(payload.title)) return { ok: false, status: 400, error: 'title required' }
+  if (!isNonEmptyString(payload.content)) return { ok: false, status: 400, error: 'content required' }
+
+  const title = cleanText(payload.title, 120)
+  const content = payload.content.trim()
+  if (title.length < 2) return { ok: false, status: 400, error: 'title too short' }
+  if (content.length < 1) return { ok: false, status: 400, error: 'content required' }
+  if (content.length > 200_000) return { ok: false, status: 413, error: 'content too large' }
+
+  const slug = isNonEmptyString(payload.slug) ? normalizeSlug(payload.slug) : undefined
+  if (slug === '') return { ok: false, status: 400, error: 'invalid_slug' }
+
+  const author = isNonEmptyString(payload.author) ? cleanText(payload.author, 80) : 'agent'
+  const tags = parseTags(payload.tags)
+  const description = isNonEmptyString(payload.description)
+    ? cleanText(payload.description, 220)
+    : cleanText(content.replace(/```[\s\S]*?```/g, ' ').replace(/[#*_>\-\[\]`]/g, ' '), 220)
+  let status = 'published'
+  if (isNonEmptyString(payload.status)) {
+    if (!allowedPublishStatuses.has(payload.status)) {
+      return { ok: false, status: 400, error: 'invalid_status' }
+    }
+    status = payload.status
+  }
+  const overwrite = payload.overwrite === true
+
+  // Calendar fields (optional)
+  const scheduled_at = isNonEmptyString(payload.scheduled_at) ? payload.scheduled_at : undefined
+  const channel = isNonEmptyString(payload.channel) ? payload.channel : undefined
+  const campaign_id = isNonEmptyString(payload.campaign_id) ? payload.campaign_id : undefined
+  const priority = isNonEmptyString(payload.priority) ? payload.priority : undefined
+  const seo_keyword = isNonEmptyString(payload.seo_keyword) ? payload.seo_keyword : undefined
+  const assignee = isNonEmptyString(payload.assignee) ? payload.assignee : undefined
+
+  return {
+    ok: true,
+    value: { title, content, slug, author, tags, description, status, overwrite, scheduled_at, channel, campaign_id, priority, seo_keyword, assignee },
+  }
+}
+
+// Publish content
+contentRoutes.post('/publish', async (c) => {
+  const token = c.env.PUBLISH_TOKEN
+  if (token) {
+    const auth = c.req.header('Authorization')
+    if (auth !== `Bearer ${token}`) {
+      return c.json({ error: 'unauthorized' }, 401)
+    }
+  }
+
+  let rawBody: unknown
+  try {
+    rawBody = await c.req.json()
+  } catch {
+    return c.json({ error: 'invalid_json' }, 400)
+  }
+
+  const parsed = parsePublishPayload(rawBody)
+  if (!parsed.ok) {
+    return c.json({ error: parsed.error, details: parsed.details }, parsed.status as any)
+  }
+
+  const { title, content, slug: providedSlug, author, tags, description, status, overwrite, scheduled_at, channel, campaign_id, priority, seo_keyword, assignee } = parsed.value
+  const slug = providedSlug || normalizeSlug(title)
+  if (!slug) {
+    return c.json({ error: 'invalid_slug' }, 400)
+  }
+
+  const tenantSlug = c.get('tenant_slug')
+  const now = new Date()
+  const date = now.toISOString().slice(0, 10)
+
+  // Slug uniqueness check
+  if (!overwrite) {
+    const tf = tenantFilter(tenantSlug)
+    const [existingMeta, existingIndex] = await Promise.all([
+      getContentMeta(c.get('content'), tenantSlug, slug),
+      c.get('db_analytics').queryOne<{ slug: string }>(`SELECT slug FROM content_index WHERE slug = ?${tf.clause} LIMIT 1`, [slug, ...tf.bind]),
+    ])
+    if (existingMeta || existingIndex) {
+      return c.json({ error: 'slug_exists', slug, hint: 'Use overwrite:true to replace, or choose a different slug' }, 409)
+    }
+  }
+
+  // Build frontmatter
+  const frontmatter = [
+    `title: "${title}"`,
+    `date: "${date}"`,
+    `author: "${author}"`,
+    `tags: [${tags.map(t => `"${t}"`).join(', ')}]`,
+    `description: "${description}"`,
+    `status: "${status}"`,
+  ].join('\n')
+
+  const markdown = `---\n${frontmatter}\n---\n\n${content}`
+
+  // Store in KV (tenant-scoped)
+  await putContent(c.get('content'), tenantSlug, slug, markdown, {
+    title,
+    slug,
+    author,
+    tags,
+    description,
+    date,
+    status,
+  })
+
+  // Index in D1 (tenant-scoped)
+  const tf = tenantFilter(tenantSlug)
+  const wordCount = content.split(/\s+/).length
+  await c.get('db_analytics').execute(
+    `INSERT OR REPLACE INTO content_index
+     (slug, title, type, lang, author, tags, description, published_at, updated_at, word_count, tenant_slug,
+      status, scheduled_at, channel, campaign_id, priority, seo_keyword, assignee)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [slug, title, 'blog', 'en', author, JSON.stringify(tags), description, date, date, wordCount, tenantSlug,
+     status, scheduled_at ?? null, channel ?? 'blog', campaign_id ?? null, priority ?? 'medium', seo_keyword ?? null, assignee ?? null],
+  )
+
+  // Graph ingestion — extract wikilinks and build graph edges
+  try {
+    const compiled = compileMdx(content, { basePath: '/', tenant: tenantSlug ?? undefined })
+
+    // Upsert the content node
+    await c.get('graph').upsertNode({
+      slug,
+      title,
+      type: 'blog',
+      tags,
+      tenant: tenantSlug ?? undefined,
+      visibility: status === 'draft' ? 'private' : 'public',
+      author,
+      date,
+      url: `/${slug}`,
+    })
+
+    // Create wikilink edges
+    for (const target of compiled.wikilinks) {
+      await c.get('graph').upsertEdge({
+        source: slug,
+        target,
+        type: 'wikilink',
+        tenant: tenantSlug ?? undefined,
+      })
+      // Create backlink edge
+      await c.get('graph').upsertEdge({
+        source: target,
+        target: slug,
+        type: 'backlink',
+        tenant: tenantSlug ?? undefined,
+      })
+    }
+
+    // Create tag edges between this content and others sharing 2+ tags
+    if (tags.length >= 2) {
+      const tagNodes = await c.get('graph').queryNodes({ tenant: tenantSlug ?? undefined })
+      for (const other of tagNodes) {
+        if (other.slug === slug) continue
+        const shared = tags.filter((t) => other.tags.includes(t))
+        if (shared.length >= 2) {
+          await c.get('graph').upsertEdge({
+            source: slug,
+            target: other.slug,
+            type: 'tag',
+            tenant: tenantSlug ?? undefined,
+            weight: shared.length,
+          })
+        }
+      }
+    }
+  } catch {
+    // Graph ingestion is non-blocking — don't fail the publish
+  }
+
+  // Trigger CF Pages deploy hook if configured
+  let deployState = 'manual'
+  if (c.env.CF_PAGES_DEPLOY_HOOK) {
+    try {
+      const resp = await fetch(c.env.CF_PAGES_DEPLOY_HOOK, { method: 'POST' })
+      deployState = resp.ok ? 'triggered' : `trigger_failed_${resp.status}`
+    } catch {
+      deployState = 'trigger_failed'
+    }
+  }
+
+  return c.json({
+    ok: true,
+    slug,
+    url: `${c.env.SITE_URL}/blog/${slug}`,
+    stored: 'kv',
+    deploy: deployState,
+  })
+})
+
+// List published content (public)
+contentRoutes.get('/posts', async (c) => {
+  const tenantSlug = c.get('tenant_slug')
+  const tf = tenantFilter(tenantSlug)
+  const posts = await c.get('db_analytics').query<Record<string, unknown>>(
+    `SELECT slug, title, author, tags, description, published_at FROM content_index WHERE type = 'blog'${tf.clause} ORDER BY published_at DESC LIMIT 50`,
+    [...tf.bind]
+  )
+
+  // Filter out drafts from public listing
+  const published = []
+  for (const post of posts) {
+    const meta = await getContentMeta(c.get('content'), tenantSlug, post.slug as string)
+    if (!meta || meta.status !== 'draft') published.push(post)
+  }
+
+  return c.json({ posts: published })
+})
+
+// List drafts (auth required)
+contentRoutes.get('/drafts', async (c) => {
+  const token = c.env.PUBLISH_TOKEN
+  if (token) {
+    const auth = c.req.header('Authorization')
+    if (auth !== `Bearer ${token}`) {
+      return c.json({ error: 'unauthorized' }, 401)
+    }
+  }
+
+  const tenantSlug = c.get('tenant_slug')
+  const tf = tenantFilter(tenantSlug)
+  const all = await c.get('db_analytics').query<Record<string, unknown>>(
+    `SELECT slug, title, author, tags, description, published_at FROM content_index WHERE type = 'blog'${tf.clause} ORDER BY published_at DESC LIMIT 50`,
+    [...tf.bind]
+  )
+
+  const drafts = []
+  for (const post of all) {
+    const meta = await getContentMeta(c.get('content'), tenantSlug, post.slug as string)
+    if (meta && meta.status === 'draft') drafts.push(post)
+  }
+
+  return c.json({ drafts })
+})
+
+// Get single post from KV
+contentRoutes.get('/posts/:slug', async (c) => {
+  const slug = c.req.param('slug')
+  const tenantSlug = c.get('tenant_slug')
+  const content = await getContent(c.get('content'), tenantSlug, slug)
+  if (!content) return c.json({ error: 'not found' }, 404)
+  const meta = await getContentMeta(c.get('content'), tenantSlug, slug)
+  return c.json({ slug, meta, markdown: content })
+})
+
+export { contentRoutes }

@@ -1,0 +1,246 @@
+---
+import Base from '../../layouts/Base.astro'
+import Header from '../../components/layout/Header.astro'
+import Footer from '../../components/layout/Footer.astro'
+
+// Bot username is resolved at runtime from the Telegram API.
+// This page works standalone — customers open it, tap Connect, and start the bot.
+const title = 'Connect Telegram'
+const description = 'Manage your Inkwell platform from Telegram — check stats, approve content, and request reports without leaving the app.'
+---
+
+<Base title={title} description={description}>
+  <Header />
+
+  <main class="tg-page">
+    <div class="tg-card">
+      <div class="tg-icon" aria-hidden="true">
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="24" cy="24" r="24" fill="#229ED9"/>
+          <path d="M10.5 23.5L35.5 13.5L28 36L21.5 29L10.5 23.5Z" fill="white" opacity="0.3"/>
+          <path d="M10.5 23.5L21.5 29L28 36L35.5 13.5L10.5 23.5Z" stroke="white" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M21.5 29L24.5 22L31 18" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+
+      <h1>Connect Telegram</h1>
+      <p class="lead">Manage your Inkwell platform directly from Telegram. No dashboard needed.</p>
+
+      <a
+        id="connect-btn"
+        class="btn-connect"
+        href="#"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Open in Telegram
+      </a>
+
+      <section class="commands">
+        <h2>What you can do</h2>
+        <ul>
+          <li>
+            <code>/status</code>
+            <span>KPI summary — clicks, leads, and spend for the last 30 days</span>
+          </li>
+          <li>
+            <code>/report</code>
+            <span>Weekly breakdown — day-by-day stats for the last 7 days</span>
+          </li>
+          <li>
+            <code>/approve {'{id}'}</code>
+            <span>Approve a pending content draft by ID</span>
+          </li>
+          <li>
+            <code>/leads</code>
+            <span>Most recent 10 leads with source and date</span>
+          </li>
+          <li>
+            <code>/help</code>
+            <span>List all available commands</span>
+          </li>
+        </ul>
+        <p class="hint">
+          Not a command? Just type naturally — your message is forwarded to the AI team.
+        </p>
+      </section>
+
+      <section class="how-to">
+        <h2>How to get started</h2>
+        <ol>
+          <li>Tap <strong>Open in Telegram</strong> above.</li>
+          <li>Press <strong>Start</strong> in the bot conversation.</li>
+          <li>Type <code>/status</code> to see your first KPI summary.</li>
+        </ol>
+      </section>
+    </div>
+  </main>
+
+  <Footer />
+</Base>
+
+<script>
+  // Resolve the bot username via the API and update the Connect button href.
+  // Falls back gracefully if the endpoint is unavailable.
+  async function resolveBot() {
+    try {
+      const resp = await fetch('/api/telegram/info')
+      if (!resp.ok) return
+      const data = await resp.json() as { ok: boolean; bot?: { username?: string } }
+      if (data.ok && data.bot?.username) {
+        const btn = document.getElementById('connect-btn') as HTMLAnchorElement | null
+        if (btn) {
+          btn.href = `https://t.me/${data.bot.username}`
+        }
+      }
+    } catch {
+      // Silent — button remains visible but href stays '#'
+    }
+  }
+
+  resolveBot()
+</script>
+
+<style>
+  .tg-page {
+    min-height: 60vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 5rem 1rem 4rem;
+  }
+
+  .tg-card {
+    max-width: 560px;
+    width: 100%;
+    background: var(--ink-surface);
+    border: 1px solid var(--ink-border);
+    border-radius: 12px;
+    padding: 2.5rem 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .tg-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--ink-text);
+    text-align: center;
+    margin: 0;
+  }
+
+  .lead {
+    color: var(--ink-muted);
+    text-align: center;
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  .btn-connect {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #229ED9;
+    color: #fff;
+    font-weight: 600;
+    font-size: 1rem;
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: opacity 0.15s ease;
+  }
+
+  .btn-connect:hover {
+    opacity: 0.88;
+  }
+
+  .commands,
+  .how-to {
+    width: 100%;
+  }
+
+  h2 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--ink-text);
+    margin: 0 0 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 0.8rem;
+    opacity: 0.7;
+  }
+
+  .commands ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .commands li {
+    display: grid;
+    grid-template-columns: 10rem 1fr;
+    gap: 0.75rem;
+    align-items: baseline;
+    font-size: 0.9rem;
+  }
+
+  code {
+    font-family: var(--ink-font-mono, monospace);
+    background: var(--ink-bg);
+    border: 1px solid var(--ink-border);
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    font-size: 0.85em;
+    color: var(--ink-secondary);
+    white-space: nowrap;
+  }
+
+  .commands li span {
+    color: var(--ink-muted);
+    line-height: 1.5;
+  }
+
+  .hint {
+    margin: 0.75rem 0 0;
+    font-size: 0.82rem;
+    color: var(--ink-dim);
+    font-style: italic;
+  }
+
+  .how-to ol {
+    padding-left: 1.25rem;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    color: var(--ink-muted);
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+
+  .how-to strong {
+    color: var(--ink-text);
+  }
+
+  @media (max-width: 480px) {
+    .tg-card {
+      padding: 2rem 1.25rem;
+    }
+
+    .commands li {
+      grid-template-columns: 1fr;
+      gap: 0.25rem;
+    }
+  }
+</style>

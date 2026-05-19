@@ -1,0 +1,66 @@
+---
+import Base from '../../layouts/Base.astro'
+import Header from '../../components/layout/Header.astro'
+import Footer from '../../components/layout/Footer.astro'
+import { render } from 'astro:content'
+import { safeGetCollection } from '../../lib/safe-content'
+
+export async function getStaticPaths() {
+  const tools = await safeGetCollection('tools')
+  return tools.map((tool) => ({ params: { id: tool.id }, props: { tool } }))
+}
+
+const { tool } = Astro.props
+const { Content } = await render(tool)
+
+const typeLabels: Record<string, string> = { skill: 'Skill', plugin: 'Plugin', 'mcp-server': 'MCP Server', sdk: 'SDK', integration: 'Integration' }
+---
+
+<Base title={`${tool.data.title} — Inkwell Tools`} description={tool.data.description}>
+  <Header />
+
+  <main class="page">
+    <div class="page-inner">
+      <div class="tool-header">
+        <div class="tool-badges">
+          <span class="tool-type">{typeLabels[tool.data.type] || tool.data.type}</span>
+          <span class="tool-status">{tool.data.status}</span>
+          {tool.data.agent_compatible && <span class="tool-agent">Agent compatible</span>}
+        </div>
+        <h1>{tool.data.title}</h1>
+        <p class="tool-desc">{tool.data.description}</p>
+        {tool.data.tags.length > 0 && (
+          <div class="tool-tags">
+            {tool.data.tags.map((tag) => (
+              <a href={`/tag/${tag}`} class="tool-tag">#{tag}</a>
+            ))}
+          </div>
+        )}
+        {tool.data.repo && <a href={tool.data.repo} target="_blank" rel="noopener noreferrer" class="tool-repo">View source</a>}
+      </div>
+      <div class="ink-prose">
+        <Content />
+      </div>
+    </div>
+  </main>
+
+  <Footer />
+</Base>
+
+<style>
+  main { padding-top: 3.5rem; }
+  .page { max-width: var(--ink-page-width); margin: 0 auto; padding: 4rem 1.5rem; }
+  .page-inner { max-width: var(--ink-content-width); margin: 0 auto; }
+  .tool-header { margin-bottom: 2rem; }
+  .tool-badges { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.75rem; }
+  .tool-type { font-family: var(--ink-font-mono); font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-secondary); font-weight: 600; padding: 0.125rem 0.5rem; background: color-mix(in srgb, var(--ink-secondary) 10%, var(--ink-surface)); border-radius: calc(var(--ink-radius) - 2px); }
+  .tool-status { font-family: var(--ink-font-mono); font-size: 0.6875rem; color: var(--ink-dim); }
+  .tool-agent { font-family: var(--ink-font-mono); font-size: 0.6875rem; color: var(--ink-accent); }
+  h1 { font-family: var(--ink-font-display); font-size: 2.5rem; font-weight: 700; color: var(--ink-text); letter-spacing: -0.03em; margin: 0 0 0.5rem; }
+  .tool-desc { color: var(--ink-muted); font-size: 1.125rem; line-height: 1.6; margin: 0 0 1rem; }
+  .tool-tags { display: flex; flex-wrap: wrap; gap: 0.375rem; margin-bottom: 1rem; }
+  .tool-tag { font-family: var(--ink-font-mono); font-size: 0.6875rem; color: var(--ink-primary); padding: 0.125rem 0.5rem; border-radius: 9999px; border: 1px solid var(--ink-primary); text-decoration: none; }
+  .tool-tag:hover { background: color-mix(in srgb, var(--ink-primary) 8%, var(--ink-surface)); }
+  .tool-repo { font-family: var(--ink-font-mono); font-size: 0.8125rem; color: var(--ink-primary); text-decoration: none; font-weight: 600; }
+  .tool-repo:hover { text-decoration: underline; }
+</style>

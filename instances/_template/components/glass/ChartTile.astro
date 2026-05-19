@@ -1,0 +1,44 @@
+---
+interface Props {
+  title: string
+}
+
+const { title } = Astro.props
+---
+
+<div class="glass-tile glass-tile--chart">
+  <span class="glass-tile-title">{title}</span>
+  <div class="glass-chart-placeholder">
+    chart not yet wired — ships Phase 7
+  </div>
+</div>
+
+<style>
+  .glass-tile {
+    background: var(--ink-surface);
+    border: 1px solid var(--ink-border);
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .glass-tile-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-muted);
+  }
+
+  .glass-chart-placeholder {
+    font-size: 0.85rem;
+    color: var(--ink-muted);
+    font-style: italic;
+    padding: 2rem 0;
+    text-align: center;
+    border: 1px dashed var(--ink-border);
+    border-radius: 6px;
+  }
+</style>

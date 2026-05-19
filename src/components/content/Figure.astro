@@ -1,0 +1,54 @@
+---
+interface Props {
+  src: string
+  alt: string
+  caption?: string
+  number?: number
+}
+
+const { src, alt, caption, number } = Astro.props
+---
+
+<figure class="ink-figure">
+  <img
+    src={src}
+    alt={alt}
+    class="ink-figure-img"
+    loading="lazy"
+    decoding="async"
+  />
+  {caption && (
+    <figcaption class="ink-figure-caption">
+      {number !== undefined && <span class="ink-figure-number">Figure {number}:</span>}
+      {caption}
+    </figcaption>
+  )}
+</figure>
+
+<style>
+  .ink-figure {
+    margin: 2rem 0;
+  }
+
+  .ink-figure-img {
+    width: 100%;
+    height: auto;
+    border-radius: var(--ink-radius);
+    display: block;
+  }
+
+  .ink-figure-caption {
+    margin-top: 0.625rem;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--ink-muted);
+    text-align: center;
+  }
+
+  .ink-figure-number {
+    font-family: var(--ink-font-mono);
+    font-weight: 600;
+    color: var(--ink-primary);
+    margin-right: 0.25rem;
+  }
+</style>

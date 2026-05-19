@@ -1,0 +1,63 @@
+---
+import Base from '../../layouts/Base.astro'
+import Header from '../../components/layout/Header.astro'
+import Footer from '../../components/layout/Footer.astro'
+import { safeGetCollection } from '../../lib/safe-content'
+
+const allLabs = await safeGetCollection('labs', (l) => l.data.status !== 'archived')
+const labs = allLabs.sort((a, b) => b.data.weight - a.data.weight)
+
+const statusColors: Record<string, string> = { shipped: 'var(--ink-accent)', experiment: 'var(--ink-primary)', prototype: 'var(--ink-secondary)' }
+---
+
+<Base title="Labs — Inkwell" description="What we build and experiment with. Open source tools, prototypes, and infrastructure.">
+  <Header />
+
+  <main class="page">
+    <div class="page-inner">
+      <h1 class="page-title">Labs</h1>
+      <p class="page-subtitle">What we build. Shipped tools, experiments, and prototypes from the organism.</p>
+
+      <div class="labs-grid">
+        {labs.map((lab) => (
+          <a href={`/labs/${lab.id}`} class="lab-card">
+            <div class="lab-header">
+              <span class="lab-status" style={`color: ${statusColors[lab.data.status] || 'var(--ink-muted)'}`}>{lab.data.status}</span>
+              {lab.data.repo && <span class="lab-repo">GitHub</span>}
+            </div>
+            <h2 class="lab-title">{lab.data.title}</h2>
+            <p class="lab-desc">{lab.data.description}</p>
+            {lab.data.role_in_ecosystem && (
+              <p class="lab-role">{lab.data.role_in_ecosystem}</p>
+            )}
+            <div class="lab-stack">
+              {lab.data.stack.map((tech) => (
+                <span class="lab-tech">{tech}</span>
+              ))}
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  </main>
+
+  <Footer />
+</Base>
+
+<style>
+  main { padding-top: 3.5rem; }
+  .page { max-width: var(--ink-page-width); margin: 0 auto; padding: 4rem 1.5rem; }
+  .page-title { font-family: var(--ink-font-display); font-size: 2.5rem; font-weight: 700; color: var(--ink-text); letter-spacing: -0.03em; margin-bottom: 0.5rem; }
+  .page-subtitle { color: var(--ink-muted); font-size: 1.125rem; margin-bottom: 3rem; }
+  .labs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
+  .lab-card { display: flex; flex-direction: column; gap: 0.75rem; padding: 1.5rem; background: var(--ink-surface); border: 1px solid var(--ink-border); border-radius: var(--ink-radius); text-decoration: none; transition: border-color 0.15s ease; }
+  .lab-card:hover { border-color: var(--ink-primary); }
+  .lab-header { display: flex; justify-content: space-between; align-items: center; }
+  .lab-status { font-family: var(--ink-font-mono); font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+  .lab-repo { font-family: var(--ink-font-mono); font-size: 0.6875rem; color: var(--ink-dim); }
+  .lab-title { font-family: var(--ink-font-display); font-size: 1.25rem; font-weight: 700; color: var(--ink-text); margin: 0; letter-spacing: -0.01em; }
+  .lab-desc { font-size: 0.875rem; color: var(--ink-muted); line-height: 1.5; margin: 0; }
+  .lab-role { font-size: 0.8125rem; color: var(--ink-primary); font-style: italic; margin: 0; }
+  .lab-stack { display: flex; flex-wrap: wrap; gap: 0.375rem; }
+  .lab-tech { font-family: var(--ink-font-mono); font-size: 0.6875rem; padding: 0.125rem 0.5rem; background: var(--ink-bg); border: 1px solid var(--ink-border); border-radius: calc(var(--ink-radius) - 2px); color: var(--ink-dim); }
+</style>

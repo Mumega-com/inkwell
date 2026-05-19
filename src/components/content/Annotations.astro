@@ -1,0 +1,124 @@
+---
+import type { Annotation } from '../../lib/annotations'
+
+interface Props {
+  slug: string
+  annotations: Annotation[]
+}
+
+const { annotations } = Astro.props
+
+const typeColors: Record<Annotation['type'], string> = {
+  correction: 'var(--ink-danger)',
+  addition: 'var(--ink-accent)',
+  question: 'var(--ink-secondary)',
+  endorsement: 'var(--ink-primary)',
+}
+---
+
+{annotations.length > 0 && (
+  <section class="annotations">
+    <h3 class="annotations-title">Annotations</h3>
+    <ul class="annotations-list">
+      {annotations.map((a) => (
+        <li class="annotation">
+          <span
+            class="annotation-badge"
+            style={`background: ${typeColors[a.type]}; color: var(--ink-bg)`}
+          >
+            {a.type}
+          </span>
+          <span class="annotation-author">
+            {a.author}
+            {a.verified && <span class="annotation-verified" title="Verified">&#10003;</span>}
+          </span>
+          <span class="annotation-date">{new Date(a.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+          <p class="annotation-text">{a.text}</p>
+        </li>
+      ))}
+    </ul>
+  </section>
+)}
+
+<style>
+  .annotations {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--ink-border);
+  }
+
+  .annotations-title {
+    font-family: var(--ink-font-display);
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--ink-text);
+    margin-bottom: 1rem;
+  }
+
+  .annotations-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .annotation {
+    display: grid;
+    grid-template-columns: auto auto 1fr;
+    grid-template-rows: auto auto;
+    gap: 0.25rem 0.5rem;
+    align-items: center;
+    padding: 1rem;
+    background: var(--ink-surface);
+    border: 1px solid var(--ink-border);
+    border-radius: var(--ink-radius);
+  }
+
+  .annotation-badge {
+    font-family: var(--ink-font-mono);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.125rem 0.5rem;
+    border-radius: 9999px;
+    grid-row: 1;
+    grid-column: 1;
+  }
+
+  .annotation-author {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--ink-text);
+    grid-row: 1;
+    grid-column: 2;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .annotation-verified {
+    color: var(--ink-primary);
+    font-size: 0.75rem;
+  }
+
+  .annotation-date {
+    font-family: var(--ink-font-mono);
+    font-size: 0.75rem;
+    color: var(--ink-dim);
+    grid-row: 1;
+    grid-column: 3;
+    justify-self: end;
+  }
+
+  .annotation-text {
+    font-size: 0.875rem;
+    color: var(--ink-muted);
+    line-height: 1.5;
+    margin: 0;
+    grid-row: 2;
+    grid-column: 1 / -1;
+  }
+</style>

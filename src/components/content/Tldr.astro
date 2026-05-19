@@ -1,0 +1,55 @@
+---
+
+---
+
+<aside class="ink-tldr" aria-label="Summary">
+  <span class="ink-tldr-label">TL;DR</span>
+  <div class="ink-tldr-content">
+    <slot />
+  </div>
+</aside>
+
+<style>
+  .ink-tldr {
+    background: var(--ink-surface);
+    border: 1px solid var(--ink-border);
+    border-radius: var(--ink-radius);
+    padding: 1.25rem 1.5rem;
+    margin: 1.5rem 0;
+  }
+
+  .ink-tldr-label {
+    display: inline-block;
+    font-family: var(--ink-font-mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-primary);
+    margin-bottom: 0.625rem;
+  }
+
+  .ink-tldr-content {
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: var(--ink-text);
+  }
+
+  .ink-tldr-content :global(p) {
+    margin: 0;
+  }
+
+  .ink-tldr-content :global(p + p) {
+    margin-top: 0.5rem;
+  }
+
+  .ink-tldr-content :global(ul),
+  .ink-tldr-content :global(ol) {
+    margin: 0.5rem 0 0;
+    padding-left: 1.25rem;
+  }
+
+  .ink-tldr-content :global(li) {
+    margin-bottom: 0.25rem;
+  }
+</style>

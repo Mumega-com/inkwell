@@ -1,0 +1,50 @@
+---
+import Base from '../../layouts/Base.astro'
+import Header from '../../components/layout/Header.astro'
+import Footer from '../../components/layout/Footer.astro'
+import { safeGetCollection } from '../../lib/safe-content'
+
+const allTopics = await safeGetCollection('topics', (t) => t.data.status !== 'archived')
+const topics = allTopics.sort((a, b) => b.data.weight - a.data.weight)
+---
+
+<Base title="Topics — Inkwell" description="Living knowledge hubs on the agentic economy, AI tools, and the future of work.">
+  <Header />
+
+  <main class="page">
+    <div class="page-inner">
+      <h1 class="page-title">Topics</h1>
+      <p class="page-subtitle">Living knowledge pages. Updated as we learn. Curated from the internet and our own experience.</p>
+
+      <div class="topic-grid">
+        {topics.map((topic) => (
+          <a href={`/topics/${topic.id}`} class="topic-card">
+            <div class="topic-status">{topic.data.status}</div>
+            <h2 class="topic-title">{topic.data.title}</h2>
+            <p class="topic-desc">{topic.data.description}</p>
+            <div class="topic-meta">
+              <span>{topic.data.sources.length} sources</span>
+              <span>{topic.data.voices.length} voices</span>
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  </main>
+
+  <Footer />
+</Base>
+
+<style>
+  main { padding-top: 3.5rem; }
+  .page { max-width: var(--ink-page-width); margin: 0 auto; padding: 4rem 1.5rem; }
+  .page-title { font-family: var(--ink-font-display); font-size: 2.5rem; font-weight: 700; color: var(--ink-text); letter-spacing: -0.03em; margin-bottom: 0.5rem; }
+  .page-subtitle { color: var(--ink-muted); font-size: 1.125rem; margin-bottom: 3rem; }
+  .topic-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
+  .topic-card { display: flex; flex-direction: column; gap: 0.75rem; padding: 1.5rem; background: var(--ink-surface); border: 1px solid var(--ink-border); border-radius: var(--ink-radius); text-decoration: none; transition: border-color 0.15s ease; }
+  .topic-card:hover { border-color: var(--ink-primary); }
+  .topic-status { font-family: var(--ink-font-mono); font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-primary); font-weight: 600; }
+  .topic-title { font-family: var(--ink-font-display); font-size: 1.25rem; font-weight: 700; color: var(--ink-text); margin: 0; letter-spacing: -0.01em; }
+  .topic-desc { font-size: 0.875rem; color: var(--ink-muted); line-height: 1.5; margin: 0; }
+  .topic-meta { display: flex; gap: 1rem; font-family: var(--ink-font-mono); font-size: 0.75rem; color: var(--ink-dim); }
+</style>

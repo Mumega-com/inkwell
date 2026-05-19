@@ -1,0 +1,12 @@
+{
+  "version": "1",
+  "tenant": "{{SLUG}}",
+  "workflows": [
+    {
+      "name": "{{SLUG}}-daily",
+      "schedule": "0 9 * * *",
+      "description": "Daily operations pulse for {{LABEL}}",
+      "steps": ["pulse", "journal", "report"]
+    }
+  ]
+}

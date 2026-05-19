@@ -1,0 +1,465 @@
+---
+import Base from '../../layouts/Base.astro'
+import Header from '../../components/layout/Header.astro'
+import Footer from '../../components/layout/Footer.astro'
+import JsonLd from '../../components/seo/JsonLd.astro'
+import { ReadingProgress } from '../../components/navigation/ReadingProgress'
+import { TOC } from '../../components/navigation/TOC'
+import { Reactions } from '../../components/engagement/Reactions'
+import { SocialProofBar } from '../../components/engagement/SocialProofBar'
+import { ShareButtons } from '../../components/engagement/ShareButtons'
+import { NewsletterCTA } from '../../components/engagement/NewsletterCTA'
+import { render } from 'astro:content'
+import { safeGetCollection } from '../../lib/safe-content'
+import { config } from '../../lib/config'
+import { getReadingTime } from '../../lib/reading-time'
+import { loadContentDirectory, resolveReferences } from '../../lib/content-directory'
+
+export async function getStaticPaths() {
+  const posts = await safeGetCollection('blog')
+  return posts.map((post) => ({
+    params: { id: post.id },
+    props: { post },
+  }))
+}
+
+const { post } = Astro.props
+const { Content } = await render(post)
+
+const readingTime = getReadingTime(post.body ?? '')
+const wordCount = (post.body ?? '').trim().split(/\s+/).length
+
+function formatDate(date: Date): string {
+  return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+}
+
+const canonicalUrl = `https://${config.domain}/blog/${post.id}`
+const hasWorkerApi = Boolean(config.workerUrl)
+const postTags = post.data.tags.filter((tag) => tag.toLowerCase() !== 'beta')
+
+const allPosts = await safeGetCollection('blog', (entry) => entry.data.status === 'published' && entry.id !== post.id)
+const related = allPosts
+  .filter((p) => {
+    const candidateTags = p.data.tags.filter((tag) => tag.toLowerCase() !== 'beta')
+    return candidateTags.some((tag) => postTags.includes(tag))
+  })
+  .sort((a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime())
+  .slice(0, 3)
+
+const directory = await loadContentDirectory()
+const relatedLinks = resolveReferences(post.data.related, directory)
+const connections = resolveReferences(post.data.connections, directory)
+
+const jsonLdContent = {
+  slug: `/blog/${post.id}`,
+  title: post.data.title,
+  type: 'blog' as const,
+  description: post.data.description,
+  author: post.data.author,
+  date: post.data.date.toISOString(),
+  tags: post.data.tags,
+  word_count: wordCount,
+}
+---
+
+<Base
+  title={post.data.title}
+  description={post.data.description}
+  type="article"
+  publishedTime={post.data.date.toISOString()}
+  author={post.data.author}
+>
+  <JsonLd content={jsonLdContent} />
+  {config.features.readingProgress && <ReadingProgress client:load />}
+  <Header />
+
+  <main class="post-page">
+    <div class="post-layout">
+      <article class="post-article">
+        {/* Header */}
+        <header class="post-header">
+          <h1 class="post-title">{post.data.title}</h1>
+          <div class="post-meta">
+            <span class="post-author">{post.data.author}</span>
+            <span class="post-sep">&middot;</span>
+            <time datetime={post.data.date.toISOString()} class="post-date">
+              {formatDate(new Date(post.data.date))}
+            </time>
+            <span class="post-sep">&middot;</span>
+            <span class="post-reading-time">{readingTime} min read</span>
+          </div>
+          <div class="post-tags">
+            {post.data.tags.map((tag) => (
+              <a href={`/tag/${tag}`} class="post-tag">{tag}</a>
+            ))}
+          </div>
+          {hasWorkerApi && (
+            <div class="post-social-proof">
+              <SocialProofBar slug={post.id} apiUrl={config.workerUrl} client:visible />
+            </div>
+          )}
+        </header>
+
+        {/* Body */}
+        <div class="ink-prose">
+          <Content />
+        </div>
+
+        {(relatedLinks.length > 0 || connections.length > 0) && (
+          <section class="post-link-sections">
+            {relatedLinks.length > 0 && (
+              <div class="post-link-group">
+                <h2 class="link-group-title">Related links</h2>
+                <div class="link-grid">
+                  {relatedLinks.map((link) => (
+                    <a href={link.href} class="link-card" target={link.external ? '_blank' : undefined} rel={link.external ? 'noopener noreferrer' : undefined}>
+                      <span class="link-kind">{link.label}</span>
+                      <h3 class="link-title">{link.title}</h3>
+                      {link.description && <p class="link-desc">{link.description}</p>}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {connections.length > 0 && (
+              <div class="post-link-group">
+                <h2 class="link-group-title">Connections</h2>
+                <div class="link-list">
+                  {connections.map((link) => (
+                    <a href={link.href} class="link-row" target={link.external ? '_blank' : undefined} rel={link.external ? 'noopener noreferrer' : undefined}>
+                      <span class="link-kind">{link.label}</span>
+                      <span class="link-title">{link.title}</span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* Engagement */}
+        <footer class="post-footer">
+          {config.features.reactions && hasWorkerApi && (
+            <Reactions slug={post.id} apiUrl={`${config.workerUrl}/api/reaction`} client:visible />
+          )}
+
+          <div class="post-share">
+            {config.features.shareButtons && <ShareButtons url={canonicalUrl} title={post.data.title} client:visible />}
+          </div>
+
+          {config.features.newsletter && hasWorkerApi && (
+            <div class="post-newsletter">
+              <h3 class="newsletter-title">Stay in the loop</h3>
+              <p class="newsletter-desc">Get dispatches from the network. No spam.</p>
+              <NewsletterCTA apiUrl={`${config.workerUrl}/api/subscribe`} client:visible />
+            </div>
+          )}
+        </footer>
+      </article>
+
+      <aside class="toc-sidebar">
+        <TOC client:load />
+      </aside>
+    </div>
+
+    {/* Related posts */}
+    {related.length > 0 && (
+      <section class="related">
+        <h2 class="related-title">Related posts</h2>
+        <div class="related-grid">
+          {related.map((rel) => (
+            <a href={`/blog/${rel.id}`} class="related-card">
+              <span class="related-date">{formatDate(new Date(rel.data.date))}</span>
+              <h3 class="related-post-title">{rel.data.title}</h3>
+              <span class="related-read">Read &rarr;</span>
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+  </main>
+
+  <Footer />
+</Base>
+
+<style>
+  main {
+    padding-top: 3.5rem;
+  }
+
+  .post-page {
+    max-width: var(--ink-page-width);
+    margin: 0 auto;
+    padding: 4rem 1.5rem;
+  }
+
+  .post-layout {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+  }
+
+  .post-article {
+    max-width: var(--ink-content-width);
+    min-width: 0;
+    flex: 1;
+  }
+
+  .toc-sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    padding-top: 3rem;
+  }
+
+  @media (max-width: 1024px) {
+    .toc-sidebar {
+      display: none;
+    }
+  }
+
+  /* Header */
+  .post-header {
+    margin-bottom: 3rem;
+  }
+
+  .post-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    margin-bottom: 1rem;
+  }
+
+  .post-tag {
+    font-family: var(--ink-font-mono);
+    font-size: 0.6875rem;
+    color: var(--ink-primary);
+    background: transparent;
+    padding: 0.125rem 0.5rem;
+    border-radius: 9999px;
+    border: 1px solid var(--ink-primary);
+  }
+
+  .post-title {
+    font-family: var(--ink-font-display);
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    color: var(--ink-text);
+    margin-bottom: 1rem;
+  }
+
+  .post-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--ink-muted);
+  }
+
+  .post-author {
+    font-weight: 600;
+    color: var(--ink-text);
+  }
+
+  .post-sep {
+    color: var(--ink-dim);
+  }
+
+  .post-date,
+  .post-reading-time {
+    font-family: var(--ink-font-mono);
+    font-size: 0.8125rem;
+  }
+
+  .post-social-proof {
+    margin-top: 0.5rem;
+  }
+
+  /* Footer */
+  .post-footer {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--ink-border);
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .post-share {
+    padding: 1rem 0;
+    border-top: 1px solid var(--ink-border);
+    border-bottom: 1px solid var(--ink-border);
+  }
+
+  .post-newsletter {
+    padding: 1.5rem 0;
+  }
+
+  .newsletter-title {
+    font-family: var(--ink-font-display);
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--ink-text);
+    margin-bottom: 0.25rem;
+  }
+
+  .newsletter-desc {
+    font-size: 0.875rem;
+    color: var(--ink-muted);
+    margin-bottom: 1rem;
+  }
+
+  /* Related */
+  .related {
+    max-width: var(--ink-content-width);
+    margin: 3rem auto 0;
+    padding-top: 2rem;
+    border-top: 1px solid var(--ink-border);
+  }
+
+  .related-title {
+    font-family: var(--ink-font-display);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--ink-text);
+    letter-spacing: -0.02em;
+    margin-bottom: 1.5rem;
+  }
+
+  .related-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  .related-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    padding: 1.25rem;
+    background: var(--ink-surface);
+    border: 1px solid var(--ink-border);
+    border-radius: var(--ink-radius);
+    text-decoration: none;
+    transition: border-color 0.15s ease;
+  }
+
+  .related-card:hover {
+    border-color: var(--ink-primary);
+  }
+
+  .related-date {
+    font-family: var(--ink-font-mono);
+    font-size: 0.6875rem;
+    color: var(--ink-dim);
+  }
+
+  .related-post-title {
+    font-family: var(--ink-font-display);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink-text);
+    line-height: 1.3;
+    margin: 0;
+  }
+
+  .related-read {
+    font-family: var(--ink-font-mono);
+    font-size: 0.6875rem;
+    color: var(--ink-primary);
+    margin-top: auto;
+  }
+
+  .post-link-sections {
+    margin-top: 3rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .post-link-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--ink-border);
+  }
+
+  .link-group-title {
+    font-family: var(--ink-font-display);
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--ink-text);
+    letter-spacing: -0.02em;
+  }
+
+  .link-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+
+  .link-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .link-card,
+  .link-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 1rem 1.1rem;
+    background: var(--ink-surface);
+    border: 1px solid var(--ink-border);
+    border-radius: var(--ink-radius);
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.15s ease, transform 0.15s ease;
+  }
+
+  .link-row {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 0.75rem;
+  }
+
+  .link-card:hover,
+  .link-row:hover {
+    border-color: var(--ink-primary);
+    transform: translateY(-1px);
+  }
+
+  .link-kind {
+    font-family: var(--ink-font-mono);
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-primary);
+    font-weight: 600;
+  }
+
+  .link-title {
+    font-family: var(--ink-font-display);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink-text);
+    margin: 0;
+  }
+
+  .link-desc {
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: var(--ink-muted);
+    margin: 0;
+  }
+
+  @media (max-width: 768px) {
+    .related-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

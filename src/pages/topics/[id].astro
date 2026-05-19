@@ -1,0 +1,163 @@
+---
+import Base from '../../layouts/Base.astro'
+import Header from '../../components/layout/Header.astro'
+import Footer from '../../components/layout/Footer.astro'
+import { render } from 'astro:content'
+import { safeGetCollection } from '../../lib/safe-content'
+
+export async function getStaticPaths() {
+  const topics = await safeGetCollection('topics')
+  return topics.map((topic) => ({ params: { id: topic.id }, props: { topic } }))
+}
+
+const { topic } = Astro.props
+const { Content } = await render(topic)
+
+const allPosts = await safeGetCollection('blog', (p) => p.data.status === 'published' && p.data.topic === topic.id)
+const relatedPosts = allPosts.sort((a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime()).slice(0, 5)
+
+const platformIcons: Record<string, string> = { youtube: 'YT', x: 'X', tiktok: 'TT', article: 'ART', paper: 'PDF', github: 'GH', podcast: 'POD' }
+---
+
+<Base title={`${topic.data.title} — Inkwell Topics`} description={topic.data.description}>
+  <Header />
+
+  <main class="page">
+    <div class="page-inner">
+      <div class="topic-header">
+        <span class="topic-status">{topic.data.status}</span>
+        <h1 class="topic-title">{topic.data.title}</h1>
+        <p class="topic-desc">{topic.data.description}</p>
+        {topic.data.tags.length > 0 && (
+          <div class="topic-tags">
+            {topic.data.tags.map((tag) => (
+              <a href={`/tag/${tag}`} class="topic-tag">#{tag}</a>
+            ))}
+          </div>
+        )}
+        <span class="topic-updated">Last updated: {topic.data.updated.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+      </div>
+
+      {topic.data.our_take && (
+        <div class="our-take">
+          <span class="our-take-label">Our take</span>
+          <p>{topic.data.our_take}</p>
+        </div>
+      )}
+
+      <div class="topic-content ink-prose">
+        <Content />
+      </div>
+
+      {topic.data.weekly_updates.length > 0 && (
+        <section class="topic-section">
+          <h2 class="section-title">Weekly updates</h2>
+          <div class="updates-list">
+            {topic.data.weekly_updates.map((update) => (
+              <article class="update-card">
+                <div class="update-meta">
+                  {update.title && <span class="update-title">{update.title}</span>}
+                  {update.date && <span class="update-date">{update.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>}
+                </div>
+                <p class="update-summary">{update.summary}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {topic.data.voices.length > 0 && (
+        <section class="topic-section">
+          <h2 class="section-title">Key Voices</h2>
+          <div class="voices-grid">
+            {topic.data.voices.map((voice) => (
+              <div class="voice-card">
+                <span class="voice-name">{voice.name}</span>
+                {voice.role && <span class="voice-role">{voice.role}</span>}
+                {voice.platform && <span class="voice-platform">{voice.platform}</span>}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {topic.data.sources.length > 0 && (
+        <section class="topic-section">
+          <h2 class="section-title">Sources</h2>
+          <div class="sources-list">
+            {topic.data.sources.map((source) => (
+              <a href={source.url} target="_blank" rel="noopener noreferrer" class="source-card">
+                <span class="source-platform">{platformIcons[source.platform] || source.platform}</span>
+                <div class="source-info">
+                  <span class="source-title">{source.title}</span>
+                  {source.author && <span class="source-author">{source.author}</span>}
+                  {source.summary && <span class="source-summary">{source.summary}</span>}
+                </div>
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {relatedPosts.length > 0 && (
+        <section class="topic-section">
+          <h2 class="section-title">From Our Experience</h2>
+          <div class="posts-list">
+            {relatedPosts.map((post) => (
+              <a href={`/blog/${post.id}`} class="post-link">
+                <span class="post-date">{new Date(post.data.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                <span class="post-title">{post.data.title}</span>
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
+    </div>
+  </main>
+
+  <Footer />
+</Base>
+
+<style>
+  main { padding-top: 3.5rem; }
+  .page { max-width: var(--ink-page-width); margin: 0 auto; padding: 4rem 1.5rem; }
+  .page-inner { max-width: var(--ink-content-width); margin: 0 auto; }
+  .topic-header { margin-bottom: 2rem; }
+  .topic-status { font-family: var(--ink-font-mono); font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-primary); font-weight: 600; }
+  .topic-title { font-family: var(--ink-font-display); font-size: 2.5rem; font-weight: 700; color: var(--ink-text); letter-spacing: -0.03em; margin: 0.5rem 0; }
+  .topic-desc { color: var(--ink-muted); font-size: 1.125rem; line-height: 1.6; margin: 0; }
+  .topic-tags { display: flex; flex-wrap: wrap; gap: 0.375rem; margin: 1rem 0 0.5rem; }
+  .topic-tag { font-family: var(--ink-font-mono); font-size: 0.6875rem; color: var(--ink-primary); padding: 0.125rem 0.5rem; border: 1px solid var(--ink-primary); border-radius: 9999px; text-decoration: none; }
+  .topic-tag:hover { background: color-mix(in srgb, var(--ink-primary) 8%, var(--ink-surface)); }
+  .topic-updated { font-family: var(--ink-font-mono); font-size: 0.75rem; color: var(--ink-dim); }
+  .our-take { padding: 1.5rem; background: color-mix(in srgb, var(--ink-primary) 8%, var(--ink-surface)); border: 1px solid color-mix(in srgb, var(--ink-primary) 20%, var(--ink-border)); border-radius: var(--ink-radius); margin-bottom: 2rem; }
+  .our-take-label { font-family: var(--ink-font-mono); font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-primary); font-weight: 600; }
+  .our-take p { color: var(--ink-text); font-size: 1rem; line-height: 1.6; margin: 0.5rem 0 0; }
+  .topic-content { margin-bottom: 3rem; }
+  .topic-section { margin-bottom: 3rem; }
+  .section-title { font-family: var(--ink-font-display); font-size: 1.5rem; font-weight: 700; color: var(--ink-text); letter-spacing: -0.02em; margin-bottom: 1rem; }
+  .updates-list { display: flex; flex-direction: column; gap: 0.75rem; }
+  .update-card { padding: 1rem 1.25rem; background: var(--ink-surface); border: 1px solid var(--ink-border); border-radius: var(--ink-radius); }
+  .update-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem; margin-bottom: 0.35rem; }
+  .update-title { font-family: var(--ink-font-display); font-size: 1rem; font-weight: 700; color: var(--ink-text); }
+  .update-date { font-family: var(--ink-font-mono); font-size: 0.6875rem; color: var(--ink-dim); }
+  .update-summary { margin: 0; font-size: 0.9375rem; line-height: 1.6; color: var(--ink-muted); }
+  .voices-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
+  .voice-card { display: flex; flex-direction: column; gap: 0.25rem; padding: 1rem; background: var(--ink-surface); border: 1px solid var(--ink-border); border-radius: var(--ink-radius); }
+  .voice-name { font-weight: 600; color: var(--ink-text); font-size: 0.9375rem; }
+  .voice-role { font-size: 0.8125rem; color: var(--ink-muted); }
+  .voice-platform { font-family: var(--ink-font-mono); font-size: 0.6875rem; color: var(--ink-dim); }
+  .sources-list { display: flex; flex-direction: column; gap: 0.75rem; }
+  .source-card { display: flex; gap: 1rem; padding: 1rem; background: var(--ink-surface); border: 1px solid var(--ink-border); border-radius: var(--ink-radius); text-decoration: none; transition: border-color 0.15s ease; }
+  .source-card:hover { border-color: var(--ink-primary); }
+  .source-platform { font-family: var(--ink-font-mono); font-size: 0.6875rem; font-weight: 700; color: var(--ink-primary); min-width: 2rem; padding-top: 0.125rem; }
+  .source-info { display: flex; flex-direction: column; gap: 0.25rem; }
+  .source-title { font-weight: 600; color: var(--ink-text); font-size: 0.9375rem; }
+  .source-author { font-size: 0.8125rem; color: var(--ink-muted); }
+  .source-summary { font-size: 0.8125rem; color: var(--ink-dim); line-height: 1.4; }
+  .posts-list { display: flex; flex-direction: column; gap: 0.5rem; }
+  .post-link { display: flex; gap: 1rem; align-items: baseline; padding: 0.75rem 1rem; background: var(--ink-surface); border: 1px solid var(--ink-border); border-radius: var(--ink-radius); text-decoration: none; transition: border-color 0.15s ease; }
+  .post-link:hover { border-color: var(--ink-primary); }
+  .post-date { font-family: var(--ink-font-mono); font-size: 0.75rem; color: var(--ink-dim); min-width: 4rem; }
+  .post-title { font-weight: 600; color: var(--ink-text); font-size: 0.9375rem; }
+</style>

@@ -1,0 +1,6 @@
+{
+  "version": "1",
+  "tiles": [
+    { "id": "example-health", "title": "Health — placeholder until sos init Step F runs" }
+  ]
+}

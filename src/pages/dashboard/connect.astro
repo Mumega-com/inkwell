@@ -1,0 +1,8 @@
+---
+import Dashboard from '../../layouts/Dashboard.astro'
+import { ConnectPanel } from '../../../plugins/dashboard/components/ConnectPanel'
+---
+
+<Dashboard title="Connect" active="connect">
+  <ConnectPanel client:load />
+</Dashboard>

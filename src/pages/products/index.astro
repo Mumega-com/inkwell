@@ -1,0 +1,52 @@
+---
+import Base from '../../layouts/Base.astro'
+import Header from '../../components/layout/Header.astro'
+import Footer from '../../components/layout/Footer.astro'
+import { safeGetCollection } from '../../lib/safe-content'
+
+const allProducts = await safeGetCollection('products', (p) => p.data.status !== 'discontinued')
+const products = allProducts.sort((a, b) => b.data.weight - a.data.weight)
+---
+
+<Base title="Products — Inkwell" description="Tools and services you can use today.">
+  <Header />
+
+  <main class="page">
+    <div class="page-inner">
+      <h1 class="page-title">Products</h1>
+      <p class="page-subtitle">Tools and services built by the organism. Available on marketplaces or direct.</p>
+
+      <div class="products-grid">
+        {products.map((product) => (
+          <a href={`/products/${product.id}`} class="product-card">
+            <div class="product-header">
+              {product.data.marketplace && <span class="product-marketplace">{product.data.marketplace}</span>}
+              {product.data.price && <span class="product-price">{product.data.price}</span>}
+            </div>
+            <h2 class="product-title">{product.data.title}</h2>
+            <p class="product-desc">{product.data.description}</p>
+            <span class="product-status">{product.data.status}</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </main>
+
+  <Footer />
+</Base>
+
+<style>
+  main { padding-top: 3.5rem; }
+  .page { max-width: var(--ink-page-width); margin: 0 auto; padding: 4rem 1.5rem; }
+  .page-title { font-family: var(--ink-font-display); font-size: 2.5rem; font-weight: 700; color: var(--ink-text); letter-spacing: -0.03em; margin-bottom: 0.5rem; }
+  .page-subtitle { color: var(--ink-muted); font-size: 1.125rem; margin-bottom: 3rem; }
+  .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
+  .product-card { display: flex; flex-direction: column; gap: 0.75rem; padding: 1.5rem; background: var(--ink-surface); border: 1px solid var(--ink-border); border-radius: var(--ink-radius); text-decoration: none; transition: border-color 0.15s ease; }
+  .product-card:hover { border-color: var(--ink-primary); }
+  .product-header { display: flex; justify-content: space-between; align-items: center; }
+  .product-marketplace { font-family: var(--ink-font-mono); font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-secondary); font-weight: 600; }
+  .product-price { font-family: var(--ink-font-display); font-size: 1.125rem; font-weight: 700; color: var(--ink-primary); }
+  .product-title { font-family: var(--ink-font-display); font-size: 1.25rem; font-weight: 700; color: var(--ink-text); margin: 0; letter-spacing: -0.01em; }
+  .product-desc { font-size: 0.875rem; color: var(--ink-muted); line-height: 1.5; margin: 0; }
+  .product-status { font-family: var(--ink-font-mono); font-size: 0.6875rem; color: var(--ink-accent); text-transform: uppercase; letter-spacing: 0.08em; }
+</style>

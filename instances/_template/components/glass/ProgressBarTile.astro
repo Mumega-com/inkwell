@@ -1,0 +1,83 @@
+---
+interface Props {
+  title: string
+  current: number
+  target: number
+  unit: string
+}
+
+const { title, current, target, unit } = Astro.props
+
+const pct = target > 0 ? Math.min(100, Math.round((current / target) * 100)) : 0
+---
+
+<div class="glass-tile glass-tile--progress">
+  <span class="glass-tile-title">{title}</span>
+  <div class="glass-progress-nums">
+    <span class="glass-progress-current">{current.toLocaleString()} {unit}</span>
+    <span class="glass-progress-target">of {target.toLocaleString()} {unit}</span>
+  </div>
+  <div class="glass-bar-track" role="progressbar" aria-valuenow={current} aria-valuemin={0} aria-valuemax={target}>
+    <div class="glass-bar-fill" style={`width: ${pct}%`}></div>
+  </div>
+  <div class="glass-progress-pct">{pct}%</div>
+</div>
+
+<style>
+  .glass-tile {
+    background: var(--ink-surface);
+    border: 1px solid var(--ink-border);
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .glass-tile-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-muted);
+  }
+
+  .glass-progress-nums {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+  }
+
+  .glass-progress-current {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--ink-text);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .glass-progress-target {
+    font-size: 0.82rem;
+    color: var(--ink-muted);
+  }
+
+  .glass-bar-track {
+    height: 8px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .glass-bar-fill {
+    height: 100%;
+    background: var(--ink-primary);
+    border-radius: 999px;
+    transition: width 0.4s ease;
+    min-width: 2px;
+  }
+
+  .glass-progress-pct {
+    font-size: 0.78rem;
+    color: var(--ink-muted);
+    text-align: right;
+  }
+</style>

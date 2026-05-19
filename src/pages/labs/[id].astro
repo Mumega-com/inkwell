@@ -1,0 +1,67 @@
+---
+import Base from '../../layouts/Base.astro'
+import Header from '../../components/layout/Header.astro'
+import Footer from '../../components/layout/Footer.astro'
+import { render } from 'astro:content'
+import { safeGetCollection } from '../../lib/safe-content'
+
+export async function getStaticPaths() {
+  const labs = await safeGetCollection('labs')
+  return labs.map((lab) => ({ params: { id: lab.id }, props: { lab } }))
+}
+
+const { lab } = Astro.props
+const { Content } = await render(lab)
+---
+
+<Base title={`${lab.data.title} — Inkwell Labs`} description={lab.data.description}>
+  <Header />
+
+  <main class="page">
+    <div class="page-inner">
+      <div class="lab-header">
+        <span class="lab-status">{lab.data.status}</span>
+        <h1>{lab.data.title}</h1>
+        <p class="lab-desc">{lab.data.description}</p>
+        {lab.data.role_in_ecosystem && <p class="lab-role">{lab.data.role_in_ecosystem}</p>}
+        {lab.data.tags.length > 0 && (
+          <div class="lab-tags">
+            {lab.data.tags.map((tag) => (
+              <a href={`/tag/${tag}`} class="lab-tag">#{tag}</a>
+            ))}
+          </div>
+        )}
+        <div class="lab-meta">
+          {lab.data.repo && <a href={lab.data.repo} target="_blank" rel="noopener noreferrer" class="lab-link">GitHub</a>}
+          <div class="lab-stack">
+            {lab.data.stack.map((tech) => <span class="lab-tech">{tech}</span>)}
+          </div>
+        </div>
+      </div>
+      <div class="ink-prose">
+        <Content />
+      </div>
+    </div>
+  </main>
+
+  <Footer />
+</Base>
+
+<style>
+  main { padding-top: 3.5rem; }
+  .page { max-width: var(--ink-page-width); margin: 0 auto; padding: 4rem 1.5rem; }
+  .page-inner { max-width: var(--ink-content-width); margin: 0 auto; }
+  .lab-header { margin-bottom: 2rem; }
+  .lab-status { font-family: var(--ink-font-mono); font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-primary); font-weight: 600; }
+  h1 { font-family: var(--ink-font-display); font-size: 2.5rem; font-weight: 700; color: var(--ink-text); letter-spacing: -0.03em; margin: 0.5rem 0; }
+  .lab-desc { color: var(--ink-muted); font-size: 1.125rem; line-height: 1.6; margin: 0 0 0.5rem; }
+  .lab-role { font-size: 0.9375rem; color: var(--ink-primary); font-style: italic; margin: 0 0 1rem; }
+  .lab-tags { display: flex; flex-wrap: wrap; gap: 0.375rem; margin-bottom: 1rem; }
+  .lab-tag { font-family: var(--ink-font-mono); font-size: 0.6875rem; color: var(--ink-primary); padding: 0.125rem 0.5rem; border-radius: 9999px; border: 1px solid var(--ink-primary); text-decoration: none; }
+  .lab-tag:hover { background: color-mix(in srgb, var(--ink-primary) 8%, var(--ink-surface)); }
+  .lab-meta { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+  .lab-link { font-family: var(--ink-font-mono); font-size: 0.8125rem; color: var(--ink-primary); text-decoration: none; font-weight: 600; }
+  .lab-link:hover { text-decoration: underline; }
+  .lab-stack { display: flex; flex-wrap: wrap; gap: 0.375rem; }
+  .lab-tech { font-family: var(--ink-font-mono); font-size: 0.6875rem; padding: 0.125rem 0.5rem; background: var(--ink-surface); border: 1px solid var(--ink-border); border-radius: calc(var(--ink-radius) - 2px); color: var(--ink-dim); }
+</style>

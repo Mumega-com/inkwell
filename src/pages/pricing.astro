@@ -1,0 +1,538 @@
+---
+import Base from '../layouts/Base.astro'
+import Header from '../components/layout/Header.astro'
+import Footer from '../components/layout/Footer.astro'
+import { config } from '../lib/config'
+
+const plans = [
+  {
+    id: 'seo',
+    name: 'SEO Only',
+    price: '$500',
+    period: '/mo',
+    tagline: 'Get found. Grow organically.',
+    features: [
+      'MumCP AI content engine',
+      'Google Search Console integration',
+      'Weekly content publishing',
+      'Technical SEO audits',
+      'Monthly performance reports',
+    ],
+    cta: 'Start SEO',
+    highlight: false,
+  },
+  {
+    id: 'seo-ads',
+    name: 'SEO + Ads',
+    price: '$1,000',
+    period: '/mo',
+    tagline: 'Organic + paid working together.',
+    features: [
+      'Everything in SEO Only',
+      'Google Ads management',
+      'Meta (Facebook + Instagram) Ads',
+      'Lead tracking & attribution',
+      'A/B ad copy testing',
+    ],
+    cta: 'Start SEO + Ads',
+    highlight: true,
+  },
+  {
+    id: 'full',
+    name: 'Full Service',
+    price: '$1,500',
+    period: '/mo',
+    tagline: 'Your AI-powered marketing team.',
+    features: [
+      'Everything in SEO + Ads',
+      'Client portal + dashboard',
+      'Telegram daily briefings',
+      'Dedicated agent team',
+      'Priority support',
+    ],
+    cta: 'Get Full Service',
+    highlight: false,
+  },
+]
+---
+
+<Base
+  title={`Pricing — ${config.name}`}
+  description="Three transparent plans. AI-powered SEO, ads, and full-service growth for businesses that want results."
+>
+  <Header />
+
+  <main class="pricing-page">
+    <div class="pricing-header">
+      <p class="pricing-eyebrow">Pricing</p>
+      <h1>Simple, transparent plans</h1>
+      <p class="pricing-subtitle">
+        AI agents do the work. You see the results. Cancel anytime.
+      </p>
+    </div>
+
+    <div class="pricing-grid">
+      {plans.map((plan) => (
+        <div class={`plan-card${plan.highlight ? ' plan-card--highlight' : ''}`}>
+          {plan.highlight && <span class="plan-badge">Most Popular</span>}
+          <div class="plan-header">
+            <h2 class="plan-name">{plan.name}</h2>
+            <p class="plan-tagline">{plan.tagline}</p>
+          </div>
+          <div class="plan-price">
+            <span class="plan-amount">{plan.price}</span>
+            <span class="plan-period">{plan.period}</span>
+          </div>
+          <ul class="plan-features">
+            {plan.features.map((f) => (
+              <li>
+                <span class="plan-check" aria-hidden="true">✓</span>
+                {f}
+              </li>
+            ))}
+          </ul>
+          <button
+            class="plan-cta"
+            data-plan={plan.id}
+            onclick={`handleCheckout('${plan.id}', this)`}
+          >
+            {plan.cta}
+          </button>
+        </div>
+      ))}
+    </div>
+
+    <p class="pricing-note">
+      All plans include onboarding. No contracts. Cancel or upgrade anytime.
+    </p>
+  </main>
+
+  <Footer />
+</Base>
+
+<div id="checkout-modal" class="checkout-modal" aria-hidden="true">
+  <div class="checkout-modal-inner">
+    <h3>Get started</h3>
+    <p class="checkout-modal-sub">Enter your email to continue to checkout.</p>
+    <input
+      type="email"
+      id="checkout-email"
+      class="checkout-input"
+      placeholder="your@email.com"
+      autocomplete="email"
+    />
+    <input
+      type="text"
+      id="checkout-name"
+      class="checkout-input"
+      placeholder="Your name (optional)"
+      autocomplete="name"
+    />
+    <div class="checkout-modal-actions">
+      <button class="checkout-submit" id="checkout-submit-btn" onclick="submitCheckout()">
+        Continue to Checkout
+      </button>
+      <button class="checkout-cancel" onclick="closeCheckoutModal()">Cancel</button>
+    </div>
+    <p id="checkout-error" class="checkout-error" aria-live="polite"></p>
+  </div>
+</div>
+
+<script is:inline>
+  let selectedPlan = null
+  let selectedButton = null
+
+  function handleCheckout(plan, btn) {
+    selectedPlan = plan
+    selectedButton = btn
+    document.getElementById('checkout-email').value = ''
+    document.getElementById('checkout-name').value = ''
+    document.getElementById('checkout-error').textContent = ''
+    const modal = document.getElementById('checkout-modal')
+    modal.setAttribute('aria-hidden', 'false')
+    modal.classList.add('checkout-modal--open')
+    setTimeout(() => document.getElementById('checkout-email').focus(), 50)
+  }
+
+  function closeCheckoutModal() {
+    const modal = document.getElementById('checkout-modal')
+    modal.setAttribute('aria-hidden', 'true')
+    modal.classList.remove('checkout-modal--open')
+    selectedPlan = null
+    if (selectedButton) {
+      selectedButton.disabled = false
+      selectedButton.textContent = selectedButton.dataset.originalText || selectedButton.textContent
+    }
+    selectedButton = null
+  }
+
+  async function submitCheckout() {
+    if (!selectedPlan) return
+
+    const email = document.getElementById('checkout-email').value.trim()
+    const customerName = document.getElementById('checkout-name').value.trim()
+    const errorEl = document.getElementById('checkout-error')
+    const submitBtn = document.getElementById('checkout-submit-btn')
+
+    if (!email || !email.includes('@')) {
+      errorEl.textContent = 'Please enter a valid email address.'
+      return
+    }
+
+    submitBtn.disabled = true
+    submitBtn.textContent = 'Redirecting...'
+    errorEl.textContent = ''
+
+    try {
+      const res = await fetch('/api/payments/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          plan: selectedPlan,
+          email,
+          ...(customerName ? { customerName } : {}),
+        }),
+      })
+
+      const data = await res.json()
+
+      if (data.success && data.url) {
+        window.location.href = data.url
+      } else {
+        errorEl.textContent = 'Something went wrong. Please try again.'
+        submitBtn.disabled = false
+        submitBtn.textContent = 'Continue to Checkout'
+      }
+    } catch {
+      errorEl.textContent = 'Network error. Please check your connection and try again.'
+      submitBtn.disabled = false
+      submitBtn.textContent = 'Continue to Checkout'
+    }
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeCheckoutModal()
+    if (e.key === 'Enter') {
+      const modal = document.getElementById('checkout-modal')
+      if (modal.classList.contains('checkout-modal--open')) submitCheckout()
+    }
+  })
+
+  document.getElementById('checkout-modal').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) closeCheckoutModal()
+  })
+</script>
+
+<style>
+  .pricing-page {
+    max-width: var(--ink-page-width);
+    margin: 0 auto;
+    padding: 5rem 1.5rem 4rem;
+  }
+
+  .pricing-header {
+    text-align: center;
+    margin-bottom: 3.5rem;
+  }
+
+  .pricing-eyebrow {
+    font-family: var(--ink-font-mono);
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-primary);
+    font-weight: 600;
+    margin: 0 0 0.75rem;
+  }
+
+  .pricing-header h1 {
+    font-family: var(--ink-font-display);
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 700;
+    color: var(--ink-text);
+    letter-spacing: -0.03em;
+    margin: 0 0 1rem;
+  }
+
+  .pricing-subtitle {
+    color: var(--ink-muted);
+    font-size: 1.125rem;
+    line-height: 1.6;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  .plan-card {
+    position: relative;
+    background: var(--ink-surface);
+    border: 1px solid var(--ink-border);
+    border-radius: 12px;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .plan-card:hover {
+    border-color: var(--ink-primary);
+    box-shadow: 0 0 0 1px var(--ink-primary);
+  }
+
+  .plan-card--highlight {
+    border-color: var(--ink-primary);
+    box-shadow: 0 0 0 1px var(--ink-primary);
+  }
+
+  .plan-badge {
+    position: absolute;
+    top: -0.75rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--ink-primary);
+    color: var(--ink-bg);
+    font-family: var(--ink-font-mono);
+    font-size: 0.625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  .plan-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+
+  .plan-name {
+    font-family: var(--ink-font-display);
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--ink-text);
+    margin: 0;
+  }
+
+  .plan-tagline {
+    color: var(--ink-muted);
+    font-size: 0.875rem;
+    line-height: 1.5;
+    margin: 0;
+  }
+
+  .plan-price {
+    display: flex;
+    align-items: baseline;
+    gap: 0.25rem;
+  }
+
+  .plan-amount {
+    font-family: var(--ink-font-display);
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: var(--ink-text);
+    letter-spacing: -0.04em;
+  }
+
+  .plan-period {
+    color: var(--ink-dim);
+    font-size: 0.875rem;
+  }
+
+  .plan-features {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+    flex: 1;
+  }
+
+  .plan-features li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.625rem;
+    font-size: 0.9375rem;
+    color: var(--ink-muted);
+    line-height: 1.5;
+  }
+
+  .plan-check {
+    color: var(--ink-primary);
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 0.2em;
+  }
+
+  .plan-cta {
+    display: block;
+    width: 100%;
+    padding: 0.75rem 1.25rem;
+    background: var(--ink-primary);
+    color: var(--ink-bg);
+    border: none;
+    border-radius: 8px;
+    font-family: var(--ink-font-sans);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: opacity 0.15s ease;
+  }
+
+  .plan-cta:hover {
+    opacity: 0.88;
+  }
+
+  .plan-cta:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .pricing-note {
+    text-align: center;
+    color: var(--ink-dim);
+    font-size: 0.875rem;
+    margin-top: 2.5rem;
+  }
+
+  /* Modal */
+  .checkout-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.72);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+  }
+
+  .checkout-modal--open {
+    display: flex;
+  }
+
+  .checkout-modal-inner {
+    background: var(--ink-surface);
+    border: 1px solid var(--ink-border);
+    border-radius: 12px;
+    padding: 2rem;
+    width: 100%;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .checkout-modal-inner h3 {
+    font-family: var(--ink-font-display);
+    font-size: 1.375rem;
+    font-weight: 700;
+    color: var(--ink-text);
+    margin: 0;
+  }
+
+  .checkout-modal-sub {
+    color: var(--ink-muted);
+    font-size: 0.9375rem;
+    margin: -0.25rem 0 0;
+  }
+
+  .checkout-input {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    background: var(--ink-bg);
+    border: 1px solid var(--ink-border);
+    border-radius: 8px;
+    color: var(--ink-text);
+    font-family: var(--ink-font-sans);
+    font-size: 0.9375rem;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.15s ease;
+  }
+
+  .checkout-input:focus {
+    border-color: var(--ink-primary);
+  }
+
+  .checkout-input::placeholder {
+    color: var(--ink-dim);
+  }
+
+  .checkout-modal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .checkout-submit {
+    width: 100%;
+    padding: 0.75rem 1.25rem;
+    background: var(--ink-primary);
+    color: var(--ink-bg);
+    border: none;
+    border-radius: 8px;
+    font-family: var(--ink-font-sans);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+  }
+
+  .checkout-submit:hover {
+    opacity: 0.88;
+  }
+
+  .checkout-submit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .checkout-cancel {
+    width: 100%;
+    padding: 0.625rem;
+    background: transparent;
+    color: var(--ink-muted);
+    border: 1px solid var(--ink-border);
+    border-radius: 8px;
+    font-family: var(--ink-font-sans);
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease;
+  }
+
+  .checkout-cancel:hover {
+    border-color: var(--ink-text);
+    color: var(--ink-text);
+  }
+
+  .checkout-error {
+    color: #f87171;
+    font-size: 0.875rem;
+    min-height: 1.25rem;
+    margin: -0.25rem 0 0;
+  }
+
+  @media (max-width: 640px) {
+    .pricing-page {
+      padding-top: 4rem;
+    }
+
+    .pricing-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

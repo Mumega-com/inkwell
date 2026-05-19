@@ -1,0 +1,59 @@
+---
+/**
+ * LanguageSwitcher — shows language options when multiple languages are configured.
+ * Renders nothing when only one language is available (current state).
+ *
+ * When adding a new language:
+ * 1. Add the locale to inkwell.config.ts i18n.languages and astro.config.mjs i18n.locales
+ * 2. Create content under content/{locale}/
+ * 3. This component will automatically show the switcher
+ */
+import { config } from '../../lib/config'
+
+const languages = config.i18n.languages
+const currentLang = Astro.currentLocale ?? config.i18n.defaultLang
+const showSwitcher = languages.length > 1
+---
+
+{showSwitcher && (
+  <nav class="lang-switcher" aria-label="Language switcher">
+    {languages.map((lang) => (
+      <a
+        href={lang === config.i18n.defaultLang ? Astro.url.pathname : `/${lang}${Astro.url.pathname}`}
+        class:list={['lang-link', { active: lang === currentLang }]}
+        lang={lang}
+        hreflang={lang}
+      >
+        {lang.toUpperCase()}
+      </a>
+    ))}
+  </nav>
+)}
+
+<style>
+  .lang-switcher {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .lang-link {
+    font-family: var(--ink-font-mono);
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--ink-radius);
+    color: var(--ink-muted);
+    text-decoration: none;
+    transition: color 0.15s ease, background 0.15s ease;
+  }
+
+  .lang-link:hover {
+    color: var(--ink-text);
+    background: var(--ink-border);
+  }
+
+  .lang-link.active {
+    color: var(--ink-primary);
+    font-weight: 600;
+  }
+</style>

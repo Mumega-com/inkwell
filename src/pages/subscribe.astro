@@ -1,0 +1,47 @@
+---
+import Base from '../layouts/Base.astro'
+import Header from '../components/layout/Header.astro'
+import Footer from '../components/layout/Footer.astro'
+import { render } from 'astro:content'
+import { safeGetEntry } from '../lib/safe-content'
+
+const page = await safeGetEntry('pages', 'subscribe')
+const fallback = {
+  title: 'Subscribe',
+  description: 'Add your newsletter or audience capture flow here.',
+}
+const rendered = page ? await render(page) : null
+const Content = rendered?.Content
+const title = page?.data.title ?? fallback.title
+const description = page?.data.description ?? fallback.description
+---
+
+<Base title={title} description={description}>
+  <Header />
+
+  <main class="page">
+    <article class="page-inner ink-prose">
+      <h1>{title}</h1>
+      {Content ? <Content /> : <p>{description}</p>}
+    </article>
+  </main>
+
+  <Footer />
+</Base>
+
+<style>
+  main {
+    padding-top: 3.5rem;
+  }
+
+  .page {
+    max-width: var(--ink-page-width);
+    margin: 0 auto;
+    padding: 4rem 1.5rem;
+  }
+
+  .page-inner {
+    max-width: var(--ink-content-width);
+    margin: 0 auto;
+  }
+</style>

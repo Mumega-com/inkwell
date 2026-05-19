@@ -1,0 +1,74 @@
+# ⚠️ Replace all YOUR_* values with your own Cloudflare resources
+# See FORK-GUIDE.md for setup instructions
+name = "inkwell-api"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+account_id = "00000000000000000000000000000000"
+
+[vars]
+# Set to your domain
+SITE_URL = "https://example.com"
+# SaaS origin for tenant resolution (subdomains → tenant config)
+SOS_SAAS_URL = ""
+# SOS_BUS_URL, INKWELL_MCP_TOKEN, and GOOGLE_CREDENTIALS are set via wrangler secrets (not vars)
+# DataForSEO — optional, enables real keyword research in CampaignWorkflow
+DATAFORSEO_LOGIN = ""
+DATAFORSEO_PASSWORD = ""
+# Google Analytics 4 property ID (numeric, no "properties/" prefix)
+GA4_PROPERTY_ID = ""
+# Google Search Console site URL (must match exactly what's in GSC)
+GSC_SITE_URL = "https://example.com/"
+
+[[d1_databases]]
+binding = "DB_ANALYTICS"
+database_name = "inkwell-analytics"
+database_id = "00000000-0000-0000-0000-000000000001"
+migrations_dir = "migrations/analytics"
+
+[[d1_databases]]
+binding = "DB_CORE"
+database_name = "inkwell-core"
+database_id = "00000000-0000-0000-0000-000000000002"
+migrations_dir = "migrations/core"
+
+[[d1_databases]]
+binding = "DB_MARKETING"
+database_name = "inkwell-marketing"
+database_id = "00000000-0000-0000-0000-000000000003"
+migrations_dir = "migrations/marketing"
+
+[[kv_namespaces]]
+binding = "CONTENT"
+id = "00000000000000000000000000000001"
+
+[[kv_namespaces]]
+binding = "SESSIONS"
+id = "00000000000000000000000000000002"
+
+[[r2_buckets]]
+binding = "MEDIA"
+bucket_name = "inkwell-media"
+
+# Audit log archive — create bucket: wrangler r2 bucket create inkwell-logs
+[[r2_buckets]]
+binding = "LOGS"
+bucket_name = "inkwell-logs"
+
+[ai]
+binding = "AI"
+
+[[workflows]]
+name = "inkwell-generic-workflow"
+binding = "INKWELL_WORKFLOW"
+class_name = "GenericWorkflow"
+
+[triggers]
+crons = ["0 6 * * *", "0 14 * * *", "0 7 * * 1"]
+
+[[routes]]
+pattern = "*.example.com/*"
+zone_name = "example.com"
+
+[[routes]]
+pattern = "example.com/api/*"
+zone_name = "example.com"

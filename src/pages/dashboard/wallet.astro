@@ -1,0 +1,8 @@
+---
+import Dashboard from '../../layouts/Dashboard.astro'
+import { WalletView } from '../../../plugins/dashboard/components/WalletView'
+---
+
+<Dashboard title="Wallet" active="wallet">
+  <WalletView client:load />
+</Dashboard>

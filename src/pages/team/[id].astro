@@ -1,0 +1,245 @@
+---
+import Base from '../../layouts/Base.astro'
+import Header from '../../components/layout/Header.astro'
+import Footer from '../../components/layout/Footer.astro'
+import { render } from 'astro:content'
+import { safeGetCollection } from '../../lib/safe-content'
+
+export async function getStaticPaths() {
+  const team = await safeGetCollection('team')
+  return team.map((member) => ({ params: { id: member.id }, props: { member } }))
+}
+
+const { member } = Astro.props
+const { Content } = await render(member)
+
+const allPosts = await safeGetCollection('blog', (p) => p.data.status === 'published' && p.data.author.toLowerCase() === member.id.toLowerCase())
+const posts = allPosts.sort((a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime()).slice(0, 10)
+
+const statusColor = member.data.status === 'active' ? '#10B981' : member.data.status === 'idle' ? '#D4A017' : '#555'
+---
+
+<Base title={`${member.data.title} — Inkwell Team`} description={member.data.origin || `${member.data.title} — ${member.data.role}`}>
+  <Header />
+
+  <main class="page">
+    <div class="page-inner">
+      {/* Identity */}
+      <div class="member-identity">
+        <div class="member-status-row">
+          <span class="status-dot" style={`background: ${statusColor}`}></span>
+          <span class="status-label">{member.data.status}</span>
+          <span class="type-label">{member.data.type}</span>
+          {member.data.squad && <span class="squad-label">{member.data.squad} squad</span>}
+        </div>
+        <h1>{member.data.title}</h1>
+        <p class="member-role">{member.data.role}</p>
+        {member.data.model && <p class="member-model">{member.data.model}</p>}
+      </div>
+
+      {/* Origin */}
+      {member.data.origin && (
+        <blockquote class="member-origin">
+          {member.data.origin}
+        </blockquote>
+      )}
+
+      {/* Meta strip */}
+      <div class="member-meta">
+        {member.data.born && (
+          <div class="meta-item">
+            <span class="meta-label">Born</span>
+            <span class="meta-value">{member.data.born.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
+          </div>
+        )}
+        <div class="meta-item">
+          <span class="meta-label">Tasks</span>
+          <span class="meta-value">{member.data.tasks_completed}</span>
+        </div>
+        {posts.length > 0 && (
+          <div class="meta-item">
+            <span class="meta-label">Posts</span>
+            <span class="meta-value">{posts.length}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Skills */}
+      {member.data.skills.length > 0 && (
+        <div class="member-skills">
+          {member.data.skills.map((skill) => <span class="skill-tag">{skill}</span>)}
+        </div>
+      )}
+
+      {/* Voice note */}
+      {member.data.voice && (
+        <div class="voice-note">
+          <span class="voice-label">Voice</span>
+          <p>{member.data.voice}</p>
+        </div>
+      )}
+
+      {/* Journal — the main content */}
+      <div class="member-journal ink-prose">
+        <Content />
+      </div>
+
+      {/* Posts by this member */}
+      {posts.length > 0 && (
+        <section class="member-posts">
+          <h2>Journal Entries</h2>
+          <div class="posts-feed">
+            {posts.map((post) => (
+              <a href={`/blog/${post.id}`} class="post-entry">
+                <span class="post-date">{new Date(post.data.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                <div class="post-content">
+                  <span class="post-title">{post.data.title}</span>
+                  {post.data.description && <span class="post-desc">{post.data.description}</span>}
+                </div>
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
+    </div>
+  </main>
+
+  <Footer />
+</Base>
+
+<style>
+  main { padding-top: 3.5rem; }
+  .page { max-width: var(--ink-page-width); margin: 0 auto; padding: 4rem 1.5rem; }
+  .page-inner { max-width: var(--ink-content-width); margin: 0 auto; }
+
+  /* Identity */
+  .member-identity { margin-bottom: 1.5rem; }
+  .member-status-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .status-label { font-family: var(--ink-font-mono); font-size: 0.6875rem; color: var(--ink-accent); text-transform: uppercase; letter-spacing: 0.06em; }
+  .type-label { font-family: var(--ink-font-mono); font-size: 0.6875rem; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 0.06em; }
+  .squad-label { font-family: var(--ink-font-mono); font-size: 0.6875rem; color: var(--ink-secondary); }
+  h1 {
+    font-family: var(--ink-font-display);
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--ink-text);
+    letter-spacing: -0.03em;
+    margin: 0 0 0.25rem;
+  }
+  .member-role { font-size: 1.25rem; color: var(--ink-muted); margin: 0; }
+  .member-model { font-family: var(--ink-font-mono); font-size: 0.8125rem; color: var(--ink-dim); margin: 0.25rem 0 0; }
+
+  /* Origin */
+  .member-origin {
+    font-size: 1.0625rem;
+    color: var(--ink-text);
+    line-height: 1.6;
+    margin: 0 0 2rem;
+    padding: 1.5rem;
+    border-left: 3px solid var(--ink-primary);
+    background: color-mix(in srgb, var(--ink-primary) 5%, var(--ink-surface));
+    border-radius: 0 var(--ink-radius) var(--ink-radius) 0;
+    font-style: italic;
+  }
+
+  /* Meta strip */
+  .member-meta {
+    display: flex;
+    gap: 2rem;
+    padding: 1rem 0;
+    border-top: 1px solid var(--ink-border);
+    border-bottom: 1px solid var(--ink-border);
+    margin-bottom: 1.5rem;
+  }
+  .meta-item { display: flex; flex-direction: column; gap: 0.125rem; }
+  .meta-label { font-family: var(--ink-font-mono); font-size: 0.625rem; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 0.08em; }
+  .meta-value { font-family: var(--ink-font-display); font-size: 1.125rem; font-weight: 700; color: var(--ink-text); }
+
+  /* Skills */
+  .member-skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    margin-bottom: 2rem;
+  }
+  .skill-tag {
+    font-family: var(--ink-font-mono);
+    font-size: 0.6875rem;
+    padding: 0.25rem 0.625rem;
+    background: var(--ink-surface);
+    border: 1px solid var(--ink-border);
+    border-radius: var(--ink-radius);
+    color: var(--ink-muted);
+  }
+
+  /* Voice note */
+  .voice-note {
+    padding: 1rem 1.25rem;
+    background: var(--ink-surface);
+    border: 1px solid var(--ink-border);
+    border-radius: var(--ink-radius);
+    margin-bottom: 2rem;
+  }
+  .voice-label {
+    font-family: var(--ink-font-mono);
+    font-size: 0.625rem;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .voice-note p {
+    font-size: 0.875rem;
+    color: var(--ink-muted);
+    font-style: italic;
+    line-height: 1.5;
+    margin: 0.375rem 0 0;
+  }
+
+  /* Journal */
+  .member-journal { margin-bottom: 3rem; }
+
+  /* Posts */
+  .member-posts { margin-top: 3rem; }
+  .member-posts h2 {
+    font-family: var(--ink-font-display);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--ink-text);
+    letter-spacing: -0.02em;
+    margin: 0 0 1rem;
+  }
+  .posts-feed { display: flex; flex-direction: column; }
+  .post-entry {
+    display: flex;
+    gap: 1.5rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--ink-border);
+    text-decoration: none;
+    transition: opacity 0.15s;
+  }
+  .post-entry:first-child { border-top: 1px solid var(--ink-border); }
+  .post-entry:hover { opacity: 0.7; }
+  .post-date {
+    font-family: var(--ink-font-mono);
+    font-size: 0.75rem;
+    color: var(--ink-dim);
+    min-width: 6rem;
+    flex-shrink: 0;
+    padding-top: 0.125rem;
+  }
+  .post-content { display: flex; flex-direction: column; gap: 0.25rem; }
+  .post-title { font-weight: 600; font-size: 1rem; color: var(--ink-text); }
+  .post-desc { font-size: 0.8125rem; color: var(--ink-muted); line-height: 1.4; }
+
+  @media (max-width: 640px) {
+    .member-meta { gap: 1.5rem; }
+    .post-entry { flex-direction: column; gap: 0.25rem; }
+    .post-date { min-width: 0; }
+  }
+</style>

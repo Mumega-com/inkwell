@@ -1,0 +1,385 @@
+---
+import Base from '../../layouts/Base.astro'
+import Header from '../../components/layout/Header.astro'
+import Footer from '../../components/layout/Footer.astro'
+import { config } from '../../lib/config'
+
+export async function getStaticPaths() {
+  if (!config.seo.geo?.enabled) {
+    return []
+  }
+
+  return config.seo.geo.locations.map((loc) => ({
+    params: { city: loc.slug },
+    props: { location: loc },
+  }))
+}
+
+interface Location {
+  city: string
+  region: string
+  country: string
+  slug: string
+  coords?: { lat: number; lng: number }
+  phone?: string
+  address?: string
+}
+
+const { location } = Astro.props as { location: Location }
+const geo = config.seo.geo!
+const serviceType = geo.serviceType
+const pageTitle = `${serviceType} in ${location.city}, ${location.region}`
+const pageDescription = `Find the best ${serviceType.toLowerCase()} in ${location.city}, ${location.region}. Local service, trusted professionals.`
+const canonicalUrl = `https://${config.domain}${geo.basePath}/${location.slug}`
+
+// Nearby locations — exclude current, take up to 6
+const nearby = geo.locations.filter((loc) => loc.slug !== location.slug).slice(0, 6)
+
+// JSON-LD: LocalBusiness + ServiceArea
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'LocalBusiness',
+      name: `${config.seo.organization.name} — ${location.city}`,
+      description: pageDescription,
+      url: canonicalUrl,
+      ...(location.phone ? { telephone: location.phone } : {}),
+      ...(location.address
+        ? {
+            address: {
+              '@type': 'PostalAddress',
+              streetAddress: location.address,
+              addressLocality: location.city,
+              addressRegion: location.region,
+              addressCountry: location.country,
+            },
+          }
+        : {
+            address: {
+              '@type': 'PostalAddress',
+              addressLocality: location.city,
+              addressRegion: location.region,
+              addressCountry: location.country,
+            },
+          }),
+      ...(location.coords
+        ? {
+            geo: {
+              '@type': 'GeoCoordinates',
+              latitude: location.coords.lat,
+              longitude: location.coords.lng,
+            },
+          }
+        : {}),
+      image: config.seo.organization.logo
+        ? `https://${config.domain}${config.seo.organization.logo}`
+        : undefined,
+    },
+    {
+      '@type': 'Service',
+      name: serviceType,
+      areaServed: {
+        '@type': 'City',
+        name: location.city,
+        containedInPlace: {
+          '@type': 'AdministrativeArea',
+          name: location.region,
+        },
+      },
+      provider: {
+        '@type': 'Organization',
+        name: config.seo.organization.name,
+        url: config.seo.organization.url,
+      },
+    },
+  ],
+}
+---
+
+<Base
+  title={pageTitle}
+  description={pageDescription}
+  type="website"
+>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <Header />
+
+  <main class="geo-page">
+    <div class="geo-container">
+      <article class="geo-content">
+        <header class="geo-header">
+          <p class="geo-breadcrumb">
+            <a href="/">Home</a>
+            <span class="geo-sep">/</span>
+            <a href={geo.basePath}>Locations</a>
+            <span class="geo-sep">/</span>
+            <span>{location.city}</span>
+          </p>
+          <h1 class="geo-title">{pageTitle}</h1>
+          <p class="geo-subtitle">
+            Serving {location.city}, {location.region} and surrounding areas.
+          </p>
+        </header>
+
+        <section class="geo-details">
+          {location.address && (
+            <div class="geo-detail-card">
+              <h2 class="detail-label">Address</h2>
+              <p class="detail-value">{location.address}</p>
+              <p class="detail-sub">{location.city}, {location.region}, {location.country}</p>
+            </div>
+          )}
+
+          {location.phone && (
+            <div class="geo-detail-card">
+              <h2 class="detail-label">Phone</h2>
+              <a href={`tel:${location.phone}`} class="detail-value detail-link">
+                {location.phone}
+              </a>
+            </div>
+          )}
+
+          <div class="geo-detail-card">
+            <h2 class="detail-label">Service</h2>
+            <p class="detail-value">{serviceType}</p>
+          </div>
+        </section>
+
+        <section class="geo-about">
+          <h2 class="section-title">About Our {serviceType} in {location.city}</h2>
+          <p>
+            We provide professional {serviceType.toLowerCase()} services in {location.city}, {location.region}.
+            Our team is committed to delivering high-quality results for every client in the {location.city} area.
+          </p>
+          <p>
+            Whether you are a resident or business in {location.city}, we are here to help.
+            Contact us today to learn more about our services.
+          </p>
+        </section>
+
+        {location.coords && (
+          <section class="geo-map">
+            <h2 class="section-title">Find Us in {location.city}</h2>
+            <div class="map-placeholder" data-lat={location.coords.lat} data-lng={location.coords.lng}>
+              <p class="map-text">
+                {location.city}, {location.region}
+                <br />
+                <span class="map-coords">{location.coords.lat}, {location.coords.lng}</span>
+              </p>
+            </div>
+          </section>
+        )}
+
+        {nearby.length > 0 && (
+          <section class="geo-nearby">
+            <h2 class="section-title">Other Locations</h2>
+            <div class="nearby-grid">
+              {nearby.map((loc) => (
+                <a href={`${geo.basePath}/${loc.slug}`} class="nearby-card">
+                  <h3 class="nearby-city">{loc.city}</h3>
+                  <span class="nearby-region">{loc.region}, {loc.country}</span>
+                </a>
+              ))}
+            </div>
+          </section>
+        )}
+      </article>
+    </div>
+  </main>
+
+  <Footer />
+</Base>
+
+<style>
+  .geo-page {
+    max-width: var(--ink-page-width);
+    margin: 0 auto;
+    padding: 6rem 1.5rem 4rem;
+  }
+
+  .geo-container {
+    max-width: var(--ink-content-width);
+    margin: 0 auto;
+  }
+
+  .geo-breadcrumb {
+    font-family: var(--ink-font-mono);
+    font-size: 0.75rem;
+    color: var(--ink-muted);
+    margin-bottom: 1rem;
+  }
+
+  .geo-breadcrumb a {
+    color: var(--ink-muted);
+    text-decoration: none;
+  }
+
+  .geo-breadcrumb a:hover {
+    color: var(--ink-primary);
+  }
+
+  .geo-sep {
+    margin: 0 0.375rem;
+    color: var(--ink-dim);
+  }
+
+  .geo-title {
+    font-family: var(--ink-font-display);
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    color: var(--ink-text);
+    margin-bottom: 0.75rem;
+  }
+
+  .geo-subtitle {
+    font-size: 1.125rem;
+    color: var(--ink-muted);
+    margin-bottom: 2.5rem;
+  }
+
+  .geo-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 3rem;
+  }
+
+  .geo-detail-card {
+    padding: 1.25rem;
+    background: var(--ink-surface);
+    border: 1px solid var(--ink-border);
+    border-radius: var(--ink-radius);
+  }
+
+  .detail-label {
+    font-family: var(--ink-font-mono);
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-primary);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+
+  .detail-value {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--ink-text);
+    margin: 0;
+  }
+
+  .detail-link {
+    text-decoration: none;
+    display: block;
+  }
+
+  .detail-link:hover {
+    color: var(--ink-primary);
+  }
+
+  .detail-sub {
+    font-size: 0.875rem;
+    color: var(--ink-muted);
+    margin-top: 0.25rem;
+  }
+
+  .section-title {
+    font-family: var(--ink-font-display);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--ink-text);
+    letter-spacing: -0.02em;
+    margin-bottom: 1rem;
+  }
+
+  .geo-about {
+    margin-bottom: 3rem;
+  }
+
+  .geo-about p {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: var(--ink-text);
+    margin-bottom: 1rem;
+  }
+
+  .geo-map {
+    margin-bottom: 3rem;
+  }
+
+  .map-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 240px;
+    background: var(--ink-surface);
+    border: 1px solid var(--ink-border);
+    border-radius: var(--ink-radius);
+  }
+
+  .map-text {
+    text-align: center;
+    color: var(--ink-muted);
+    font-size: 1rem;
+  }
+
+  .map-coords {
+    font-family: var(--ink-font-mono);
+    font-size: 0.8125rem;
+    color: var(--ink-dim);
+  }
+
+  .geo-nearby {
+    padding-top: 2rem;
+    border-top: 1px solid var(--ink-border);
+  }
+
+  .nearby-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+  }
+
+  .nearby-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 1.25rem;
+    background: var(--ink-surface);
+    border: 1px solid var(--ink-border);
+    border-radius: var(--ink-radius);
+    text-decoration: none;
+    transition: border-color 0.15s ease;
+  }
+
+  .nearby-card:hover {
+    border-color: var(--ink-primary);
+  }
+
+  .nearby-city {
+    font-family: var(--ink-font-display);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink-text);
+    margin: 0;
+  }
+
+  .nearby-region {
+    font-family: var(--ink-font-mono);
+    font-size: 0.75rem;
+    color: var(--ink-muted);
+  }
+
+  @media (max-width: 768px) {
+    .geo-details {
+      grid-template-columns: 1fr;
+    }
+
+    .nearby-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+</style>

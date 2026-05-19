@@ -1,0 +1,96 @@
+---
+import Dashboard from '../../layouts/Dashboard.astro'
+import { KPICard } from '../../components/charts/KPICard'
+import { LineChart } from '../../components/charts/LineChart'
+import { DataTable } from '../../components/charts/DataTable'
+---
+
+<Dashboard title="SEO" active="seo">
+  <style>
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .section-gap {
+      margin-bottom: 1.5rem;
+    }
+    @media (max-width: 1100px) {
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 640px) {
+      .kpi-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+
+  <div class="kpi-grid">
+    <KPICard
+      client:visible
+      title="Clicks"
+      endpoint="/api/dashboard/seo"
+      field="clicks"
+      icon="🖱️"
+    />
+    <KPICard
+      client:visible
+      title="Impressions"
+      endpoint="/api/dashboard/seo"
+      field="impressions"
+      icon="👁️"
+    />
+    <KPICard
+      client:visible
+      title="Avg CTR"
+      endpoint="/api/dashboard/seo"
+      field="avg_ctr"
+      format="percent"
+      icon="📊"
+    />
+    <KPICard
+      client:visible
+      title="Avg Position"
+      endpoint="/api/dashboard/seo"
+      field="avg_position"
+      icon="⊕"
+    />
+  </div>
+
+  <div class="section-gap">
+    <LineChart
+      client:visible
+      title="Clicks & Impressions Trend (28 days)"
+      endpoint="/api/dashboard/seo-trend"
+      dataKey={['clicks', 'impressions']}
+      xKey="date"
+    />
+  </div>
+
+  <div class="section-gap">
+    <DataTable
+      client:visible
+      title="Top Queries"
+      endpoint="/api/dashboard/seo-queries"
+      columns={[
+        { key: 'query',       label: 'Query',       width: '40%' },
+        { key: 'clicks',      label: 'Clicks',      format: 'number',  align: 'right' },
+        { key: 'impressions', label: 'Impressions', format: 'number',  align: 'right' },
+        { key: 'ctr',         label: 'CTR',         format: 'percent', align: 'right' },
+        { key: 'position',    label: 'Position',    align: 'right' },
+      ]}
+    />
+  </div>
+
+  <DataTable
+    client:visible
+    title="Top Pages"
+    endpoint="/api/dashboard/seo-pages"
+    columns={[
+      { key: 'url',         label: 'URL',         format: 'url',     width: '40%' },
+      { key: 'clicks',      label: 'Clicks',      format: 'number',  align: 'right' },
+      { key: 'impressions', label: 'Impressions', format: 'number',  align: 'right' },
+      { key: 'ctr',         label: 'CTR',         format: 'percent', align: 'right' },
+      { key: 'position',    label: 'Position',    align: 'right' },
+    ]}
+  />
+</Dashboard>
