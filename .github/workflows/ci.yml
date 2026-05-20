@@ -19,6 +19,9 @@ jobs:
 
       - run: npm ci
 
+      - name: Build frontend
+        run: npm run build
+
       - name: Kernel tests
         run: cd kernel && npx vitest run
 
