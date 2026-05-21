@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { formatters } from '../../lib/formatters'
 
 interface Column {
   key: string
@@ -21,11 +20,9 @@ function formatCell(value: unknown, format: Column['format']): string {
   if (value === null || value === undefined) return '—'
   switch (format) {
     case 'number':
-      // ⚡ Bolt: Use cached formatter for performance
-      return formatters.compactCAD.format(value as number)
+      return new Intl.NumberFormat('en-CA', { notation: 'compact', maximumFractionDigits: 1 }).format(value as number)
     case 'currency':
-      // ⚡ Bolt: Use cached formatter for performance
-      return formatters.currencyCAD.format(value as number)
+      return new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 }).format(value as number)
     case 'percent':
       return `${(value as number).toFixed(1)}%`
     default:

@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { formatters } from '../../lib/formatters'
 
 interface KPICardProps {
   title: string
@@ -14,13 +13,11 @@ function formatValue(value: number, format: KPICardProps['format']): string {
   if (value === null || value === undefined) return '—'
   switch (format) {
     case 'currency':
-      // ⚡ Bolt: Use cached formatter for performance
-      return formatters.currencyCAD.format(value)
+      return new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 }).format(value)
     case 'percent':
       return `${value.toFixed(1)}%`
     default:
-      // ⚡ Bolt: Use cached formatter for performance
-      return formatters.compactCAD.format(value)
+      return new Intl.NumberFormat('en-CA', { notation: 'compact', maximumFractionDigits: 1 }).format(value)
   }
 }
 

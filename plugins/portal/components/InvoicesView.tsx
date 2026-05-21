@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { formatters } from '../../../src/lib/formatters'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -32,14 +31,6 @@ async function apiFetch(url: string, options?: RequestInit): Promise<Response> {
 }
 
 function formatCurrency(amount: number, currency = 'CAD'): string {
-  if (currency.toUpperCase() === 'CAD') {
-    // ⚡ Bolt: Use cached formatter for performance
-    return formatters.currencyCAD2.format(amount)
-  }
-  if (currency.toUpperCase() === 'USD') {
-    // ⚡ Bolt: Use cached formatter for performance
-    return formatters.currencyUSD.format(amount)
-  }
   return new Intl.NumberFormat('en-CA', {
     style: 'currency',
     currency,

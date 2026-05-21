@@ -11,7 +11,6 @@ import {
   TableRow,
 } from '../../../src/components/ui/table'
 import { cn } from '../../../src/lib/utils'
-import { formatters } from '../../../src/lib/formatters'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -69,14 +68,6 @@ function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
 }
 
 function formatCurrency(cents: number, currency: string): string {
-  if (currency.toUpperCase() === 'CAD') {
-    // ⚡ Bolt: Use cached formatter for performance
-    return formatters.currencyCAD2.format(cents / 100)
-  }
-  if (currency.toUpperCase() === 'USD') {
-    // ⚡ Bolt: Use cached formatter for performance
-    return formatters.currencyUSD.format(cents / 100)
-  }
   return new Intl.NumberFormat('en-CA', {
     style: 'currency',
     currency: currency.toUpperCase(),
