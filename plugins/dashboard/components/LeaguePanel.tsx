@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent } from '../../../src/components/ui/card'
 import { Badge } from '../../../src/components/ui/badge'
 import { Separator } from '../../../src/components/ui/separator'
+import { formatters } from '../../../src/lib/formatters'
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -47,11 +48,8 @@ function apiFetch(url: string, options?: RequestInit): Promise<Response> {
 }
 
 function formatCurrency(cents: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-  }).format(cents / 100)
+  // ⚡ Bolt: Use cached formatter for performance
+  return formatters.currencyUSD.format(cents / 100)
 }
 
 function daysRemaining(endDate: string): number {

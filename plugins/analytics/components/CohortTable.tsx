@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { formatters } from '../../../src/lib/formatters'
 
 interface Cohort {
   name: string
@@ -79,7 +80,8 @@ export function CohortTable({ days = 30 }: CohortTableProps) {
             <div style={{ padding: '0.8rem 1.5rem', borderBottom: '1px solid var(--ink-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ color: 'var(--ink-muted)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Visitors</span>
               <span style={{ color: 'var(--ink-text)', fontSize: '1.1rem', fontWeight: 700, fontFamily: 'var(--ink-font-mono, monospace)' }}>
-                {new Intl.NumberFormat('en-CA', { notation: 'compact' }).format(data.totalVisitors)}
+                {/* ⚡ Bolt: Use cached formatter for performance */}
+                {formatters.compactCAD0.format(data.totalVisitors)}
               </span>
             </div>
 
