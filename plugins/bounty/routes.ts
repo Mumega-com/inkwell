@@ -9,6 +9,7 @@ const bountyRoutes = new Hono<AppBindings>()
 // ---------------------------------------------------------------------------
 
 type BountyStatus = 'open' | 'claimed' | 'submitted' | 'approved' | 'paid'
+type BountyAssigneeType = 'user' | 'agent'
 
 interface BountyRow {
   id: string
@@ -20,6 +21,8 @@ interface BountyRow {
   status: BountyStatus
   creator_id: string
   claimant_id: string | null
+  agent_id: string | null
+  assignee_type: BountyAssigneeType
   proof_url: string | null
   squad_id: string | null
   labels_json: string
@@ -173,8 +176,8 @@ bountyRoutes.post('/', requireAuth, async (c) => {
   await db.execute(
     `INSERT INTO bounties
        (id, customer_slug, title, description, reward_cents, currency,
-        status, creator_id, labels_json, expires_at, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, 'open', ?, ?, ?, ?, ?)`,
+        status, creator_id, squad_id, labels_json, expires_at, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, 'open', ?, ?, ?, ?, ?, ?)`,
     [
       id,
       tenant,
@@ -183,6 +186,7 @@ bountyRoutes.post('/', requireAuth, async (c) => {
       body.reward_cents,
       body.currency ?? 'USD',
       session.identityId,
+      body.squad_id ?? null,
       JSON.stringify(body.labels ?? []),
       body.expires_at ?? null,
       ts,
@@ -231,11 +235,19 @@ bountyRoutes.post('/:id/claim', requireAuth, async (c) => {
   if (!bounty) return c.json({ error: 'not_found' }, 404)
   if (bounty.status !== 'open') return c.json({ error: 'not_claimable', status: bounty.status }, 409)
 
+  const body = await c.req.json<{ agent_id?: string }>().catch(() => ({}))
+  const agentId = typeof body.agent_id === 'string' ? body.agent_id.trim() : null
+  if (body.agent_id !== undefined && !agentId) {
+    return c.json({ error: 'invalid_agent_id', message: 'agent_id must be a non-empty string' }, 400)
+  }
+
+  const assigneeType: BountyAssigneeType = agentId ? 'agent' : 'user'
+
   await db.execute(
     `UPDATE bounties
-     SET status = 'claimed', claimant_id = ?, updated_at = ?
+     SET status = 'claimed', claimant_id = ?, agent_id = ?, assignee_type = ?, updated_at = ?
      WHERE id = ? AND status = 'open'`,
-    [session.identityId, now(), id],
+    [session.identityId, agentId, assigneeType, now(), id],
   )
 
   const updated = await db.queryOne<BountyRow>('SELECT * FROM bounties WHERE id = ?', [id])

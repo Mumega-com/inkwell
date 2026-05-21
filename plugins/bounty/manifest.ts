@@ -42,16 +42,17 @@ const bountyTools: McpToolDef[] = [
   },
   {
     name: 'claim_bounty',
-    description: 'Claim an open bounty by ID. The authenticated user becomes the claimant.',
+    description: 'Claim an open bounty by ID. Optionally attach an agent ID to the claim.',
     inputSchema: {
       type: 'object',
       properties: {
         bounty_id: { type: 'string', description: 'ID of the bounty to claim' },
+        agent_id: { type: 'string', description: 'Optional worker agent ID claiming this bounty' },
       },
       required: ['bounty_id'],
     },
     handler: async (args, _env) => {
-      return { error: 'use_api', message: `Call POST /api/bounties/${args.bounty_id}/claim`, args }
+      return { error: 'use_api', message: `Call POST /api/bounties/${args.bounty_id}/claim with optional agent_id`, args }
     },
   },
   {

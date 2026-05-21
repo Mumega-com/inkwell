@@ -11,6 +11,8 @@ CREATE TABLE IF NOT EXISTS bounties (
   status TEXT NOT NULL DEFAULT 'open',
   creator_id TEXT NOT NULL,
   claimant_id TEXT,
+  agent_id TEXT,
+  assignee_type TEXT NOT NULL DEFAULT 'user',
   proof_url TEXT,
   squad_id TEXT,
   labels_json TEXT DEFAULT '[]',
