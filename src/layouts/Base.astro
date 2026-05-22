@@ -3,6 +3,7 @@ import '../styles/base.css'
 import { generateCssVars } from '../lib/theme'
 import { config } from '../lib/config'
 import { CommandPalette } from '../components/navigation/CommandPalette'
+import { PortalInstallPrompt } from '../components/PortalInstallPrompt'
 import JsonLd from '../components/seo/JsonLd.astro'
 import { safeGetCollection } from '../lib/safe-content'
 
@@ -177,10 +178,13 @@ const commandPaletteItems = [
     {analytics.plausible && (
       <script is:inline async defer data-domain={analytics.plausible} src="https://plausible.io/js/script.js"></script>
     )}
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#0f172a" />
   </head>
   <body>
     <slot />
     <CommandPalette client:idle items={commandPaletteItems} />
+    {Astro.url.pathname.startsWith('/portal') && <PortalInstallPrompt client:idle />}
 
     {/* Mermaid diagram rendering — only loads if diagrams exist on the page */}
     <script is:inline>
