@@ -46,12 +46,14 @@ function apiFetch(url: string, options?: RequestInit): Promise<Response> {
   })
 }
 
+const currencyFormatter = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
+  minimumFractionDigits: 2,
+})
+
 function formatCurrency(cents: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-  }).format(cents / 100)
+  return currencyFormatter.format(cents / 100)
 }
 
 function daysRemaining(endDate: string): number {
