@@ -1,0 +1,3 @@
+## 2025-02-18 - Cached Intl.NumberFormat in React Components
+**Learning:** Found instances where `Intl.NumberFormat` was being instantiated inside React components during every render cycle or function call (`formatValue` / `formatCell`). This is an expensive operation that can cause unnecessary CPU overhead and garbage collection when formatting large arrays of data like in `DataTable`.
+**Action:** Elevated `Intl.NumberFormat` instantiations to module scope constants outside the components/functions when the locale and formatting options are static. This avoids redundant memory allocation and initialization per call.
