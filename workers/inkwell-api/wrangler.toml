@@ -1,7 +1,7 @@
 # ⚠️ Replace all YOUR_* values with your own Cloudflare resources
 # See FORK-GUIDE.md for setup instructions
 name = "inkwell-api"
-main = "src/index.ts"
+main = "src/main.ts"
 compatibility_date = "2024-12-01"
 account_id = "00000000000000000000000000000000"
 
