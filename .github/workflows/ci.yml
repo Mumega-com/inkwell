@@ -22,6 +22,9 @@ jobs:
       - name: Kernel tests
         run: cd kernel && npx vitest run
 
+      - name: Build project
+        run: npm run build
+
       - name: Worker build (dry-run)
         run: cd workers/inkwell-api && npx wrangler deploy --dry-run --outdir=.wrangler/tmp
 
