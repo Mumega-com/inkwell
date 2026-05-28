@@ -1,0 +1,3 @@
+## 2024-05-28 - Caching Intl formatters
+**Learning:** Instantiating `Intl.NumberFormat` and `Intl.DateTimeFormat` is surprisingly expensive and CPU intensive. When used inside React components (especially in lists like DataTables or frequently updating KPICards), creating them on every render cycle causes unnecessary garbage collection and UI overhead.
+**Action:** Cache `Intl.NumberFormat`, `Intl.DateTimeFormat`, and other expensive formatting instances at the module level in React components (using constants or a Map for dynamic locales/currencies) to avoid unnecessary CPU overhead and garbage collection during renders.
