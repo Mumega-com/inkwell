@@ -173,8 +173,8 @@ bountyRoutes.post('/', requireAuth, async (c) => {
   await db.execute(
     `INSERT INTO bounties
        (id, customer_slug, title, description, reward_cents, currency,
-        status, creator_id, labels_json, expires_at, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, 'open', ?, ?, ?, ?, ?)`,
+        status, creator_id, squad_id, labels_json, expires_at, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, 'open', ?, ?, ?, ?, ?, ?)`,
     [
       id,
       tenant,
@@ -183,6 +183,7 @@ bountyRoutes.post('/', requireAuth, async (c) => {
       body.reward_cents,
       body.currency ?? 'USD',
       session.identityId,
+      body.squad_id ?? null,
       JSON.stringify(body.labels ?? []),
       body.expires_at ?? null,
       ts,
