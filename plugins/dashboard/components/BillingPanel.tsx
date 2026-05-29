@@ -67,13 +67,22 @@ function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   })
 }
 
+const currencyFormatters = new Map<string, Intl.NumberFormat>();
+
 function formatCurrency(cents: number, currency: string): string {
-  return new Intl.NumberFormat('en-CA', {
-    style: 'currency',
-    currency: currency.toUpperCase(),
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(cents / 100)
+  const upperCurrency = currency.toUpperCase();
+  if (!currencyFormatters.has(upperCurrency)) {
+    currencyFormatters.set(
+      upperCurrency,
+      new Intl.NumberFormat('en-CA', {
+        style: 'currency',
+        currency: upperCurrency,
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })
+    );
+  }
+  return currencyFormatters.get(upperCurrency)!.format(cents / 100)
 }
 
 function formatDate(iso: string): string {

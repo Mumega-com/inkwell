@@ -19,6 +19,22 @@ interface Invoice {
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
+const numberFormatters = new Map<string, Intl.NumberFormat>();
+
+function getNumberFormatter(currency: string): Intl.NumberFormat {
+  if (!numberFormatters.has(currency)) {
+    numberFormatters.set(
+      currency,
+      new Intl.NumberFormat('en-CA', {
+        style: 'currency',
+        currency,
+        minimumFractionDigits: 2,
+      })
+    );
+  }
+  return numberFormatters.get(currency)!;
+}
+
 async function apiFetch(url: string, options?: RequestInit): Promise<Response> {
   return fetch(url, {
     ...options,
@@ -31,11 +47,7 @@ async function apiFetch(url: string, options?: RequestInit): Promise<Response> {
 }
 
 function formatCurrency(amount: number, currency = 'CAD'): string {
-  return new Intl.NumberFormat('en-CA', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2,
-  }).format(amount)
+  return getNumberFormatter(currency).format(amount)
 }
 
 function formatDate(dateStr: string): string {
