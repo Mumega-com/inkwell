@@ -12,7 +12,6 @@ import { execFileSync } from 'node:child_process'
 import { cpSync, existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { resolve, join } from 'node:path'
 import { createInterface } from 'node:readline'
-import { rmSync } from 'node:fs'
 
 const REPO = process.env.INKWELL_TEMPLATE_SOURCE || 'https://github.com/Mumega-com/inkwell.git'
 const BRANCH = 'main'
@@ -73,24 +72,59 @@ async function main() {
 
   console.log(`\n  Cloning Inkwell into ${projectName}...`)
 
+  // Track whether the scaffold carries real git history (clone) vs. a local copy.
+  let hasGitHistory = false
+
   try {
     if (existsSync(REPO)) {
+      // Local path source — copy without .git (no upstream history to preserve).
       cpSync(REPO, targetDir, {
         recursive: true,
         filter: (source) => !/(^|\/)(\.git|node_modules|dist|\.astro)(\/|$)/.test(source),
       })
     } else {
-      execFileSync('git', ['clone', '--depth', '1', '--branch', BRANCH, REPO, targetDir], {
+      // Full clone (no --depth) so history is preserved and `git merge upstream/main`
+      // works for ongoing updates. The fork STAYS updatable from upstream.
+      execFileSync('git', ['clone', '--branch', BRANCH, REPO, targetDir], {
         stdio: 'pipe',
       })
+      hasGitHistory = true
     }
   } catch {
     console.error('  Failed to clone repository. Check your network connection.')
     process.exit(1)
   }
 
-  // Remove .git so it's a fresh project
-  rmSync(join(targetDir, '.git'), { recursive: true, force: true })
+  // Keep .git history and wire upstream sync. Rename origin -> upstream so
+  // `git fetch upstream && git merge upstream/main` (or `npm run update`) works.
+  // We deliberately do NOT set a new origin — the tenant adds their own repo later.
+  if (hasGitHistory) {
+    try {
+      execFileSync('git', ['remote', 'rename', 'origin', 'upstream'], {
+        cwd: targetDir,
+        stdio: 'pipe',
+      })
+    } catch {
+      // Non-fatal: scaffold still works, the tenant can add upstream manually.
+      console.warn('  Warning: could not rename origin -> upstream. Add it manually:')
+      console.warn(`    git remote add upstream ${REPO}`)
+    }
+  }
+
+  // Capture the upstream commit SHA so `npm run update` can report drift.
+  // For a clone, read HEAD; for a local-path copy, fall back to empty.
+  let upstreamSha = ''
+  if (hasGitHistory) {
+    try {
+      upstreamSha = execFileSync('git', ['rev-parse', 'HEAD'], {
+        cwd: targetDir,
+        encoding: 'utf-8',
+      }).trim()
+    } catch {
+      upstreamSha = ''
+    }
+  }
+  writeFileSync(join(targetDir, '.inkwell-version'), `${upstreamSha}\n`)
 
   // Generate inkwell.config.ts from template
   const safeName = siteName.replace(/'/g, "\\'")
@@ -210,10 +244,23 @@ export type InkwellConfig = typeof config
     writeFileSync(wranglerPath, wrangler)
   }
 
-  // Init fresh git repo
-  execFileSync('git', ['init'], { cwd: targetDir, stdio: 'pipe' })
-  execFileSync('git', ['add', '-A'], { cwd: targetDir, stdio: 'pipe' })
-  execFileSync('git', ['commit', '-m', 'Initial Inkwell scaffold'], { cwd: targetDir, stdio: 'pipe' })
+  // Commit the scaffold customizations.
+  //   - Clone path: history is preserved (upstream remote set), so commit the
+  //     config/wrangler/.inkwell-version changes ON TOP of upstream history.
+  //   - Local-path copy: no history exists, so init a fresh repo to track it.
+  try {
+    if (!hasGitHistory) {
+      execFileSync('git', ['init'], { cwd: targetDir, stdio: 'pipe' })
+    }
+    execFileSync('git', ['add', '-A'], { cwd: targetDir, stdio: 'pipe' })
+    execFileSync('git', ['commit', '-m', 'Scaffold Inkwell fork'], {
+      cwd: targetDir,
+      stdio: 'pipe',
+    })
+  } catch {
+    // Non-fatal: leave changes uncommitted; the tenant can commit themselves.
+    console.warn('  Warning: could not create the initial scaffold commit.')
+  }
 
   console.log(`
   Done! Your Inkwell project is ready.
@@ -222,6 +269,15 @@ export type InkwellConfig = typeof config
 
     cd ${projectName}
     npm install
+
+  Connect your own repo (this scaffold keeps Inkwell as 'upstream'):
+
+    git remote add origin git@github.com:YOUR_ORG/${projectName}.git
+    git push -u origin main
+
+  Stay in sync with upstream Inkwell at any time:
+
+    npm run update      # fetch upstream, fast-forward merge, build proof
 
   To deploy the worker:
 

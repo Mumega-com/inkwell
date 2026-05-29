@@ -15,9 +15,8 @@
     "upload": "tsx scripts/upload-media.ts",
     "cache": "tsx scripts/cache-to-kv.ts",
     "publish": "bash scripts/publish.sh",
-    "test": "cd workers/inkwell-api && npm test",
-    "publish:portal": "npm run build && node scripts/publish-portal.mjs",
-    "publish:tenant": "node scripts/publish-tenant.mjs"
+    "update": "node scripts/inkwell-update.mjs",
+    "test": "cd workers/inkwell-api && npm test"
   },
   "dependencies": {
     "@assistant-ui/react": "^0.12.25",
