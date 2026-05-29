@@ -85,12 +85,15 @@ function formatCurrency(cents: number, currency: string): string {
   return currencyFormatters.get(upperCurrency)!.format(cents / 100)
 }
 
+// Performance optimization: Cache Intl instance to prevent GC churn during renders
+const dateFormatter = new Intl.DateTimeFormat('en-CA', {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+});
+
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('en-CA', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  })
+  return dateFormatter.format(new Date(iso))
 }
 
 function statusBadgeClass(status: string): string {

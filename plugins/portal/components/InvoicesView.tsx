@@ -50,9 +50,11 @@ function formatCurrency(amount: number, currency = 'CAD'): string {
   return getNumberFormatter(currency).format(amount)
 }
 
+// Performance optimization: Cache Intl instance to prevent GC churn during renders
+const dateFormatter = new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: 'short', day: 'numeric' });
+
 function formatDate(dateStr: string): string {
-  const d = new Date(dateStr)
-  return d.toLocaleDateString('en-CA', { year: 'numeric', month: 'short', day: 'numeric' })
+  return dateFormatter.format(new Date(dateStr))
 }
 
 // ── Status badge ─────────────────────────────────────────────────────────────
