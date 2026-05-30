@@ -22,7 +22,6 @@ export function formatCurrency(
   const defaultOptions: Intl.NumberFormatOptions = {
     style: 'currency',
     currency,
-    maximumFractionDigits: 0,
     ...options
   }
   return getFormatter(locale, defaultOptions).format(value)
