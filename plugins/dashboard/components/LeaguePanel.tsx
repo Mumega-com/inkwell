@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent } from '../../../src/components/ui/card'
+import { formatCurrency } from '../../../src/lib/formatters'
 import { Badge } from '../../../src/components/ui/badge'
 import { Separator } from '../../../src/components/ui/separator'
 
@@ -46,12 +47,8 @@ function apiFetch(url: string, options?: RequestInit): Promise<Response> {
   })
 }
 
-function formatCurrency(cents: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-  }).format(cents / 100)
+function _formatCurrency(cents: number): string {
+  return formatCurrency(cents / 100, 'USD', 'en-US', { minimumFractionDigits: 2 })
 }
 
 function daysRemaining(endDate: string): number {
@@ -388,7 +385,7 @@ export function LeaguePanel() {
                               flexShrink: 0,
                             }}
                           >
-                            {formatCurrency(entry.balance_cents)}
+                            {_formatCurrency(entry.balance_cents)}
                           </span>
                         </div>
 
