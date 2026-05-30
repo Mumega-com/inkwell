@@ -30,12 +30,21 @@ async function apiFetch(url: string, options?: RequestInit): Promise<Response> {
   })
 }
 
+// ⚡ Bolt: Cache Intl.NumberFormat instances to prevent recreating
+// formatters for every invoice item in the list
+const currencyFormatters = new Map<string, Intl.NumberFormat>()
+
 function formatCurrency(amount: number, currency = 'CAD'): string {
-  return new Intl.NumberFormat('en-CA', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2,
-  }).format(amount)
+  let formatter = currencyFormatters.get(currency)
+  if (!formatter) {
+    formatter = new Intl.NumberFormat('en-CA', {
+      style: 'currency',
+      currency,
+      minimumFractionDigits: 2,
+    })
+    currencyFormatters.set(currency, formatter)
+  }
+  return formatter.format(amount)
 }
 
 function formatDate(dateStr: string): string {
