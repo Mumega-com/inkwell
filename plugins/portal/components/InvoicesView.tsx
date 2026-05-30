@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { formatCurrency } from '../../../src/lib/formatters'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -30,12 +31,8 @@ async function apiFetch(url: string, options?: RequestInit): Promise<Response> {
   })
 }
 
-function formatCurrency(amount: number, currency = 'CAD'): string {
-  return new Intl.NumberFormat('en-CA', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2,
-  }).format(amount)
+function _formatCurrency(amount: number, currency = 'CAD'): string {
+  return formatCurrency(amount, currency, 'en-CA', { minimumFractionDigits: 2 })
 }
 
 function formatDate(dateStr: string): string {
@@ -159,7 +156,7 @@ export default function InvoicesView({ slug }: Props) {
               fontFamily: 'monospace',
             }}
           >
-            {formatCurrency(paidTotal, currency)}
+            {_formatCurrency(paidTotal, currency)}
           </span>
         </div>
       )}
@@ -238,7 +235,7 @@ export default function InvoicesView({ slug }: Props) {
                       color: invoice.status === 'paid' ? 'var(--ink-primary)' : 'var(--ink-text)',
                     }}
                   >
-                    {formatCurrency(invoice.amount, invoice.currency ?? currency)}
+                  {_formatCurrency(invoice.amount, invoice.currency ?? currency)}
                   </span>
                   <StatusBadge status={invoice.status} />
                 </div>

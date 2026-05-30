@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '../../../src/components/ui/card'
+import { formatCurrency } from '../../../src/lib/formatters'
 import { Badge } from '../../../src/components/ui/badge'
 import { Button } from '../../../src/components/ui/button'
 import {
@@ -67,13 +68,8 @@ function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   })
 }
 
-function formatCurrency(cents: number, currency: string): string {
-  return new Intl.NumberFormat('en-CA', {
-    style: 'currency',
-    currency: currency.toUpperCase(),
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(cents / 100)
+function _formatCurrency(cents: number, currency: string): string {
+  return formatCurrency(cents / 100, currency.toUpperCase(), 'en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
 function formatDate(iso: string): string {
@@ -169,7 +165,7 @@ export function BillingPanel() {
                   </Badge>
                 </div>
                 <span className="font-mono text-3xl font-bold leading-none tracking-tight">
-                  {formatCurrency(plan.amount_cents, plan.currency)}
+                  {_formatCurrency(plan.amount_cents, plan.currency)}
                   <span className="ml-1 text-sm font-normal text-muted-foreground">/mo</span>
                 </span>
                 {plan.next_billing_date && (
@@ -221,7 +217,7 @@ export function BillingPanel() {
                       {formatDate(inv.date)}
                     </TableCell>
                     <TableCell className="font-mono font-semibold whitespace-nowrap">
-                      {plan ? formatCurrency(inv.amount_cents, plan.currency) : `$${(inv.amount_cents / 100).toFixed(2)}`}
+                      {plan ? _formatCurrency(inv.amount_cents, plan.currency) : `$${(inv.amount_cents / 100).toFixed(2)}`}
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline" className={cn('text-xs', statusBadgeClass(inv.status))}>

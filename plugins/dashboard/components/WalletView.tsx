@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '../../../src/components/ui/card'
+import { formatCurrency } from '../../../src/lib/formatters'
 import { Badge } from '../../../src/components/ui/badge'
 import { Button } from '../../../src/components/ui/button'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../../src/components/ui/tabs'
@@ -53,12 +54,7 @@ function humanizeReason(reason: string, type: 'earn' | 'spend'): string {
 }
 
 function formatCAD(n: number): string {
-  return new Intl.NumberFormat('en-CA', {
-    style: 'currency',
-    currency: 'CAD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(n)
+  return formatCurrency(n, 'CAD', 'en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
 function formatDate(iso: string): string {
