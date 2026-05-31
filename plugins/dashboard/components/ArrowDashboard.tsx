@@ -54,12 +54,14 @@ function timeAgo(ts: string): string {
   return `${Math.floor(hrs / 24)}d ago`
 }
 
+import { getCurrencyFormatter, getCompactFormatter } from '../../../src/lib/formatters'
+
 function formatCurrency(n: number): string {
-  return new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 }).format(n)
+  return getCurrencyFormatter('en-CA', 'CAD', { maximumFractionDigits: 0 }).format(n)
 }
 
 function formatCompact(n: number): string {
-  return new Intl.NumberFormat('en-CA', { notation: 'compact', maximumFractionDigits: 1 }).format(n)
+  return getCompactFormatter('en-CA', { maximumFractionDigits: 1 }).format(n)
 }
 
 const TEAM_NAMES: Record<string, string> = config.brand?.teamNames || {}

@@ -46,10 +46,10 @@ function apiFetch(url: string, options?: RequestInit): Promise<Response> {
   })
 }
 
+import { getCurrencyFormatter } from '../../../src/lib/formatters'
+
 function formatCurrency(cents: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
+  return getCurrencyFormatter('en-US', 'USD', {
     minimumFractionDigits: 2,
   }).format(cents / 100)
 }

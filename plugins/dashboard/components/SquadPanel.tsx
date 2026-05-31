@@ -18,11 +18,10 @@ interface KPIData {
 }
 
 // ── KPI formatters ─────────────────────────────────────────────────────────
+import { getCurrencyFormatter } from '../../../src/lib/formatters'
 
 function formatMoney(cents: number): string {
-  return new Intl.NumberFormat('en-CA', {
-    style: 'currency',
-    currency: 'CAD',
+  return getCurrencyFormatter('en-CA', 'CAD', {
     maximumFractionDigits: 0,
   }).format(cents / 100)
 }
