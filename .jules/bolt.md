@@ -1,0 +1,3 @@
+## 2024-05-25 - Cache Intl.NumberFormat in heavily rendered components
+**Learning:** This application heavily utilizes data-driven charts and tables (like `DataTable` mapping over rows). Inline instantiation of `Intl.NumberFormat` inside format helpers or render loops causes unnecessary CPU overhead and garbage collection during React re-renders, leading to UI stutter.
+**Action:** Extract static `Intl.NumberFormat` initializations to module-level constants. For dynamic formatters (like variable currency codes), implement a module-level `Map` cache to memoize and reuse the `Intl.NumberFormat` instances.
