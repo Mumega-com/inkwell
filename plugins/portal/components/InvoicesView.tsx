@@ -19,6 +19,22 @@ interface Invoice {
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
+const numberFormatters = new Map<string, Intl.NumberFormat>();
+
+function getNumberFormatter(currency: string): Intl.NumberFormat {
+  if (!numberFormatters.has(currency)) {
+    numberFormatters.set(
+      currency,
+      new Intl.NumberFormat('en-CA', {
+        style: 'currency',
+        currency,
+        minimumFractionDigits: 2,
+      })
+    );
+  }
+  return numberFormatters.get(currency)!;
+}
+
 async function apiFetch(url: string, options?: RequestInit): Promise<Response> {
   return fetch(url, {
     ...options,
@@ -31,16 +47,14 @@ async function apiFetch(url: string, options?: RequestInit): Promise<Response> {
 }
 
 function formatCurrency(amount: number, currency = 'CAD'): string {
-  return new Intl.NumberFormat('en-CA', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2,
-  }).format(amount)
+  return getNumberFormatter(currency).format(amount)
 }
 
+// Performance optimization: Cache Intl instance to prevent GC churn during renders
+const dateFormatter = new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: 'short', day: 'numeric' });
+
 function formatDate(dateStr: string): string {
-  const d = new Date(dateStr)
-  return d.toLocaleDateString('en-CA', { year: 'numeric', month: 'short', day: 'numeric' })
+  return dateFormatter.format(new Date(dateStr))
 }
 
 // ── Status badge ─────────────────────────────────────────────────────────────

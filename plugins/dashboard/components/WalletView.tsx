@@ -52,21 +52,26 @@ function humanizeReason(reason: string, type: 'earn' | 'spend'): string {
     .trim()
 }
 
+const cadFormatter = new Intl.NumberFormat('en-CA', {
+  style: 'currency',
+  currency: 'CAD',
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+})
+
 function formatCAD(n: number): string {
-  return new Intl.NumberFormat('en-CA', {
-    style: 'currency',
-    currency: 'CAD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(n)
+  return cadFormatter.format(n)
 }
 
+// Performance optimization: Cache Intl instance to prevent GC churn during renders
+const dateFormatter = new Intl.DateTimeFormat('en-CA', {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+});
+
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('en-CA', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  })
+  return dateFormatter.format(new Date(iso))
 }
 
 function MiniSparkline({ series, color }: { series: number[]; color: string }) {

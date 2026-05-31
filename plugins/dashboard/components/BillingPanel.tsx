@@ -67,21 +67,33 @@ function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   })
 }
 
+const currencyFormatters = new Map<string, Intl.NumberFormat>();
+
 function formatCurrency(cents: number, currency: string): string {
-  return new Intl.NumberFormat('en-CA', {
-    style: 'currency',
-    currency: currency.toUpperCase(),
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(cents / 100)
+  const upperCurrency = currency.toUpperCase();
+  if (!currencyFormatters.has(upperCurrency)) {
+    currencyFormatters.set(
+      upperCurrency,
+      new Intl.NumberFormat('en-CA', {
+        style: 'currency',
+        currency: upperCurrency,
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })
+    );
+  }
+  return currencyFormatters.get(upperCurrency)!.format(cents / 100)
 }
 
+// Performance optimization: Cache Intl instance to prevent GC churn during renders
+const dateFormatter = new Intl.DateTimeFormat('en-CA', {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+});
+
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('en-CA', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  })
+  return dateFormatter.format(new Date(iso))
 }
 
 function statusBadgeClass(status: string): string {

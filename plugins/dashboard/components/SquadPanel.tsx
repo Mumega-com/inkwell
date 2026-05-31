@@ -19,12 +19,14 @@ interface KPIData {
 
 // ── KPI formatters ─────────────────────────────────────────────────────────
 
+const moneyFormatter = new Intl.NumberFormat('en-CA', {
+  style: 'currency',
+  currency: 'CAD',
+  maximumFractionDigits: 0,
+});
+
 function formatMoney(cents: number): string {
-  return new Intl.NumberFormat('en-CA', {
-    style: 'currency',
-    currency: 'CAD',
-    maximumFractionDigits: 0,
-  }).format(cents / 100)
+  return moneyFormatter.format(cents / 100)
 }
 
 function formatTokens(n: number): string {
