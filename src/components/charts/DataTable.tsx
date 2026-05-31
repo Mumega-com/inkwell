@@ -16,13 +16,19 @@ interface DataTableProps {
   emptyMessage?: string
 }
 
+// ⚡ Bolt Performance Optimization:
+// Cache Intl.NumberFormat instances at the module level to avoid
+// recreating them on every format call, reducing CPU and GC overhead.
+const compactFormatter = new Intl.NumberFormat('en-CA', { notation: 'compact', maximumFractionDigits: 1 })
+const currencyFormatter = new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 })
+
 function formatCell(value: unknown, format: Column['format']): string {
   if (value === null || value === undefined) return '—'
   switch (format) {
     case 'number':
-      return new Intl.NumberFormat('en-CA', { notation: 'compact', maximumFractionDigits: 1 }).format(value as number)
+      return compactFormatter.format(value as number)
     case 'currency':
-      return new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 }).format(value as number)
+      return currencyFormatter.format(value as number)
     case 'percent':
       return `${(value as number).toFixed(1)}%`
     default:
