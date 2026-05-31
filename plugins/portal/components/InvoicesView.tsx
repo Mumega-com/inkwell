@@ -30,12 +30,22 @@ async function apiFetch(url: string, options?: RequestInit): Promise<Response> {
   })
 }
 
+// Cache formatters by currency code
+const currencyFormatters = new Map<string, Intl.NumberFormat>()
+
 function formatCurrency(amount: number, currency = 'CAD'): string {
-  return new Intl.NumberFormat('en-CA', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2,
-  }).format(amount)
+  const code = currency.toUpperCase()
+  if (!currencyFormatters.has(code)) {
+    currencyFormatters.set(
+      code,
+      new Intl.NumberFormat('en-CA', {
+        style: 'currency',
+        currency: code,
+        minimumFractionDigits: 2,
+      })
+    )
+  }
+  return currencyFormatters.get(code)!.format(amount)
 }
 
 function formatDate(dateStr: string): string {
