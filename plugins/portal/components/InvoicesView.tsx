@@ -30,10 +30,10 @@ async function apiFetch(url: string, options?: RequestInit): Promise<Response> {
   })
 }
 
+import { getCurrencyFormatter } from '../../../src/lib/formatters'
+
 function formatCurrency(amount: number, currency = 'CAD'): string {
-  return new Intl.NumberFormat('en-CA', {
-    style: 'currency',
-    currency,
+  return getCurrencyFormatter('en-CA', currency, {
     minimumFractionDigits: 2,
   }).format(amount)
 }

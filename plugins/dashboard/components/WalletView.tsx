@@ -52,10 +52,10 @@ function humanizeReason(reason: string, type: 'earn' | 'spend'): string {
     .trim()
 }
 
+import { getCurrencyFormatter } from '../../../src/lib/formatters'
+
 function formatCAD(n: number): string {
-  return new Intl.NumberFormat('en-CA', {
-    style: 'currency',
-    currency: 'CAD',
+  return getCurrencyFormatter('en-CA', 'CAD', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(n)
