@@ -5,6 +5,7 @@ import { Badge } from '../../../src/components/ui/badge'
 import { Button } from '../../../src/components/ui/button'
 import { cn } from '../../../src/lib/utils'
 import { config } from '../../../src/lib/config'
+import { getCurrencyFormatter, getCompactFormatter } from '../../../src/lib/formatters'
 
 interface AnalyticsOverview {
   clicks?: number
@@ -55,11 +56,11 @@ function timeAgo(ts: string): string {
 }
 
 function formatCurrency(n: number): string {
-  return new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 }).format(n)
+  return getCurrencyFormatter('CAD', 'en-CA', { maximumFractionDigits: 0 }).format(n)
 }
 
 function formatCompact(n: number): string {
-  return new Intl.NumberFormat('en-CA', { notation: 'compact', maximumFractionDigits: 1 }).format(n)
+  return getCompactFormatter('en-CA', { maximumFractionDigits: 1 }).format(n)
 }
 
 const TEAM_NAMES: Record<string, string> = config.brand?.teamNames || {}

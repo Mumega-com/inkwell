@@ -13,6 +13,7 @@ import {
 } from '../../../src/components/ui/table'
 import { cn } from '../../../src/lib/utils'
 import { config } from '../../../src/lib/config'
+import { getCurrencyFormatter } from '../../../src/lib/formatters'
 
 interface WalletData {
   balance: number
@@ -53,12 +54,7 @@ function humanizeReason(reason: string, type: 'earn' | 'spend'): string {
 }
 
 function formatCAD(n: number): string {
-  return new Intl.NumberFormat('en-CA', {
-    style: 'currency',
-    currency: 'CAD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(n)
+  return getCurrencyFormatter('CAD', 'en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n)
 }
 
 function formatDate(iso: string): string {
