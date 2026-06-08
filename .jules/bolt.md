@@ -1,0 +1,3 @@
+## 2024-06-03 - [Cache Intl.NumberFormat for React Components]
+**Learning:** Dynamic instantiation of `Intl.NumberFormat` inside React components is surprisingly slow. In list and table components (like DataTable, KPICard, and CohortTable), repeatedly calling `new Intl.NumberFormat()` on every cell render causes significant CPU overhead and can lead to dropped frames.
+**Action:** Cache `Intl.NumberFormat`, `Intl.DateTimeFormat`, and other expensive formatting instances at the module level (e.g., using a Map or constants) and reuse them across renders. Use a centralized utility like `src/lib/formatters.ts` to manage this.
