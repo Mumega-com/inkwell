@@ -18,6 +18,9 @@ DATAFORSEO_PASSWORD = ""
 GA4_PROPERTY_ID = ""
 # Google Search Console site URL (must match exactly what's in GSC)
 GSC_SITE_URL = "https://example.com/"
+# WordPress Sync plugin source site. Leave empty to disable.
+WORDPRESS_SITE_URL = ""
+WORDPRESS_CUSTOMER_SLUG = "default"
 
 [[d1_databases]]
 binding = "DB_ANALYTICS"

@@ -42,6 +42,9 @@ export interface PluginManifest {
   /** Worker routes this plugin adds — mounts routes on the shared Hono app */
   mountRoutes?: (app: HonoApp) => void
 
+  /** Scheduled Worker hook for connector syncs, maintenance, and background jobs */
+  scheduled?: (event: unknown, env: unknown, ctx: unknown) => Promise<unknown>
+
   /** MCP tools this plugin registers on the /mcp endpoint */
   mcpTools?: McpToolDef[]
 

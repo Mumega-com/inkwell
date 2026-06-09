@@ -6,6 +6,7 @@ import {
   getActivePlugins,
   collectMcpTools,
   collectDashboardWidgets,
+  runScheduledPluginHooks,
   mergePluginConfigs,
   clearPlugins,
 } from '../plugin-loader'
@@ -118,6 +119,40 @@ describe('plugin-loader', () => {
 
       const widgets = collectDashboardWidgets(['dashboard', 'notifications'])
       expect(widgets).toEqual(['TaskBoard', 'WalletView', 'NotificationBell'])
+    })
+  })
+
+  describe('runScheduledPluginHooks', () => {
+    it('runs scheduled hooks for active plugins only', async () => {
+      registerPlugin(makePlugin({
+        name: 'wordpress-sync',
+        scheduled: async () => ({ synced: 2 }),
+      }))
+      registerPlugin(makePlugin({
+        name: 'inactive',
+        scheduled: async () => ({ synced: 99 }),
+      }))
+
+      const results = await runScheduledPluginHooks(['wordpress-sync'], {}, {}, {})
+
+      expect(results).toEqual([
+        { plugin: 'wordpress-sync', ok: true, result: { synced: 2 } },
+      ])
+    })
+
+    it('captures scheduled hook failures without throwing', async () => {
+      registerPlugin(makePlugin({
+        name: 'broken',
+        scheduled: async () => {
+          throw new Error('boom')
+        },
+      }))
+
+      const results = await runScheduledPluginHooks(['broken'], {}, {}, {})
+
+      expect(results).toEqual([
+        { plugin: 'broken', ok: false, error: 'boom' },
+      ])
     })
   })
 

@@ -19,6 +19,7 @@ import onboardingManifest from '../../../plugins/onboarding/manifest'
 import notificationsManifest from '../../../plugins/notifications/manifest'
 import bountyManifest from '../../../plugins/bounty/manifest'
 import automationManifest from '../../../plugins/automation/manifest'
+import wordpressSyncManifest from '../../../plugins/wordpress-sync/manifest'
 
 // Register all available plugins
 registerPlugin(dashboardManifest)
@@ -35,6 +36,7 @@ registerPlugin(onboardingManifest)
 registerPlugin(notificationsManifest)
 registerPlugin(bountyManifest)
 registerPlugin(automationManifest)
+registerPlugin(wordpressSyncManifest)
 
 import { analyticsRoutes } from './routes/analytics'
 import { authRoutes } from './routes/auth'
@@ -58,6 +60,7 @@ import { identityRoutes } from './routes/identity'
 import { questionnaireRoutes } from './routes/questionnaire'
 import { telegramRoutes } from './routes/telegram'
 import { bountyRoutes } from '../../../plugins/bounty/routes'
+import { wordpressSyncRoutes } from '../../../plugins/wordpress-sync/routes'
 import { auditLogger } from './middleware/audit'
 import { adapterMiddleware } from './middleware/adapters'
 import { dynamicRobotsTxt } from './middleware/edge-seo'
@@ -233,6 +236,9 @@ app.route('/api/telegram', telegramRoutes)
 
 app.use('/api/bounties/*', routeGate('bounty'))
 app.route('/api/bounties', bountyRoutes)
+
+app.use('/api/wordpress-sync/*', routeGate('wordpress-sync'))
+app.route('/api/wordpress-sync', wordpressSyncRoutes)
 
 app.route('/api/portal', portalRoutes)
 app.route('/api/portal/identity', identityRoutes)

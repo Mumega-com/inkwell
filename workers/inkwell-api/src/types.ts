@@ -30,6 +30,11 @@ export interface Env {
   GSC_SITE_URL?: string       // e.g. "https://example.com/"
   GA4_CREDENTIALS?: string    // JSON: {client_id, client_secret, refresh_token}
   GA4_PROPERTY_ID?: string    // e.g. "123456789"
+  WORDPRESS_SITE_URL?: string // e.g. "https://example.com"
+  WORDPRESS_CUSTOMER_SLUG?: string // e.g. "default"
+  WORDPRESS_AUTH_HEADER?: string // Optional raw Authorization header for private sync
+  WORDPRESS_USERNAME?: string // Optional WordPress application password username
+  WORDPRESS_APP_PASSWORD?: string // Optional WordPress application password
   CONTRACT_AUTH_TOKEN?: string // Bearer token for milestone update endpoint
   // Twilio SMS
   TWILIO_ACCOUNT_SID?: string
