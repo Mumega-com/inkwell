@@ -1,0 +1,3 @@
+## 2025-02-23 - Caching Intl.NumberFormat
+**Learning:** `Intl.NumberFormat` instantiation is a known JavaScript performance bottleneck, especially when called repeatedly within React components during render loops (e.g., formatting lists or table cells). Dynamic instantiations can result in massive CPU overhead and unnecessary garbage collection.
+**Action:** Always cache `Intl.NumberFormat`, `Intl.DateTimeFormat`, and similar expensive localization constructors using module-level constants or Maps. Use the centralized `src/lib/formatters.ts` utility functions (`getCurrencyFormatter`, `getCompactFormatter`) rather than creating new formatters locally in components.
