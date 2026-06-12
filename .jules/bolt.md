@@ -1,0 +1,3 @@
+## 2025-06-12 - Centralized Intl.NumberFormat Caching
+**Learning:** Instantiating new `Intl.NumberFormat` objects directly inside React component render functions (especially in list renders or tables) introduces unnecessary CPU overhead and garbage collection, leading to performance bottlenecks.
+**Action:** Always cache `Intl.NumberFormat` instances using a centralized utility file (e.g., `src/lib/formatters.ts`) to reuse formatter objects based on locale and options, avoiding repeated instantiations during React renders.
