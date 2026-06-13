@@ -1,3 +1,4 @@
+// ⚡ Bolt: Cache Intl.NumberFormat instances to prevent CPU overhead and excessive garbage collection during React re-renders.
 const formatterCache = new Map<string, Intl.NumberFormat>();
 
 interface CurrencyOptions {
