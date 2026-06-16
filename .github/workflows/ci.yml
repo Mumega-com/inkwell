@@ -14,13 +14,16 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - run: npm ci
 
       - name: Kernel tests
         run: cd kernel && npx vitest run
+
+      - name: Build project
+        run: npm run build
 
       - name: Worker build (dry-run)
         run: cd workers/inkwell-api && npx wrangler deploy --dry-run --outdir=.wrangler/tmp
@@ -32,7 +35,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - run: npm ci
