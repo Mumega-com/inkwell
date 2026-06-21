@@ -14,10 +14,12 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: "22"
           cache: npm
 
       - run: npm ci
+      - name: Build Astro entrypoints
+        run: npm run build
 
       - name: Kernel tests
         run: cd kernel && npx vitest run
@@ -32,7 +34,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: "22"
           cache: npm
 
       - run: npm ci
