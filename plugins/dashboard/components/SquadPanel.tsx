@@ -4,6 +4,7 @@ import { Badge } from '../../../src/components/ui/badge'
 import { Progress } from '../../../src/components/ui/progress'
 import { Avatar, AvatarFallback } from '../../../src/components/ui/avatar'
 import { cn } from '../../../src/lib/utils'
+import { getCurrencyFormatter } from '../../../src/lib/formatters'
 
 // ── KPI types ──────────────────────────────────────────────────────────────
 
@@ -20,9 +21,7 @@ interface KPIData {
 // ── KPI formatters ─────────────────────────────────────────────────────────
 
 function formatMoney(cents: number): string {
-  return new Intl.NumberFormat('en-CA', {
-    style: 'currency',
-    currency: 'CAD',
+  return getCurrencyFormatter({
     maximumFractionDigits: 0,
   }).format(cents / 100)
 }

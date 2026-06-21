@@ -11,6 +11,7 @@ import {
   TableRow,
 } from '../../../src/components/ui/table'
 import { cn } from '../../../src/lib/utils'
+import { getCurrencyFormatter } from '../../../src/lib/formatters'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -68,8 +69,7 @@ function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
 }
 
 function formatCurrency(cents: number, currency: string): string {
-  return new Intl.NumberFormat('en-CA', {
-    style: 'currency',
+  return getCurrencyFormatter({
     currency: currency.toUpperCase(),
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
