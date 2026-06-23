@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { getCurrencyFormatter, getNumberFormatter } from '../../../src/lib/formatters'
 import { Card, CardContent, CardHeader, CardTitle } from '../../../src/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../src/components/ui/table'
 import { Badge } from '../../../src/components/ui/badge'
@@ -55,11 +56,11 @@ function timeAgo(ts: string): string {
 }
 
 function formatCurrency(n: number): string {
-  return new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 }).format(n)
+  return getCurrencyFormatter({ currency: 'CAD', maximumFractionDigits: 0 }).format(n)
 }
 
 function formatCompact(n: number): string {
-  return new Intl.NumberFormat('en-CA', { notation: 'compact', maximumFractionDigits: 1 }).format(n)
+  return getNumberFormatter({ notation: 'compact', maximumFractionDigits: 1 }).format(n)
 }
 
 const TEAM_NAMES: Record<string, string> = config.brand?.teamNames || {}
