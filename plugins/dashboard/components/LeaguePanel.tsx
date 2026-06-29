@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { getCurrencyFormatter } from '../../../src/lib/formatters'
 import { Card, CardContent } from '../../../src/components/ui/card'
 import { Badge } from '../../../src/components/ui/badge'
 import { Separator } from '../../../src/components/ui/separator'
@@ -46,10 +47,9 @@ function apiFetch(url: string, options?: RequestInit): Promise<Response> {
   })
 }
 
+
 function formatCurrency(cents: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
+  return getCurrencyFormatter('en-US', 'USD', {
     minimumFractionDigits: 2,
   }).format(cents / 100)
 }
