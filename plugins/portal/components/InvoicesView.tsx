@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { getNumberFormatter } from '../../../src/lib/formatters'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -31,7 +32,7 @@ async function apiFetch(url: string, options?: RequestInit): Promise<Response> {
 }
 
 function formatCurrency(amount: number, currency = 'CAD'): string {
-  return new Intl.NumberFormat('en-CA', {
+  return getNumberFormatter('en-CA', {
     style: 'currency',
     currency,
     minimumFractionDigits: 2,
