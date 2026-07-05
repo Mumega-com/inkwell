@@ -1,0 +1,3 @@
+## 2025-07-05 - Intl.NumberFormat Caching Optimization
+**Learning:** Found multiple instances of `new Intl.NumberFormat` instantiated directly inside React component render cycles (e.g. `KPICard`, `DataTable`, and multiple plugin components). This is a known performance anti-pattern as `Intl.NumberFormat` instantiations are CPU intensive, trigger garbage collection during re-renders, and block the main thread.
+**Action:** Centralized and memoized formatting calls into a new utility file `src/lib/formatters.ts` using a `Map` cache and stable cache keys constructed via sorted option keys. Applied to all occurrences to ensure formatter objects are reused across renders and throughout the application.
