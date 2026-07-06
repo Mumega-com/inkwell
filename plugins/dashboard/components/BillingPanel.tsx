@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '../../../src/components/ui/card'
 import { Badge } from '../../../src/components/ui/badge'
+import { getCurrencyFormatter } from '../../../src/lib/formatters'
 import { Button } from '../../../src/components/ui/button'
 import {
   Table,
@@ -68,8 +69,8 @@ function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
 }
 
 function formatCurrency(cents: number, currency: string): string {
-  return new Intl.NumberFormat('en-CA', {
-    style: 'currency',
+  return getCurrencyFormatter('en-CA', {
+
     currency: currency.toUpperCase(),
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '../../../src/components/ui/card'
 import { Badge } from '../../../src/components/ui/badge'
+import { getCurrencyFormatter } from '../../../src/lib/formatters'
 import { Progress } from '../../../src/components/ui/progress'
 import { Avatar, AvatarFallback } from '../../../src/components/ui/avatar'
 import { cn } from '../../../src/lib/utils'
@@ -20,8 +21,8 @@ interface KPIData {
 // ── KPI formatters ─────────────────────────────────────────────────────────
 
 function formatMoney(cents: number): string {
-  return new Intl.NumberFormat('en-CA', {
-    style: 'currency',
+  return getCurrencyFormatter('en-CA', {
+
     currency: 'CAD',
     maximumFractionDigits: 0,
   }).format(cents / 100)
