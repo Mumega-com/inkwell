@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '../../../src/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../src/components/ui/table'
 import { Badge } from '../../../src/components/ui/badge'
@@ -234,13 +234,30 @@ export function TaskBoard() {
     )
   }
 
-  const filtered = tasks.filter(t => {
-    if (filterSquad !== '__all' && t.squad !== filterSquad) return false
-    if (filterPriority !== '__all' && t.priority !== filterPriority) return false
-    return true
-  })
+  // ⚡ Bolt: Memoize filtered tasks to prevent recalculating on every re-render unless filter criteria change.
+  const filtered = useMemo(() => {
+    return tasks.filter(t => {
+      if (filterSquad !== '__all' && t.squad !== filterSquad) return false
+      if (filterPriority !== '__all' && t.priority !== filterPriority) return false
+      return true
+    })
+  }, [tasks, filterSquad, filterPriority])
 
-  const byStatus = (status: TaskStatus) => filtered.filter(t => t.status === status)
+  // ⚡ Bolt: Group filtered tasks by status in a single pass O(n) instead of running a filter
+  // operation multiple times per column during render. Reduces redundant iterations significantly.
+  const tasksByStatus = useMemo(() => {
+    const grouped = {
+      backlog: [] as Task[],
+      in_progress: [] as Task[],
+      done: [] as Task[]
+    };
+    for (const task of filtered) {
+      if (task.status in grouped) {
+        grouped[task.status].push(task);
+      }
+    }
+    return grouped;
+  }, [filtered])
 
   function handleCreated(task: Task) {
     setTasks(prev => [task, ...prev])
@@ -330,14 +347,14 @@ export function TaskBoard() {
               <div className="flex items-center gap-2 px-4 py-3 border-b">
                 <span className="font-bold text-sm">{col.label}</span>
                 <Badge variant="outline" className="ml-auto font-mono text-xs">
-                  {byStatus(col.key).length}
+                  {(tasksByStatus[col.key] || []).length}
                 </Badge>
               </div>
               <div className="p-3 flex flex-col gap-2 min-h-[120px]">
-                {byStatus(col.key).map(task => (
+                {(tasksByStatus[col.key] || []).map(task => (
                   <TaskCard key={task.id} task={task} />
                 ))}
-                {byStatus(col.key).length === 0 && (
+                {(tasksByStatus[col.key] || []).length === 0 && (
                   <p className="text-xs text-muted-foreground py-2">Empty</p>
                 )}
               </div>
