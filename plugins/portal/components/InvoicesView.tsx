@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getCurrencyFormatter } from '../../../src/lib/formatters'
+import { getCurrencyFormatter, getDateTimeFormatter } from '../../../src/lib/formatters'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -39,7 +39,8 @@ function formatCurrency(amount: number, currency = 'CAD'): string {
 
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr)
-  return d.toLocaleDateString('en-CA', { year: 'numeric', month: 'short', day: 'numeric' })
+  // OPTIMIZATION: Use cached getDateTimeFormatter instead of Date.toLocaleDateString() to avoid expensive Intl object instantiation overhead during re-renders, especially inside list iterations.
+  return getDateTimeFormatter('en-CA', { year: 'numeric', month: 'short', day: 'numeric' }).format(d)
 }
 
 // ── Status badge ─────────────────────────────────────────────────────────────
