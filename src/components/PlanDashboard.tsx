@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { getDateTimeFormatter } from '../lib/formatters'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -261,7 +262,7 @@ function StepCard({
 
           {isDone && step.completed_at && (
             <p style={{ color: '#10b981', fontSize: '0.75rem', marginTop: '0.4rem' }}>
-              Completed {new Date(step.completed_at).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' })}
+              Completed {getDateTimeFormatter('en-CA', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(step.completed_at))}
             </p>
           )}
 
@@ -544,13 +545,13 @@ export default function PlanDashboard({ planId, apiBase = '' }: Props) {
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
                 <span>Started</span>
                 <span style={{ color: 'var(--ink-text)', fontWeight: 600 }}>
-                  {new Date(plan.createdAt).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  {getDateTimeFormatter('en-CA', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(plan.createdAt))}
                 </span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span>Est. finish</span>
                 <span style={{ color: 'var(--ink-primary)', fontWeight: 600 }}>
-                  {new Date(plan.estimatedCompletionDate).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  {getDateTimeFormatter('en-CA', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(plan.estimatedCompletionDate))}
                 </span>
               </div>
             </div>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { getNumberFormatter, getDateTimeFormatter } from '../lib/formatters'
 
 interface ContractData {
   id: string
@@ -61,11 +62,11 @@ export function ContractForm({ contract, apiBase = '' }: ContractFormProps) {
   const [error, setError] = useState<string | null>(null)
   const [signed, setSigned] = useState(contract.status === 'signed')
 
-  const today = new Date().toLocaleDateString('en-CA', {
+  const today = getDateTimeFormatter('en-CA', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
-  })
+  }).format(new Date())
 
   const serviceLabel = contract.service_type ? (SERVICE_LABELS[contract.service_type] ?? contract.service_type) : 'N/A'
 
@@ -198,7 +199,7 @@ export function ContractForm({ contract, apiBase = '' }: ContractFormProps) {
             <div className="cf-field">
               <span className="cf-label">Rate</span>
               <span className="cf-value cf-price">
-                {contract.currency} {contract.rate.toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                {contract.currency} {getNumberFormatter('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(contract.rate)}
               </span>
             </div>
           )}

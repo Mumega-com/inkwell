@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { getDateTimeFormatter } from '../lib/formatters'
 
 interface LessonStatus {
   slug: string; title: string; order: number; free: boolean
@@ -127,7 +128,7 @@ export default function CoursePlayer({ courseSlug, courseTitle = 'Course', cours
               <div style={{ fontSize: '0.8rem', color: 'var(--ink-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{cert.courseName}</div>
               <div style={{ fontSize: '1.5rem', fontWeight: 700, margin: '0.5rem 0' }}>{cert.studentName}</div>
               <div style={{ fontFamily: 'monospace', fontSize: '0.85rem', color: 'var(--ink-dim)' }}>#{cert.certificateNumber}</div>
-              <div style={{ fontSize: '0.85rem', color: 'var(--ink-muted)', marginTop: '0.25rem' }}>{new Date(cert.issuedAt).toLocaleDateString()}</div>
+              <div style={{ fontSize: '0.85rem', color: 'var(--ink-muted)', marginTop: '0.25rem' }}>{getDateTimeFormatter('default').format(new Date(cert.issuedAt))}</div>
             </div>
           </div>
         ) : cur ? (

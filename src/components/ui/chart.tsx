@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import * as RechartsPrimitive from "recharts"
+import { getNumberFormatter } from "../../lib/formatters"
 
 import { cn } from "../../lib/utils"
 
@@ -242,7 +243,7 @@ const ChartTooltipContent = React.forwardRef<
                         </div>
                         {item.value && (
                           <span className="font-mono font-medium tabular-nums text-foreground">
-                            {item.value.toLocaleString()}
+                            {getNumberFormatter('default').format(item.value as number)}
                           </span>
                         )}
                       </div>
