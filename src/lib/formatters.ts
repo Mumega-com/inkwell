@@ -32,3 +32,23 @@ export function getCurrencyFormatter(locale: string, currency: string, options: 
 
   return formatterCache.get(cacheKey)!;
 }
+
+const dateTimeFormatterCache = new Map<string, Intl.DateTimeFormat>();
+
+function getDateTimeCacheKey(locale: string, options: Intl.DateTimeFormatOptions): string {
+  const optionsKey = Object.keys(options).length > 0
+    ? JSON.stringify(options, Object.keys(options).sort())
+    : '{}';
+  return `${locale}:${optionsKey}`;
+}
+
+export function getDateTimeFormatter(locale: string = 'default', options: Intl.DateTimeFormatOptions = {}): Intl.DateTimeFormat {
+  const cacheKey = getDateTimeCacheKey(locale, options);
+
+  if (!dateTimeFormatterCache.has(cacheKey)) {
+    const formatLocale = locale === 'default' ? undefined : locale;
+    dateTimeFormatterCache.set(cacheKey, new Intl.DateTimeFormat(formatLocale, options));
+  }
+
+  return dateTimeFormatterCache.get(cacheKey)!;
+}

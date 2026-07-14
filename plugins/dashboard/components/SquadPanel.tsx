@@ -4,7 +4,7 @@ import { Badge } from '../../../src/components/ui/badge'
 import { Progress } from '../../../src/components/ui/progress'
 import { Avatar, AvatarFallback } from '../../../src/components/ui/avatar'
 import { cn } from '../../../src/lib/utils'
-import { getCurrencyFormatter } from '../../../src/lib/formatters'
+import { getCurrencyFormatter, getNumberFormatter } from '../../../src/lib/formatters'
 
 // ── KPI types ──────────────────────────────────────────────────────────────
 
@@ -250,7 +250,7 @@ function BudgetGauge({ used, total }: { used: number; total: number }) {
       </div>
       <Progress value={pct} className={cn('h-1.5', indicatorClass)} />
       <span className="font-mono text-xs text-muted-foreground">
-        ${used.toLocaleString()} / ${total.toLocaleString()}
+        ${getNumberFormatter('en-US').format(used)} / ${getNumberFormatter('en-US').format(total)}
       </span>
     </div>
   )

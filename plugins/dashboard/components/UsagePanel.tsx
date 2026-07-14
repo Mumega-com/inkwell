@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '../../../src/components/ui/card'
 import { Progress } from '../../../src/components/ui/progress'
 import { cn } from '../../../src/lib/utils'
+import { getNumberFormatter } from '../../../src/lib/formatters'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -57,7 +58,7 @@ function formatBytes(bytes: number): string {
 function formatNum(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
   if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`
-  return n.toLocaleString()
+  return getNumberFormatter('en-US').format(n)
 }
 
 function pct(used: number, limit: number): number {

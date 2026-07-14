@@ -3,6 +3,7 @@ import { Card } from '../../../src/components/ui/card'
 import { Badge } from '../../../src/components/ui/badge'
 import { Button } from '../../../src/components/ui/button'
 import { STORAGE_KEYS } from '../../lib/storage-keys'
+import { getDateTimeFormatter } from '../../../src/lib/formatters'
 
 interface MediaAsset {
   id: string
@@ -73,7 +74,7 @@ function AssetCard({ asset, onExpand, onDelete }: {
           ))}
         </div>
         <p className="text-xs text-muted-foreground">
-          {new Date(asset.createdAt).toLocaleDateString()}
+          {getDateTimeFormatter().format(new Date(asset.createdAt))}
           {' \u00B7 '}
           {formatBytes(asset.sizeBytes)}
         </p>
@@ -109,7 +110,7 @@ function ExpandedPanel({ asset, onClose }: { asset: MediaAsset; onClose: () => v
         {(() => {
           const rows: [string, string][] = [
             ['Type', asset.contentType], ['Size', formatBytes(asset.sizeBytes)],
-            ['Source', asset.sourceType], ['Created', new Date(asset.createdAt).toLocaleString()],
+            ['Source', asset.sourceType], ['Created', getDateTimeFormatter('default', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(asset.createdAt))],
           ]
           if (asset.width) rows.push(['Dimensions', `${asset.width}x${asset.height}`])
           if (asset.nsfwScore != null) rows.push(['NSFW', `${(asset.nsfwScore * 100).toFixed(0)}%`])
