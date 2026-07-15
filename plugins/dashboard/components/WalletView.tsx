@@ -13,7 +13,7 @@ import {
 } from '../../../src/components/ui/table'
 import { cn } from '../../../src/lib/utils'
 import { config } from '../../../src/lib/config'
-import { getCurrencyFormatter } from '../../../src/lib/formatters'
+import { getCurrencyFormatter, getDateTimeFormatter } from '../../../src/lib/formatters'
 
 interface WalletData {
   balance: number
@@ -61,11 +61,11 @@ function formatCAD(n: number): string {
 }
 
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('en-CA', {
+  return getDateTimeFormatter('en-CA', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
-  })
+  }).format(new Date(iso))
 }
 
 function MiniSparkline({ series, color }: { series: number[]; color: string }) {

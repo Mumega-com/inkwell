@@ -17,6 +17,26 @@ export function getNumberFormatter(locale: string, options: Intl.NumberFormatOpt
   return formatterCache.get(cacheKey)!;
 }
 
+const dateTimeFormatterCache = new Map<string, Intl.DateTimeFormat>();
+
+function getDateTimeCacheKey(locale: string | undefined, options: Intl.DateTimeFormatOptions): string {
+  const safeLocale = locale ?? 'default';
+  const optionsKey = Object.keys(options).length > 0
+    ? JSON.stringify(options, Object.keys(options).sort())
+    : '{}';
+  return `${safeLocale}:datetime:${optionsKey}`;
+}
+
+export function getDateTimeFormatter(locale?: string, options: Intl.DateTimeFormatOptions = {}): Intl.DateTimeFormat {
+  const cacheKey = getDateTimeCacheKey(locale, options);
+
+  if (!dateTimeFormatterCache.has(cacheKey)) {
+    dateTimeFormatterCache.set(cacheKey, new Intl.DateTimeFormat(locale, options));
+  }
+
+  return dateTimeFormatterCache.get(cacheKey)!;
+}
+
 export function getCurrencyFormatter(locale: string, currency: string, options: Intl.NumberFormatOptions = {}): Intl.NumberFormat {
   const formatterOptions: Intl.NumberFormatOptions = {
     style: 'currency',

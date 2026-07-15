@@ -11,7 +11,7 @@ import {
   TableRow,
 } from '../../../src/components/ui/table'
 import { cn } from '../../../src/lib/utils'
-import { getCurrencyFormatter } from '../../../src/lib/formatters'
+import { getCurrencyFormatter, getDateTimeFormatter } from '../../../src/lib/formatters'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -76,11 +76,11 @@ function formatCurrency(cents: number, currency: string): string {
 }
 
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('en-CA', {
+  return getDateTimeFormatter('en-CA', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
-  })
+  }).format(new Date(iso))
 }
 
 function statusBadgeClass(status: string): string {
