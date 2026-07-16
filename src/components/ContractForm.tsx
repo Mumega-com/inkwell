@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { getNumberFormatter } from '../lib/formatters'
 
 interface ContractData {
   id: string
@@ -198,7 +199,8 @@ export function ContractForm({ contract, apiBase = '' }: ContractFormProps) {
             <div className="cf-field">
               <span className="cf-label">Rate</span>
               <span className="cf-value cf-price">
-                {contract.currency} {contract.rate.toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                {/* Optimization: use cached getNumberFormatter to prevent CPU overhead from instantiating Intl.NumberFormat on every render */}
+                {contract.currency} {getNumberFormatter('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(contract.rate)}
               </span>
             </div>
           )}

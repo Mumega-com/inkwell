@@ -4,6 +4,7 @@ import * as React from "react"
 import * as RechartsPrimitive from "recharts"
 
 import { cn } from "../../lib/utils"
+import { getNumberFormatter } from "../../lib/formatters"
 
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: "", dark: ".dark" } as const
@@ -242,7 +243,10 @@ const ChartTooltipContent = React.forwardRef<
                         </div>
                         {item.value && (
                           <span className="font-mono font-medium tabular-nums text-foreground">
-                            {item.value.toLocaleString()}
+                            {/* Optimization: use cached getNumberFormatter instead of toLocaleString to prevent CPU overhead from instantiating Intl.NumberFormat on every render */}
+                            {typeof item.value === 'number'
+                              ? getNumberFormatter(undefined).format(item.value)
+                              : item.value.toLocaleString()}
                           </span>
                         )}
                       </div>
