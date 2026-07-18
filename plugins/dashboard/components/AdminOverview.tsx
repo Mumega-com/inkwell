@@ -7,6 +7,7 @@ import { Progress } from '../../../src/components/ui/progress'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../../src/components/ui/tabs'
 import { Separator } from '../../../src/components/ui/separator'
 import { cn } from '../../../src/lib/utils'
+import { getNumberFormatter } from '../../../src/lib/formatters'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -75,7 +76,7 @@ function getApiConfig() {
 }
 
 function formatCents(cents: number): string {
-  return `$${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: 0 })}`
+  return `$${getNumberFormatter('en-US', { minimumFractionDigits: 0 }).format(cents / 100)}`
 }
 
 function timeAgo(ts: string): string {
@@ -331,7 +332,7 @@ export function AdminOverview() {
       {/* KPI Row */}
       <div className="flex flex-wrap gap-3">
         <MiniKPI title="Gross Revenue" value={formatCents(revenue.gross)} change={`${revenue.txCount} transactions`} icon="◈" variant="success" />
-        <MiniKPI title="Visitors Today" value={analytics.visitors.toLocaleString()} change={`${analytics.pageViews} page views`} icon="◆" />
+        <MiniKPI title="Visitors Today" value={getNumberFormatter().format(analytics.visitors)} change={`${analytics.pageViews} page views`} icon="◆" />
         <MiniKPI title="Contracts" value={String(contractStats.total)} change={`${contractStats.signed} signed, ${contractStats.pending} pending`} icon="◎" />
         <MiniKPI title="NPS Score" value={feedback.nps !== null ? String(feedback.nps) : '—'} change={`${feedback.responses} responses`} icon="◇" variant={feedback.nps !== null && feedback.nps >= 50 ? 'success' : feedback.nps !== null && feedback.nps >= 0 ? 'warning' : 'danger'} />
         <MiniKPI title="Check-In Rate" value={`${qMeta.rate}%`} change={`${qMeta.answered}/${qMeta.total}`} icon="◌" variant={qMeta.rate >= 80 ? 'success' : qMeta.rate >= 50 ? 'warning' : 'danger'} />
@@ -563,7 +564,7 @@ export function AdminOverview() {
                         <TableCell className="font-mono text-sm text-cyan-500 font-semibold">{c.reference}</TableCell>
                         <TableCell className="text-sm">{c.customer_name}</TableCell>
                         <TableCell className="text-xs text-muted-foreground">{c.destination ?? '—'}</TableCell>
-                        <TableCell className="font-mono text-sm">{c.rate ? `$${c.rate.toLocaleString()}` : '—'}</TableCell>
+                        <TableCell className="font-mono text-sm">{c.rate ? `$${getNumberFormatter().format(c.rate)}` : '—'}</TableCell>
                         <TableCell><Badge variant={STATUS_BADGE[c.status] ?? 'outline'} className="text-[0.6rem]">{c.status}</Badge></TableCell>
                         <TableCell className="text-xs text-muted-foreground">{timeAgo(c.created_at)}</TableCell>
                       </TableRow>
