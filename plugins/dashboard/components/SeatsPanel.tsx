@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { getDateTimeFormatter } from '../../../src/lib/formatters'
 import { Card, CardContent, CardHeader, CardTitle } from '../../../src/components/ui/card'
 import { Badge } from '../../../src/components/ui/badge'
 import { Button } from '../../../src/components/ui/button'
@@ -67,11 +68,11 @@ function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
 }
 
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('en-CA', {
+  return getDateTimeFormatter('en-CA', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
-  })
+  }).format(new Date(iso))
 }
 
 function roleBadgeClass(role: MemberRole): string {
