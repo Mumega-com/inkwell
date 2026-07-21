@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { getDateTimeFormatter } from '../../../src/lib/formatters'
 
 interface Session {
   id: string
@@ -123,8 +124,8 @@ export default function CompliancePanel() {
                   <tr key={s.id} className="border-b border-ink-border/50">
                     <td className="py-2 pr-4 text-ink-text">{s.contact_value}</td>
                     <td className="py-2 pr-4 text-ink-muted">{s.ip ?? '—'}</td>
-                    <td className="py-2 pr-4 text-ink-muted">{new Date(s.created_at).toLocaleDateString()}</td>
-                    <td className="py-2 pr-4 text-ink-muted">{new Date(s.expires_at).toLocaleDateString()}</td>
+                    <td className="py-2 pr-4 text-ink-muted">{getDateTimeFormatter().format(new Date(s.created_at))}</td>
+                    <td className="py-2 pr-4 text-ink-muted">{getDateTimeFormatter().format(new Date(s.expires_at))}</td>
                     <td className="py-2">
                       <button
                         onClick={() => revokeSession(s.id)}
@@ -172,7 +173,7 @@ export default function CompliancePanel() {
               <div key={r.id} className="bg-ink-surface border border-ink-border rounded-lg p-3 text-sm">
                 <div className="flex justify-between">
                   <span className="text-ink-text font-medium">{r.alert_type}</span>
-                  <span className="text-ink-muted">{new Date(r.accepted_at).toLocaleDateString()}</span>
+                  <span className="text-ink-muted">{getDateTimeFormatter().format(new Date(r.accepted_at))}</span>
                 </div>
                 {r.reason && <div className="text-ink-muted mt-1">{r.reason}</div>}
                 <div className="text-ink-dim text-xs mt-1">by {r.actor_id}</div>

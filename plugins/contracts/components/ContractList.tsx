@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { getDateTimeFormatter } from '../../../src/lib/formatters'
 
 interface Contract {
   id: string
@@ -147,7 +148,7 @@ export function ContractList() {
                     {c.rate ? `$${c.rate.toLocaleString()} ${c.currency ?? 'CAD'}` : '-'}
                   </td>
                   <td style={{ padding: '0.5rem 0.75rem' }}><StatusBadge status={c.status} /></td>
-                  <td style={{ padding: '0.5rem 0.75rem', color: 'var(--ink-dim)' }}>{new Date(c.created_at).toLocaleDateString()}</td>
+                  <td style={{ padding: '0.5rem 0.75rem', color: 'var(--ink-dim)' }}>{getDateTimeFormatter().format(new Date(c.created_at))}</td>
                 </tr>
               ))}
             </tbody>
