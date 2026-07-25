@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { getNumberFormatter, getDateTimeFormatter } from '../../../src/lib/formatters'
 
 interface RevenueData {
   total_revenue_cents: number
@@ -24,7 +25,7 @@ function getApiConfig() {
 }
 
 function formatCents(cents: number): string {
-  return `$${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: 2 })}`
+  return `$${getNumberFormatter('en-US', { minimumFractionDigits: 2 }).format(cents / 100)}`
 }
 
 function KPI({ label, value, sub }: { label: string; value: string; sub?: string }) {
@@ -153,7 +154,7 @@ export function RevenueOverview() {
                   <td style={{ padding: '0.5rem 0.75rem' }}>
                     <span style={{ color: statusColors[tx.status] ?? 'var(--ink-muted)', fontWeight: 600, fontSize: '0.72rem', textTransform: 'uppercase' }}>{tx.status}</span>
                   </td>
-                  <td style={{ padding: '0.5rem 0.75rem', color: 'var(--ink-dim)' }}>{new Date(tx.created_at).toLocaleDateString()}</td>
+                  <td style={{ padding: '0.5rem 0.75rem', color: 'var(--ink-dim)' }}>{getDateTimeFormatter('en-US').format(new Date(tx.created_at))}</td>
                   <td style={{ padding: '0.5rem 0.75rem', color: 'var(--ink-dim)', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tx.description ?? '-'}</td>
                 </tr>
               ))}
