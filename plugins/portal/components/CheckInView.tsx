@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { getDateTimeFormatter } from '../../../src/lib/formatters'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -41,7 +42,7 @@ function relativeTime(dateStr: string): string {
   if (diffDays === 0) return 'Today'
   if (diffDays === 1) return 'Yesterday'
   if (diffDays < 7) return `${diffDays}d ago`
-  return date.toLocaleDateString('en-CA', { month: 'short', day: 'numeric' })
+  return getDateTimeFormatter('en-CA', { month: 'short', day: 'numeric' }).format(date)
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────

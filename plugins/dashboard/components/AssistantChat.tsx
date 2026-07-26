@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../../src/component
 import { Badge } from '../../../src/components/ui/badge'
 import { Button } from '../../../src/components/ui/button'
 import { Textarea } from '../../../src/components/ui/textarea'
+import { getDateTimeFormatter } from '../../../src/lib/formatters'
 interface Message {
   id: string
   role: 'user' | 'assistant' | 'tool'
@@ -104,7 +105,7 @@ function MessageBubble({ message }: { message: Message }) {
           {isUser ? 'you' : 'ai'}
         </Badge>
         <span className="text-[0.65rem] text-[var(--ink-muted)] opacity-70">
-          {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          {getDateTimeFormatter(undefined, { hour: '2-digit', minute: '2-digit' }).format(message.timestamp)}
         </span>
       </div>
       <Card
