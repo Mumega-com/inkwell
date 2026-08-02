@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { getNumberFormatter, getDateTimeFormatter } from '../../../src/lib/formatters'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -183,13 +184,13 @@ export default function HomeView({ slug, navigate }: Props) {
         >
           <span>
             Last login:{' '}
-            {new Date(me.createdAt).toLocaleString('en-CA', {
+            {getDateTimeFormatter('en-CA', {
               year: 'numeric',
               month: 'short',
               day: 'numeric',
               hour: '2-digit',
               minute: '2-digit',
-            })}
+            }).format(new Date(me.createdAt))}
             {me.lastIp ? ` from ${me.lastIp}` : ''}
           </span>
           <button
@@ -321,40 +322,43 @@ export default function HomeView({ slug, navigate }: Props) {
 
       {/* KPI bar */}
       {kpis && (kpis.clicks28d > 0 || kpis.topQueries.length > 0) && (
-        <div
-          style={{
-            background: 'var(--ink-surface)',
-            border: '1px solid var(--ink-border)',
-            borderRadius: '10px',
-            padding: '16px',
-            marginBottom: '16px',
-          }}
-        >
-          <div
-            style={{
-              fontSize: '11px',
-              color: 'var(--ink-muted)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-              marginBottom: '12px',
-            }}
-          >
-            Search Performance — Last 28 Days
-          </div>
-          <div style={{ display: 'flex', gap: '24px', marginBottom: '12px' }}>
-            <div>
-              <div style={{ fontSize: '20px', fontWeight: '700', color: 'var(--ink-primary)' }}>
-                {kpis.clicks28d.toLocaleString()}
+        (() => {
+          const impressions = (kpis as { impressions28d?: number }).impressions28d;
+          return (
+            <div
+              style={{
+                background: 'var(--ink-surface)',
+                border: '1px solid var(--ink-border)',
+                borderRadius: '10px',
+                padding: '16px',
+                marginBottom: '16px',
+              }}
+            >
+              <div
+                style={{
+                  fontSize: '11px',
+                  color: 'var(--ink-muted)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.08em',
+                  marginBottom: '12px',
+                }}
+              >
+                Search Performance — Last 28 Days
               </div>
-              <div style={{ fontSize: '12px', color: 'var(--ink-muted)' }}>Organic Clicks</div>
-            </div>
-            <div>
-              <div style={{ fontSize: '20px', fontWeight: '700', color: 'var(--ink-text)' }}>
-                {(kpis as { impressions28d?: number }).impressions28d?.toLocaleString() ?? '—'}
+              <div style={{ display: 'flex', gap: '24px', marginBottom: '12px' }}>
+                <div>
+                  <div style={{ fontSize: '20px', fontWeight: '700', color: 'var(--ink-primary)' }}>
+                    {getNumberFormatter(undefined).format(kpis.clicks28d)}
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'var(--ink-muted)' }}>Organic Clicks</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '20px', fontWeight: '700', color: 'var(--ink-text)' }}>
+                    {impressions != null ? getNumberFormatter(undefined).format(impressions) : '—'}
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'var(--ink-muted)' }}>Impressions</div>
+                </div>
               </div>
-              <div style={{ fontSize: '12px', color: 'var(--ink-muted)' }}>Impressions</div>
-            </div>
-          </div>
           {kpis.topQueries.length > 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               {kpis.topQueries.slice(0, 3).map((q, i) => (
@@ -378,7 +382,8 @@ export default function HomeView({ slug, navigate }: Props) {
             </div>
           )}
         </div>
-      )}
+      );
+      })()}
 
       {/* Greeting */}
       <div style={{ marginBottom: '28px' }}>
@@ -397,7 +402,7 @@ export default function HomeView({ slug, navigate }: Props) {
           </h1>
         )}
         <p style={{ margin: '6px 0 0', fontSize: '13px', color: 'var(--ink-muted)' }}>
-          {new Date().toLocaleDateString('en-CA', { weekday: 'long', month: 'long', day: 'numeric' })}
+          {getDateTimeFormatter('en-CA', { weekday: 'long', month: 'long', day: 'numeric' }).format(new Date())}
         </p>
       </div>
 
