@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { getNumberFormatter } from '../../../src/lib/formatters'
 
 interface RevenueData {
   total_revenue_cents: number
@@ -24,7 +25,7 @@ function getApiConfig() {
 }
 
 function formatCents(cents: number): string {
-  return `$${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: 2 })}`
+  return getNumberFormatter('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(cents / 100)
 }
 
 function KPI({ label, value, sub }: { label: string; value: string; sub?: string }) {
