@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { getCurrencyFormatter, getDateTimeFormatter } from '../../../src/lib/formatters'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -60,12 +61,12 @@ function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
 }
 
 function formatReward(cents: number, currency: string): string {
-  const amount = (cents / 100).toLocaleString('en-US', {
-    style: 'currency',
-    currency: currency || 'USD',
+  // ⚡ Bolt: Use centralized cache for Intl to avoid CPU overhead on re-renders,
+  // keeping 'en-US' locale to prevent SSR hydration mismatches.
+  const amount = getCurrencyFormatter('en-US', currency || 'USD', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
-  })
+  }).format(cents / 100)
   return amount
 }
 
@@ -196,7 +197,7 @@ function BountyCard({
       {/* Expires */}
       {bounty.expires_at && (
         <p style={{ fontSize: '0.75rem', color: 'var(--ink-dim)', margin: 0 }}>
-          Expires {new Date(bounty.expires_at).toLocaleDateString()}
+          Expires {getDateTimeFormatter().format(new Date(bounty.expires_at))}
         </p>
       )}
 
