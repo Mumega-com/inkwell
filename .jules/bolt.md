@@ -4,3 +4,6 @@
 ## 2026-08-11 - Caching Intl formatters
  **Learning:** Creating Intl.NumberFormat and Intl.DateTimeFormat objects is computationally expensive, especially in loops and lists in React rendering.
  **Action:** Always use centralized caching utilities for formatters to prevent performance bottlenecks on the main thread.
+## 2024-11-20 - Memoization of NumberFormat
+**Learning:** Reusing `Intl.NumberFormat` by caching it or using centralized format utilities improves performance when formatting numbers multiple times (e.g., inside loops, tables, lists, or multiple KPIs), as instantiating a new formatter via `.toLocaleString()` repeatedly is expensive.
+**Action:** Use cached formatters from `src/lib/formatters.ts` rather than `toLocaleString()` inline in loops or frequent renders. Always explicitly pass the expected locale (e.g., `'en-US'`) rather than `undefined` to prevent hydration mismatches and UI inconsistencies across different environments.
