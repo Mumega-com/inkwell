@@ -4,3 +4,6 @@
 ## 2026-08-11 - Caching Intl formatters
  **Learning:** Creating Intl.NumberFormat and Intl.DateTimeFormat objects is computationally expensive, especially in loops and lists in React rendering.
  **Action:** Always use centralized caching utilities for formatters to prevent performance bottlenecks on the main thread.
+## 2026-08-13 - Optimize Intl object instantiation in AdminOverview and MediaLibrary
+**Learning:** Instantiating `Intl.NumberFormat` and `Intl.DateTimeFormat` (via `.toLocaleString()` and `.toLocaleDateString()`) frequently within React component render cycles (e.g., in `.map()` loops) is computationally expensive and causes performance bottlenecks on the main thread.
+**Action:** Always use centralized caching utilities (`getNumberFormatter`, `getCurrencyFormatter`, `getDateTimeFormatter`) for formatters to prevent performance bottlenecks. Replaced multiple inline instantiations in AdminOverview and MediaLibrary components.
