@@ -66,20 +66,39 @@ export function KnowledgeGraph({ nodes: initialNodes, edges }: KnowledgeGraphPro
     if (!ctx) return
 
     const { width, height } = dimensions
-    const nodeMap = new Map(nodes.map((n) => [n.slug, n]))
 
+    // Build a map once per frame without using map() allocation if possible,
+    // or better yet, if we can avoid creating the map inside the frame.
+    // Creating it with a simple loop is better than allocating an array with map().
+    const nodeMap = new Map()
     for (const node of nodes) {
+      nodeMap.set(node.slug, node)
+    }
+
+    for (let i = 0; i < nodes.length; i++) {
+      const node = nodes[i]
       node.vx! += (width / 2 - node.x!) * 0.001
       node.vy! += (height / 2 - node.y!) * 0.001
 
-      for (const other of nodes) {
-        if (node.slug === other.slug) continue
+      // Halve the n-body physics calculation
+      for (let j = i + 1; j < nodes.length; j++) {
+        const other = nodes[j]
         const dx = node.x! - other.x!
         const dy = node.y! - other.y!
-        const dist = Math.max(Math.sqrt(dx * dx + dy * dy), 1)
-        const force = 800 / (dist * dist)
-        node.vx! += (dx / dist) * force
-        node.vy! += (dy / dist) * force
+
+        // Avoid Math.sqrt for the dist if we just need dist * dist (but we do need dist for force normalisation).
+        // Optimization:
+        const distSq = dx * dx + dy * dy
+        const dist = Math.max(Math.sqrt(distSq), 1)
+        const force = 800 / distSq
+
+        const fx = (dx / dist) * force
+        const fy = (dy / dist) * force
+
+        node.vx! += fx
+        node.vy! += fy
+        other.vx! -= fx
+        other.vy! -= fy
       }
     }
 

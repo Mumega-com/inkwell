@@ -4,3 +4,7 @@
 ## 2026-08-11 - Caching Intl formatters
  **Learning:** Creating Intl.NumberFormat and Intl.DateTimeFormat objects is computationally expensive, especially in loops and lists in React rendering.
  **Action:** Always use centralized caching utilities for formatters to prevent performance bottlenecks on the main thread.
+
+## 2026-08-14 - Optimize KnowledgeGraph Canvas Animation Performance
+**Learning:** In hot loops like React `requestAnimationFrame` canvas renders, O(N^2) physics calculations and unnecessary memory allocations (like `nodes.map` creating intermediate arrays for `Map` instantiation) cause significant garbage collection overhead and frame drops.
+**Action:** Replaced O(N^2) n-body repulsion with an O(N^2/2) symmetric calculation (by iterating `j` from `i + 1`), and eliminated intermediate array allocations in `Map` instantiation to stabilize framerates.
