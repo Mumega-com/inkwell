@@ -4,3 +4,6 @@
 ## 2026-08-11 - Caching Intl formatters
  **Learning:** Creating Intl.NumberFormat and Intl.DateTimeFormat objects is computationally expensive, especially in loops and lists in React rendering.
  **Action:** Always use centralized caching utilities for formatters to prevent performance bottlenecks on the main thread.
+## 2025-02-18 - Optimize KnowledgeGraph Repulsion and Memory Allocations
+**Learning:** In hot loops like React requestAnimationFrame canvas renders, per-frame intermediate array allocations (e.g. `nodes.map()`) cause significant garbage collection overhead. Furthermore, O(N^2) repulsion algorithms can be optimized by 50% using Newton's Third Law to calculate symmetric forces between node pairs in a single operation.
+**Action:** Replaced `.map()` with a standard for-loop when hydrating the node Map. Optimized the inner repulsion loop by starting at `j = i + 1` and applying equal and opposite forces to both `node` and `other`.
