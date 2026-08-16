@@ -4,3 +4,6 @@
 ## 2026-08-11 - Caching Intl formatters
  **Learning:** Creating Intl.NumberFormat and Intl.DateTimeFormat objects is computationally expensive, especially in loops and lists in React rendering.
  **Action:** Always use centralized caching utilities for formatters to prevent performance bottlenecks on the main thread.
+## 2026-08-16 - Optimize requestAnimationFrame loops
+**Learning:** In hot loops like React requestAnimationFrame canvas renders, per-frame memory allocations (like .map() and new Map()) cause significant garbage collection overhead, and N-body repulsion calculations can be halved using Newton's Third Law.
+**Action:** Lift object instantiations out of animation loops (e.g. use refs and cache them) and apply symmetric forces to both pairs in O(N^2) calculations.
