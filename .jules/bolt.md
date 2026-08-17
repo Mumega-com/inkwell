@@ -4,3 +4,6 @@
 ## 2026-08-11 - Caching Intl formatters
  **Learning:** Creating Intl.NumberFormat and Intl.DateTimeFormat objects is computationally expensive, especially in loops and lists in React rendering.
  **Action:** Always use centralized caching utilities for formatters to prevent performance bottlenecks on the main thread.
+## 2026-08-11 - Optimize force-directed graph N-body calculation
+**Learning:** In force-directed graphs or N-body visualizations, iterating over every node pair twice leads to redundant calculations and an O(N^2) bottleneck.
+**Action:** Optimize the repulsion loop to O(N^2 / 2) by starting the inner loop at `i + 1` and applying equal and opposite forces to both `node` and `other` in accordance with Newton's Third Law.
