@@ -66,20 +66,33 @@ export function KnowledgeGraph({ nodes: initialNodes, edges }: KnowledgeGraphPro
     if (!ctx) return
 
     const { width, height } = dimensions
-    const nodeMap = new Map(nodes.map((n) => [n.slug, n]))
 
-    for (const node of nodes) {
+    // Memory Optimization: Avoid intermediate array allocation from .map() on every frame
+    const nodeMap = new Map<string, GraphNode>()
+    for (let i = 0; i < nodes.length; i++) {
+      nodeMap.set(nodes[i].slug, nodes[i])
+    }
+
+    // Performance Optimization: O(N^2 / 2) gravity and repulsion simulation using Newton's Third Law
+    for (let i = 0; i < nodes.length; i++) {
+      const node = nodes[i]
       node.vx! += (width / 2 - node.x!) * 0.001
       node.vy! += (height / 2 - node.y!) * 0.001
 
-      for (const other of nodes) {
-        if (node.slug === other.slug) continue
+      for (let j = i + 1; j < nodes.length; j++) {
+        const other = nodes[j]
         const dx = node.x! - other.x!
         const dy = node.y! - other.y!
         const dist = Math.max(Math.sqrt(dx * dx + dy * dy), 1)
         const force = 800 / (dist * dist)
-        node.vx! += (dx / dist) * force
-        node.vy! += (dy / dist) * force
+
+        const fx = (dx / dist) * force
+        const fy = (dy / dist) * force
+
+        node.vx! += fx
+        node.vy! += fy
+        other.vx! -= fx
+        other.vy! -= fy
       }
     }
 
