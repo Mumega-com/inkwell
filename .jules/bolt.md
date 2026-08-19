@@ -4,3 +4,6 @@
 ## 2026-08-11 - Caching Intl formatters
  **Learning:** Creating Intl.NumberFormat and Intl.DateTimeFormat objects is computationally expensive, especially in loops and lists in React rendering.
  **Action:** Always use centralized caching utilities for formatters to prevent performance bottlenecks on the main thread.
+## 2024-08-19 - Optimize N-body physics in React visualizations
+**Learning:** In hot loops like React requestAnimationFrame canvas renders, O(N^2) loops for physics (e.g. force-directed graph node repulsion) can cause frame drops. Applying Newton's Third Law allows computing forces for pairs symmetrically.
+**Action:** Optimize O(N^2) repulsion calculations to O(N^2 / 2) by starting the inner loop at i + 1 and applying equal and opposite forces to both node pairs.

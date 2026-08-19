@@ -68,18 +68,24 @@ export function KnowledgeGraph({ nodes: initialNodes, edges }: KnowledgeGraphPro
     const { width, height } = dimensions
     const nodeMap = new Map(nodes.map((n) => [n.slug, n]))
 
-    for (const node of nodes) {
+    // ⚡ Bolt Optimization: O(N^2) -> O(N^2 / 2)
+    // Applying Newton's Third Law to calculate repulsion forces symmetrically.
+    // This halves the number of iterations in the hot loop, reducing frame drops.
+    for (let i = 0; i < nodes.length; i++) {
+      const node = nodes[i];
       node.vx! += (width / 2 - node.x!) * 0.001
       node.vy! += (height / 2 - node.y!) * 0.001
 
-      for (const other of nodes) {
-        if (node.slug === other.slug) continue
+      for (let j = i + 1; j < nodes.length; j++) {
+        const other = nodes[j];
         const dx = node.x! - other.x!
         const dy = node.y! - other.y!
         const dist = Math.max(Math.sqrt(dx * dx + dy * dy), 1)
         const force = 800 / (dist * dist)
         node.vx! += (dx / dist) * force
         node.vy! += (dy / dist) * force
+        other.vx! -= (dx / dist) * force
+        other.vy! -= (dy / dist) * force
       }
     }
 
