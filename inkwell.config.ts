@@ -193,7 +193,7 @@ export const config = {
     'diagnostics', 'discovery', 'payments', 'onboarding',
     'notifications', 'analytics', 'auth', 'automation',
     'courses', 'crm', 'feedback', 'media',
-    'organism', 'questionnaire', 'seo', 'sync', 'agency', 'bounty',
+    'organism', 'questionnaire', 'seo', 'sync', 'wordpress-sync', 'agency', 'bounty',
   ],
 } as const
 

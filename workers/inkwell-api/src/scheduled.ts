@@ -18,6 +18,7 @@ import { D1DatabaseAdapter } from '../../../kernel/adapters/d1'
 import { D1GraphAdapter } from '../../../kernel/adapters/d1-graph'
 import { KVContentAdapter } from '../../../kernel/adapters/kv-content'
 import { CfFeedbackAdapter } from '../../../kernel/adapters/cf-feedback'
+import { runScheduledPluginHooks } from '../../../kernel/plugin-loader'
 import { config } from '../../../inkwell.config'
 
 interface NormalizedMetric {
@@ -344,6 +345,20 @@ export async function scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionC
     }
   } catch (e) {
     console.error('[flywheel] Content sync failed:', e)
+  }
+
+  // Run enabled plugin maintenance and connector hooks.
+  try {
+    const pluginResults = await runScheduledPluginHooks([...config.plugins], event, env, ctx)
+    for (const result of pluginResults) {
+      if (result.ok) {
+        console.info(`[flywheel] Plugin scheduled hook completed: ${result.plugin}`)
+      } else {
+        console.error(`[flywheel] Plugin scheduled hook failed: ${result.plugin}: ${result.error}`)
+      }
+    }
+  } catch (e) {
+    console.error('[flywheel] Plugin scheduled hooks failed:', e)
   }
 
   // ── Feedback classification — LLM-powered auto-tagging ──────────────

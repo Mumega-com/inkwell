@@ -58,6 +58,33 @@ export function collectDashboardWidgets(activeNames: string[]): string[] {
   return widgets
 }
 
+/** Run scheduled hooks for active plugins and return their results. */
+export async function runScheduledPluginHooks(
+  activeNames: string[],
+  event: unknown,
+  env: unknown,
+  ctx: unknown,
+): Promise<Array<{ plugin: string; ok: boolean; result?: unknown; error?: string }>> {
+  const results: Array<{ plugin: string; ok: boolean; result?: unknown; error?: string }> = []
+
+  for (const plugin of getActivePlugins(activeNames)) {
+    if (!plugin.scheduled) continue
+
+    try {
+      const result = await plugin.scheduled(event, env, ctx)
+      results.push({ plugin: plugin.name, ok: true, result })
+    } catch (error) {
+      results.push({
+        plugin: plugin.name,
+        ok: false,
+        error: error instanceof Error ? error.message : String(error),
+      })
+    }
+  }
+
+  return results
+}
+
 /** Get merged config defaults from all active plugins. */
 export function mergePluginConfigs(activeNames: string[]): Record<string, unknown> {
   const merged: Record<string, unknown> = {}
