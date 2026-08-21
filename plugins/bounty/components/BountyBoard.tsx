@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { getCurrencyFormatter } from '../../../src/lib/formatters'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -59,14 +60,13 @@ function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   })
 }
 
+// ⚡ Bolt: Using cached getCurrencyFormatter to avoid expensive .toLocaleString() instantiations during list renders.
 function formatReward(cents: number, currency: string): string {
-  const amount = (cents / 100).toLocaleString('en-US', {
-    style: 'currency',
-    currency: currency || 'USD',
+  const formatter = getCurrencyFormatter('en-US', currency || 'USD', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   })
-  return amount
+  return formatter.format(cents / 100)
 }
 
 const STATUS_LABEL: Record<BountyStatus, string> = {

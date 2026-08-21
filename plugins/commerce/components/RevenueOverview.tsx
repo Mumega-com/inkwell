@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { getCurrencyFormatter } from '../../../src/lib/formatters'
 
 interface RevenueData {
   total_revenue_cents: number
@@ -23,8 +24,9 @@ function getApiConfig() {
   }
 }
 
+// ⚡ Bolt: Using cached getCurrencyFormatter to avoid expensive .toLocaleString() instantiations during list renders.
 function formatCents(cents: number): string {
-  return `$${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: 2 })}`
+  return getCurrencyFormatter('en-US', 'USD', { minimumFractionDigits: 2 }).format(cents / 100)
 }
 
 function KPI({ label, value, sub }: { label: string; value: string; sub?: string }) {
