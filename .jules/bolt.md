@@ -7,3 +7,6 @@
 ## 2024-11-20 - Memoization of NumberFormat
 **Learning:** Reusing `Intl.NumberFormat` by caching it or using centralized format utilities improves performance when formatting numbers multiple times (e.g., inside loops, tables, lists, or multiple KPIs), as instantiating a new formatter via `.toLocaleString()` repeatedly is expensive.
 **Action:** Use cached formatters from `src/lib/formatters.ts` rather than `toLocaleString()` inline in loops or frequent renders. Always explicitly pass the expected locale (e.g., `'en-US'`) rather than `undefined` to prevent hydration mismatches and UI inconsistencies across different environments.
+## 2026-08-23 - Optimize force-directed graph calculations
+**Learning:** Force-directed graph node repulsions are naturally O(N^2) and recalculating forces for both A->B and B->A doubles the work unnecessarily.
+**Action:** Optimize N-body repulsion calculations by using an inner loop starting at `i + 1` and applying equal and opposite forces to both node pairs (Newton's Third Law), effectively halving the required calculations (O(N^2 / 2)). Always preserve distance clamping to prevent mathematical regressions.

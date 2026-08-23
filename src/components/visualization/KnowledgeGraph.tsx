@@ -68,18 +68,26 @@ export function KnowledgeGraph({ nodes: initialNodes, edges }: KnowledgeGraphPro
     const { width, height } = dimensions
     const nodeMap = new Map(nodes.map((n) => [n.slug, n]))
 
-    for (const node of nodes) {
-      node.vx! += (width / 2 - node.x!) * 0.001
-      node.vy! += (height / 2 - node.y!) * 0.001
+    for (let i = 0; i < nodes.length; i++) {
+      const node = nodes[i];
+      node.vx! += (width / 2 - node.x!) * 0.001;
+      node.vy! += (height / 2 - node.y!) * 0.001;
 
-      for (const other of nodes) {
-        if (node.slug === other.slug) continue
-        const dx = node.x! - other.x!
-        const dy = node.y! - other.y!
-        const dist = Math.max(Math.sqrt(dx * dx + dy * dy), 1)
-        const force = 800 / (dist * dist)
-        node.vx! += (dx / dist) * force
-        node.vy! += (dy / dist) * force
+      // ⚡ Bolt: Optimized O(N^2) loop to O(N^2 / 2) by applying Newton's Third Law
+      // We apply equal and opposite forces to nodes[i] and nodes[j] in a single pass.
+      for (let j = i + 1; j < nodes.length; j++) {
+        const other = nodes[j];
+        const dx = node.x! - other.x!;
+        const dy = node.y! - other.y!;
+        const dist = Math.max(Math.sqrt(dx * dx + dy * dy), 1);
+        const force = 800 / (dist * dist);
+        const fx = (dx / dist) * force;
+        const fy = (dy / dist) * force;
+
+        node.vx! += fx;
+        node.vy! += fy;
+        other.vx! -= fx;
+        other.vy! -= fy;
       }
     }
 
