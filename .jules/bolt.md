@@ -7,3 +7,6 @@
 ## 2024-11-20 - Memoization of NumberFormat
 **Learning:** Reusing `Intl.NumberFormat` by caching it or using centralized format utilities improves performance when formatting numbers multiple times (e.g., inside loops, tables, lists, or multiple KPIs), as instantiating a new formatter via `.toLocaleString()` repeatedly is expensive.
 **Action:** Use cached formatters from `src/lib/formatters.ts` rather than `toLocaleString()` inline in loops or frequent renders. Always explicitly pass the expected locale (e.g., `'en-US'`) rather than `undefined` to prevent hydration mismatches and UI inconsistencies across different environments.
+## 2026-08-24 - Optimize O(N^2) force calculation in KnowledgeGraph
+**Learning:** In hot loops like React requestAnimationFrame canvas renders, O(N^2) loops can be reduced to O(N^2/2) by starting inner loops at i+1 and applying equal/opposite forces. Intermediate array allocations inside loops should be avoided to reduce GC overhead.
+**Action:** Use standard iterative loops for Map population and O(N^2/2) optimization for N-body simulations.
