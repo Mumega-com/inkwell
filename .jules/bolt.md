@@ -7,3 +7,6 @@
 ## 2024-11-20 - Memoization of NumberFormat
 **Learning:** Reusing `Intl.NumberFormat` by caching it or using centralized format utilities improves performance when formatting numbers multiple times (e.g., inside loops, tables, lists, or multiple KPIs), as instantiating a new formatter via `.toLocaleString()` repeatedly is expensive.
 **Action:** Use cached formatters from `src/lib/formatters.ts` rather than `toLocaleString()` inline in loops or frequent renders. Always explicitly pass the expected locale (e.g., `'en-US'`) rather than `undefined` to prevent hydration mismatches and UI inconsistencies across different environments.
+## 2025-02-15 - Optimize N-body visualizations
+**Learning:** For force-directed graph or N-body visualizations, calculating O(N^2) repulsion forces can be optimized.
+**Action:** Optimize O(N^2) repulsion calculations to O(N^2 / 2) by starting the inner loop at `i + 1` and applying equal and opposite forces to both node pairs according to Newton's Third Law.
