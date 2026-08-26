@@ -28,6 +28,7 @@ export function KnowledgeGraph({ nodes: initialNodes, edges }: KnowledgeGraphPro
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const nodesRef = useRef<GraphNode[]>([])
+  const edgesRef = useRef<{ source: GraphNode; target: GraphNode }[]>([])
   const animRef = useRef<number>(0)
   const [hoveredNode, setHoveredNode] = useState<GraphNode | null>(null)
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
@@ -48,14 +49,25 @@ export function KnowledgeGraph({ nodes: initialNodes, edges }: KnowledgeGraphPro
   }, [])
 
   useEffect(() => {
-    nodesRef.current = initialNodes.map((n, i) => ({
+    const nodes = initialNodes.map((n, i) => ({
       ...n,
       x: dimensions.width / 2 + Math.cos((i / initialNodes.length) * Math.PI * 2) * 200 + (Math.random() - 0.5) * 50,
       y: dimensions.height / 2 + Math.sin((i / initialNodes.length) * Math.PI * 2) * 150 + (Math.random() - 0.5) * 50,
       vx: 0,
       vy: 0,
     }))
-  }, [initialNodes, dimensions])
+    nodesRef.current = nodes
+
+    const nodeMap = new Map<string, GraphNode>()
+    for (let i = 0; i < nodes.length; i++) {
+      nodeMap.set(nodes[i].slug, nodes[i])
+    }
+
+    edgesRef.current = edges.map(edge => ({
+      source: nodeMap.get(edge.source)!,
+      target: nodeMap.get(edge.target)!
+    })).filter(e => e.source && e.target)
+  }, [initialNodes, edges, dimensions])
 
   const simulate = useCallback(() => {
     const nodes = nodesRef.current
@@ -66,10 +78,8 @@ export function KnowledgeGraph({ nodes: initialNodes, edges }: KnowledgeGraphPro
     if (!ctx) return
 
     const { width, height } = dimensions
-    const nodeMap = new Map<string, GraphNode>()
     for (let i = 0; i < nodes.length; i++) {
       const node = nodes[i]
-      nodeMap.set(node.slug, node)
       node.vx! += (width / 2 - node.x!) * 0.001
       node.vy! += (height / 2 - node.y!) * 0.001
 
@@ -88,10 +98,10 @@ export function KnowledgeGraph({ nodes: initialNodes, edges }: KnowledgeGraphPro
       }
     }
 
-    for (const edge of edges) {
-      const source = nodeMap.get(edge.source)
-      const target = nodeMap.get(edge.target)
-      if (!source || !target) continue
+    const resolvedEdges = edgesRef.current
+    for (const edge of resolvedEdges) {
+      const source = edge.source
+      const target = edge.target
 
       const dx = target.x! - source.x!
       const dy = target.y! - source.y!
@@ -117,10 +127,9 @@ export function KnowledgeGraph({ nodes: initialNodes, edges }: KnowledgeGraphPro
 
     ctx.strokeStyle = 'rgba(212, 160, 23, 0.15)'
     ctx.lineWidth = 1
-    for (const edge of edges) {
-      const source = nodeMap.get(edge.source)
-      const target = nodeMap.get(edge.target)
-      if (!source || !target) continue
+    for (const edge of resolvedEdges) {
+      const source = edge.source
+      const target = edge.target
       ctx.beginPath()
       ctx.moveTo(source.x!, source.y!)
       ctx.lineTo(target.x!, target.y!)
@@ -152,7 +161,7 @@ export function KnowledgeGraph({ nodes: initialNodes, edges }: KnowledgeGraphPro
     }
 
     animRef.current = requestAnimationFrame(simulate)
-  }, [dimensions, edges, hoveredNode])
+  }, [dimensions, hoveredNode])
 
   useEffect(() => {
     animRef.current = requestAnimationFrame(simulate)
