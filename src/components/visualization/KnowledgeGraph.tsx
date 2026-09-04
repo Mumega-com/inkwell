@@ -28,6 +28,7 @@ export function KnowledgeGraph({ nodes: initialNodes, edges }: KnowledgeGraphPro
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const nodesRef = useRef<GraphNode[]>([])
+  const nodeMapRef = useRef<Map<string, GraphNode>>(new Map())
   const animRef = useRef<number>(0)
   const [hoveredNode, setHoveredNode] = useState<GraphNode | null>(null)
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
@@ -48,13 +49,21 @@ export function KnowledgeGraph({ nodes: initialNodes, edges }: KnowledgeGraphPro
   }, [])
 
   useEffect(() => {
-    nodesRef.current = initialNodes.map((n, i) => ({
+    const newNodes = initialNodes.map((n, i) => ({
       ...n,
       x: dimensions.width / 2 + Math.cos((i / initialNodes.length) * Math.PI * 2) * 200 + (Math.random() - 0.5) * 50,
       y: dimensions.height / 2 + Math.sin((i / initialNodes.length) * Math.PI * 2) * 150 + (Math.random() - 0.5) * 50,
       vx: 0,
       vy: 0,
     }))
+    nodesRef.current = newNodes
+
+    // Bolt optimization: Cache map to prevent per-frame allocation in requestAnimationFrame
+    const newMap = new Map<string, GraphNode>()
+    for (const node of newNodes) {
+      newMap.set(node.slug, node)
+    }
+    nodeMapRef.current = newMap
   }, [initialNodes, dimensions])
 
   const simulate = useCallback(() => {
@@ -66,10 +75,9 @@ export function KnowledgeGraph({ nodes: initialNodes, edges }: KnowledgeGraphPro
     if (!ctx) return
 
     const { width, height } = dimensions
-    const nodeMap = new Map<string, GraphNode>()
+    const nodeMap = nodeMapRef.current
     for (let i = 0; i < nodes.length; i++) {
       const node = nodes[i]
-      nodeMap.set(node.slug, node)
       node.vx! += (width / 2 - node.x!) * 0.001
       node.vy! += (height / 2 - node.y!) * 0.001
 
