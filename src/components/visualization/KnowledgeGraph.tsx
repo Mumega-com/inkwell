@@ -28,6 +28,7 @@ export function KnowledgeGraph({ nodes: initialNodes, edges }: KnowledgeGraphPro
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const nodesRef = useRef<GraphNode[]>([])
+  const nodeMapRef = useRef<Map<string, GraphNode>>(new Map()) // Bolt optimization: Cache map to prevent per-frame memory allocation
   const animRef = useRef<number>(0)
   const [hoveredNode, setHoveredNode] = useState<GraphNode | null>(null)
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
@@ -55,6 +56,11 @@ export function KnowledgeGraph({ nodes: initialNodes, edges }: KnowledgeGraphPro
       vx: 0,
       vy: 0,
     }))
+
+    nodeMapRef.current.clear()
+    for (const node of nodesRef.current) {
+      nodeMapRef.current.set(node.slug, node)
+    }
   }, [initialNodes, dimensions])
 
   const simulate = useCallback(() => {
@@ -66,10 +72,8 @@ export function KnowledgeGraph({ nodes: initialNodes, edges }: KnowledgeGraphPro
     if (!ctx) return
 
     const { width, height } = dimensions
-    const nodeMap = new Map<string, GraphNode>()
     for (let i = 0; i < nodes.length; i++) {
       const node = nodes[i]
-      nodeMap.set(node.slug, node)
       node.vx! += (width / 2 - node.x!) * 0.001
       node.vy! += (height / 2 - node.y!) * 0.001
 
@@ -89,8 +93,8 @@ export function KnowledgeGraph({ nodes: initialNodes, edges }: KnowledgeGraphPro
     }
 
     for (const edge of edges) {
-      const source = nodeMap.get(edge.source)
-      const target = nodeMap.get(edge.target)
+      const source = nodeMapRef.current.get(edge.source)
+      const target = nodeMapRef.current.get(edge.target)
       if (!source || !target) continue
 
       const dx = target.x! - source.x!
