@@ -14,6 +14,7 @@
 import { Hono } from 'hono'
 import type { AppBindings } from '../types'
 import { makeMemoryPort } from '../lib/memory-port'
+import { resolveScope, scopedMcpCall } from '../../../../kernel/scoped-authored'
 
 // ── JSON-RPC types ────────────────────────────────────────────────────────────
 
@@ -196,6 +197,31 @@ const TOOLS: ToolDef[] = [
       },
       required: ['query'],
     },
+  },
+  {
+    name: 'graph_search',
+    description: 'Search authored pages in the caller project. Another project is not returned.',
+    inputSchema: { type: 'object', properties: { query: { type: 'string' } }, required: ['query'] },
+  },
+  {
+    name: 'graph_lookup',
+    description: 'Look up one authored page in the caller project.',
+    inputSchema: { type: 'object', properties: { slug: { type: 'string' } }, required: ['slug'] },
+  },
+  {
+    name: 'graph_neighbors',
+    description: 'Neighbors of a page. Hidden nodes are omitted from nodes, edges, and counts.',
+    inputSchema: { type: 'object', properties: { slug: { type: 'string' } }, required: ['slug'] },
+  },
+  {
+    name: 'graph_backlinks',
+    description: 'Backlinks of a page in the caller project.',
+    inputSchema: { type: 'object', properties: { slug: { type: 'string' } }, required: ['slug'] },
+  },
+  {
+    name: 'graph_list',
+    description: 'List authored pages visible to the caller.',
+    inputSchema: { type: 'object', properties: {} },
   },
 ]
 
@@ -720,15 +746,19 @@ async function callTool(
     case 'browse_marketplace': return toolBrowseMarketplace(env, a)
     case 'recall_content': {
       const memory = makeMemoryPort(env.SOS_BUS_URL, env.INKWELL_MCP_TOKEN)
-      if (!memory) return { content: [{ type: 'text', text: 'Memory not configured' }] }
-      const results = await memory.recallContent(a.query as string, (a.limit as number) ?? 5)
-      return {
-        content: [{
-          type: 'text',
-          text: results.length
-            ? results.map(r => `[${r.score.toFixed(2)}] ${r.text}`).join('\n')
-            : 'No related content found in memory.',
-        }],
+      if (!memory) return { projection_status: 'failed', error: 'mirror_unconfigured' }
+      try {
+        const results = await memory.recallContent(a.query as string, (a.limit as number) ?? 5)
+        return {
+          content: [{
+            type: 'text',
+            text: results.length
+              ? results.map(r => `[${r.score.toFixed(2)}] ${r.text}`).join('\n')
+              : 'No related content found in memory.',
+          }],
+        }
+      } catch {
+        return { projection_status: 'failed', error: 'upstream_failure' }
       }
     }
     default: return null
@@ -790,6 +820,22 @@ mcpRoutes.post('/', async (c) => {
     if (!knownTool) return c.json(err(id, -32602, `Unknown tool: ${toolName}`))
 
     const toolArgs = args(params)
+
+    if (toolName.startsWith('graph_')) {
+      const session = c.get('authSession')
+      const db = c.get('db_core')
+      if (!session || !db) {
+        return c.json(ok(id, { content: [{ type: 'text', text: JSON.stringify({ error: 'forbidden', results: null, approved: false }) }] }))
+      }
+      const scope = await resolveScope(db, {
+        tenantId: c.get('tenant_slug') ?? '',
+        projectId: (session as unknown as { project_id?: string }).project_id ?? '',
+        principalId: session.identityId,
+        role: session.role,
+      })
+      const result = await scopedMcpCall(db, scope, toolName, toolArgs)
+      return c.json(ok(id, { content: [{ type: 'text', text: JSON.stringify(result) }] }))
+    }
 
     try {
       const result = await callTool(c.env, toolName, toolArgs)

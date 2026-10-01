@@ -63,7 +63,9 @@ export class MemoryPort {
       },
       body: JSON.stringify({ query, limit }),
     })
-    if (!res.ok) return []
+    if (!res.ok) {
+      throw Object.assign(new Error(`MemoryPort.recallContent failed: ${res.status}`), { projectionStatus: 'failed' })
+    }
     const data = await res.json() as { results?: RecallResult[] }
     return data.results ?? []
   }

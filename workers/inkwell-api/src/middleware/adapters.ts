@@ -39,7 +39,7 @@ import { SOSBusAdapter } from '../../../../kernel/adapters/sos-bus'
 
 // ── Memory adapters ─────────────────────────────────────────────────────────
 import { StandaloneMemoryAdapter } from '../../../../kernel/adapters/standalone-memory'
-import { SOSMemoryAdapter } from '../../../../kernel/adapters/sos-memory'
+import { selectMirrorMemoryAdapter } from '../../../../kernel/adapters/select-mirror-memory'
 
 // ── Economy adapters ────────────────────────────────────────────────────────
 import { StandaloneEconomyAdapter } from '../../../../kernel/adapters/standalone-economy'
@@ -171,8 +171,7 @@ function createBusAdapter(type: string, env: Env, tenant: string): BusPort {
 function createMemoryAdapter(type: string, env: Env, tenant: string): MemoryPort {
   switch (type) {
     case 'mirror':
-      if (!env.SOS_MIRROR_URL || !env.NETWORK_TOKEN) return new StandaloneMemoryAdapter()
-      return new SOSMemoryAdapter(env.SOS_MIRROR_URL, env.NETWORK_TOKEN, tenant)
+      return selectMirrorMemoryAdapter(env, tenant)
     case 'standalone':
     default:
       return new StandaloneMemoryAdapter()

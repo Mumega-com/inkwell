@@ -62,7 +62,9 @@ export class SOSMemoryAdapter implements MemoryPort {
       body: JSON.stringify({ query, top_k: topK, threshold }),
     })
 
-    if (!res.ok) return []
+    if (!res.ok) {
+      throw Object.assign(new Error(`Mirror search failed: ${res.status}`), { projectionStatus: 'failed' })
+    }
 
     const rows = await res.json() as Array<{
       id?: string

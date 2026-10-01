@@ -2,11 +2,30 @@ import { Hono } from 'hono'
 import type { AppBindings } from '../types'
 import type { GraphNode } from '../../kernel/types'
 import { compileMdx } from '../../kernel/processors/mdx-compiler'
+import { backlinksOf, listPages, lookupPage, neighborsOf, resolveScope, visibleCounts } from '../../kernel/scoped-authored'
 
 const graphRoutes = new Hono<AppBindings>()
 
 // GET /api/graph — full graph for tenant (public nodes only for unauthenticated)
+async function requestScope(c: { get: (key: string) => unknown }) {
+  const session = c.get('authSession') as { identityId?: string; role?: string; project_id?: string } | null
+  const db = c.get('db_core') as Parameters<typeof resolveScope>[0] | undefined
+  if (!session?.identityId || !session.project_id || !db) return null
+  return resolveScope(db, {
+    tenantId: (c.get('tenant_slug') as string | null) ?? '',
+    projectId: session.project_id,
+    principalId: session.identityId,
+    role: session.role,
+  })
+}
+
 graphRoutes.get('/graph', async (c) => {
+  const scope = await requestScope(c)
+  if (scope) {
+    const pages = await listPages(c.get('db_core'), scope)
+    const counts = await visibleCounts(c.get('db_core'), scope)
+    return c.json({ nodes: pages, counts, approved: false })
+  }
   const tenant = c.get('tenant_slug') ?? undefined
   const tag = c.req.query('tag') ?? undefined
   const type = c.req.query('type') ?? undefined
@@ -37,11 +56,27 @@ graphRoutes.get('/graph/node/:slug', async (c) => {
   const tenant = c.get('tenant_slug') ?? undefined
   const depth = Math.min(parseInt(c.req.query('depth') ?? '1', 10) || 1, 3)
 
+  const scope = await requestScope(c)
+  if (scope) {
+    const node = await lookupPage(c.get('db_core'), scope, slug)
+    if (!node) return c.json({ error: 'not_found' }, 404)
+    const neighbors = await neighborsOf(c.get('db_core'), scope, slug)
+    return c.json({ node, neighbors, approved: false })
+  }
+
   const node = await c.get('graph').getNode(slug, tenant)
-  if (!node) return c.json({ error: 'not_found' }, 404)
+  if (!node || node.visibility === 'private') return c.json({ error: 'not_found' }, 404)
 
   const neighbors = await c.get('graph').getNeighbors(slug, depth, tenant)
-  return c.json({ node, neighbors })
+  const publicNodes = neighbors.nodes.filter((item) => item.visibility === 'public')
+  const visible = new Set(publicNodes.map((item) => item.slug))
+  return c.json({
+    node,
+    neighbors: {
+      nodes: publicNodes,
+      edges: neighbors.edges.filter((edge) => visible.has(edge.source) && visible.has(edge.target)),
+    },
+  })
 })
 
 // GET /api/graph/backlinks/:slug — backlinks for a page
@@ -49,16 +84,27 @@ graphRoutes.get('/graph/backlinks/:slug', async (c) => {
   const slug = c.req.param('slug')
   const tenant = c.get('tenant_slug') ?? undefined
 
+  const scope = await requestScope(c)
+  if (scope) {
+    const backlinks = await backlinksOf(c.get('db_core'), scope, slug)
+    return c.json({ slug, ...backlinks, approved: false })
+  }
+
   const edges = await c.get('graph').getBacklinks(slug, tenant)
 
   // Enrich with node titles
   const nodes = []
   for (const edge of edges) {
     const sourceNode = await c.get('graph').getNode(edge.source, tenant)
-    if (sourceNode) nodes.push(sourceNode)
+    if (sourceNode && sourceNode.visibility === 'public') nodes.push(sourceNode)
   }
 
-  return c.json({ slug, backlinks: edges, sources: nodes })
+  const visibleSources = new Set(nodes.map((node) => node.slug))
+  return c.json({
+    slug,
+    backlinks: edges.filter((edge) => visibleSources.has(edge.source)),
+    sources: nodes,
+  })
 })
 
 // POST /api/ingest — accept raw MDX, compile, store, graph
@@ -180,7 +226,7 @@ graphRoutes.get('/graph/search', async (c) => {
   const q = c.req.query('q')
   if (!q || q.trim().length < 2) return c.json({ error: 'query too short' }, 400)
 
-  const tenant = c.req.query('tenant') ?? undefined
+  const tenant = c.get('tenant_slug') ?? undefined
 
   // Search by title LIKE + tag match
   const conditions: string[] = ["visibility = 'public'"]

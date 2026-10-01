@@ -57,7 +57,7 @@ describe('D1GraphAdapter', () => {
       expect(db.execute).toHaveBeenCalledTimes(1)
       const [sql, params] = db.execute.mock.calls[0]
       expect(sql).toContain('INSERT INTO graph_edges')
-      expect(params).toEqual(['page-a', 'page-b', 'wikilink', 'acme', 2])
+      expect(params).toEqual(['page-a', 'page-b', 'wikilink', 'acme', 2, ''])
     })
 
     it('defaults weight to 1 when not provided', async () => {
