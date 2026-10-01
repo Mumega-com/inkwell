@@ -207,6 +207,7 @@ export interface GraphNode {
   type: string           // 'blog' | 'topic' | 'concept' | 'lab' | etc.
   tags: string[]
   tenant?: string        // Multi-tenant: which organism owns this
+  project?: string       // Project scope. Identical slugs in two projects stay distinct.
   visibility: 'public' | 'private'
   author?: string
   date?: string
@@ -218,6 +219,7 @@ export interface GraphEdge {
   target: string         // target node slug
   type: 'wikilink' | 'tag' | 'series' | 'backlink' | 'cross-tenant'
   tenant?: string        // Which tenant created this edge
+  project?: string       // Project that owns this edge
   weight?: number        // Edge strength (shared tag count, etc.)
 }
 
