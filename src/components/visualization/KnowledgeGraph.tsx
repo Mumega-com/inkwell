@@ -47,14 +47,22 @@ export function KnowledgeGraph({ nodes: initialNodes, edges }: KnowledgeGraphPro
     return () => observer.disconnect()
   }, [])
 
+  const nodeMapRef = useRef<Map<string, GraphNode>>(new Map())
+
   useEffect(() => {
-    nodesRef.current = initialNodes.map((n, i) => ({
-      ...n,
-      x: dimensions.width / 2 + Math.cos((i / initialNodes.length) * Math.PI * 2) * 200 + (Math.random() - 0.5) * 50,
-      y: dimensions.height / 2 + Math.sin((i / initialNodes.length) * Math.PI * 2) * 150 + (Math.random() - 0.5) * 50,
-      vx: 0,
-      vy: 0,
-    }))
+    const map = new Map<string, GraphNode>()
+    nodesRef.current = initialNodes.map((n, i) => {
+      const node = {
+        ...n,
+        x: dimensions.width / 2 + Math.cos((i / initialNodes.length) * Math.PI * 2) * 200 + (Math.random() - 0.5) * 50,
+        y: dimensions.height / 2 + Math.sin((i / initialNodes.length) * Math.PI * 2) * 150 + (Math.random() - 0.5) * 50,
+        vx: 0,
+        vy: 0,
+      }
+      map.set(n.slug, node)
+      return node
+    })
+    nodeMapRef.current = map
   }, [initialNodes, dimensions])
 
   const simulate = useCallback(() => {
@@ -66,10 +74,10 @@ export function KnowledgeGraph({ nodes: initialNodes, edges }: KnowledgeGraphPro
     if (!ctx) return
 
     const { width, height } = dimensions
-    const nodeMap = new Map<string, GraphNode>()
+    // Bolt optimization: Cache map to prevent per-frame memory allocations and GC pauses
+    const nodeMap = nodeMapRef.current
     for (let i = 0; i < nodes.length; i++) {
       const node = nodes[i]
-      nodeMap.set(node.slug, node)
       node.vx! += (width / 2 - node.x!) * 0.001
       node.vy! += (height / 2 - node.y!) * 0.001
 
