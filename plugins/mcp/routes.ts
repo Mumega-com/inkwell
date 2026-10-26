@@ -1,3 +1,4 @@
+import { hasValidBearer } from '../../workers/inkwell-api/src/lib/bearer-auth'
 /**
  * MCP (Model Context Protocol) endpoint — Streamable HTTP
  *
@@ -228,8 +229,8 @@ mcpRoutes.delete('/tokens/:token_prefix', async (c) => {
 /**
  * Resolve a Bearer token to a tenant slug.
  * Checks: 1) global INKWELL_MCP_TOKEN (no tenant), 2) per-tenant token from DB with KV cache.
- * Returns tenant_slug or null (global token / no token required).
- * Throws 'unauthorized' if a token is required but invalid.
+ * Returns tenant_slug or null (global token).
+ * Rejects absent or invalid tokens.
  */
 async function resolveMcpToken(
   token: string | null,
@@ -237,21 +238,18 @@ async function resolveMcpToken(
 ): Promise<{ authorized: boolean; tenant_slug: string | null }> {
   // No token provided
   if (!token) {
-    // If global token is configured, require auth
-    if (env.INKWELL_MCP_TOKEN) return { authorized: false, tenant_slug: null }
-    // No auth required at all
-    return { authorized: true, tenant_slug: null }
+    return { authorized: false, tenant_slug: null }
   }
 
   // Check global MCP token (backwards compat)
-  if (env.INKWELL_MCP_TOKEN && token === env.INKWELL_MCP_TOKEN) {
+  if (hasValidBearer(`Bearer ${token}`, env.INKWELL_MCP_TOKEN)) {
     return { authorized: true, tenant_slug: null }
   }
 
   // System tokens (same ones RBAC middleware accepts) have full MCP access
   if (
-    (env.PUBLISH_TOKEN && token === env.PUBLISH_TOKEN) ||
-    (env.CONTRACT_AUTH_TOKEN && token === env.CONTRACT_AUTH_TOKEN)
+    hasValidBearer(`Bearer ${token}`, env.PUBLISH_TOKEN) ||
+    hasValidBearer(`Bearer ${token}`, env.CONTRACT_AUTH_TOKEN)
   ) {
     return { authorized: true, tenant_slug: null }
   }

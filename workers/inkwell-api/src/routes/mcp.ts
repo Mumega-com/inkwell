@@ -1,3 +1,4 @@
+import { hasValidBearer } from '../lib/bearer-auth'
 /**
  * MCP (Model Context Protocol) endpoint — Streamable HTTP
  *
@@ -742,14 +743,14 @@ const mcpRoutes = new Hono<AppBindings>()
 mcpRoutes.post('/', async (c) => {
   // ── Auth ──────────────────────────────────────────────────────────────────
   const mcpToken = c.env.INKWELL_MCP_TOKEN
-  if (mcpToken) {
-    const auth = c.req.header('Authorization') ?? ''
-    if (auth !== `Bearer ${mcpToken}`) {
-      return c.json(
-        { jsonrpc: '2.0', id: null, error: { code: -32001, message: 'Unauthorized' } } satisfies JsonRpcResponse,
-        401,
-      )
-    }
+  if (!mcpToken) {
+    return c.json({ error: 'mcp_token_unconfigured' }, 503)
+  }
+  if (!hasValidBearer(c.req.header('Authorization'), mcpToken)) {
+    return c.json(
+      { jsonrpc: '2.0', id: null, error: { code: -32001, message: 'Unauthorized' } } satisfies JsonRpcResponse,
+      401,
+    )
   }
 
   // ── Parse request ─────────────────────────────────────────────────────────

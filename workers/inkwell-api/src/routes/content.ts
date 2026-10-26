@@ -1,3 +1,4 @@
+import { hasValidBearer, isPublished, requirePublishBearer } from '../lib/bearer-auth'
 import { Hono } from 'hono'
 import type { AppBindings } from '../types'
 import { getContent, getContentMeta, putContent, tenantFilter } from '../lib/tenant-content'
@@ -81,15 +82,7 @@ function parsePublishPayload(body: unknown):
 }
 
 // Publish content
-contentRoutes.post('/publish', async (c) => {
-  const token = c.env.PUBLISH_TOKEN
-  if (token) {
-    const auth = c.req.header('Authorization')
-    if (auth !== `Bearer ${token}`) {
-      return c.json({ error: 'unauthorized' }, 401)
-    }
-  }
-
+contentRoutes.post('/publish', requirePublishBearer, async (c) => {
   let rawBody: unknown
   try {
     rawBody = await c.req.json()
@@ -201,26 +194,18 @@ contentRoutes.get('/posts', async (c) => {
     `SELECT slug, title, author, tags, description, published_at FROM content_index WHERE type = 'blog'${tf.clause} ORDER BY published_at DESC LIMIT 50`
   ).bind(...tf.bind).all()
 
-  // Filter out drafts from public listing
+  // Only explicitly published metadata is public
   const published = []
   for (const post of posts.results) {
     const meta = await getContentMeta(c.env.CONTENT, tenantSlug, post.slug as string)
-    if (!meta || meta.status !== 'draft') published.push(post)
+    if (isPublished(meta)) published.push(post)
   }
 
   return c.json({ posts: published })
 })
 
 // List drafts (auth required)
-contentRoutes.get('/drafts', async (c) => {
-  const token = c.env.PUBLISH_TOKEN
-  if (token) {
-    const auth = c.req.header('Authorization')
-    if (auth !== `Bearer ${token}`) {
-      return c.json({ error: 'unauthorized' }, 401)
-    }
-  }
-
+contentRoutes.get('/drafts', requirePublishBearer, async (c) => {
   const tenantSlug = c.get('tenant_slug')
   const tf = tenantFilter(tenantSlug)
   const all = await c.env.DB_ANALYTICS.prepare(
@@ -243,11 +228,14 @@ contentRoutes.get('/posts/:slug', async (c) => {
   const content = await getContent(c.env.CONTENT, tenantSlug, slug)
   if (!content) return c.json({ error: 'not found' }, 404)
   const meta = await getContentMeta(c.env.CONTENT, tenantSlug, slug)
+  if (!isPublished(meta) && !hasValidBearer(c.req.header('Authorization'), c.env.PUBLISH_TOKEN)) {
+    return c.json({ error: 'not found' }, 404)
+  }
   return c.json({ slug, meta, markdown: content })
 })
 
 // Content pipeline — posts grouped by status for AdminOverview
-contentRoutes.get('/pipeline', async (c) => {
+contentRoutes.get('/pipeline', requirePublishBearer, async (c) => {
   const tenantSlug = c.get('tenant_slug')
   const tf = tenantFilter(tenantSlug)
 
@@ -275,7 +263,7 @@ contentRoutes.get('/pipeline', async (c) => {
   for (const post of all.results) {
     // Status lives in KV meta — fall back to 'published' if absent
     const meta = await getContentMeta(c.env.CONTENT, tenantSlug, post.slug)
-    const status = meta?.status ?? 'published'
+    const status = typeof meta?.status === 'string' ? meta.status : 'published'
     const bucket = status in pipeline ? status : 'published'
 
     pipeline[bucket].push({

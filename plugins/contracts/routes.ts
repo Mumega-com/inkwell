@@ -1,3 +1,4 @@
+import { hasValidBearer } from '../../workers/inkwell-api/src/lib/bearer-auth'
 import { Hono } from 'hono'
 import type { AppBindings } from '../types'
 
@@ -418,11 +419,9 @@ contractRoutes.get('/:reference/timeline', async (c) => {
 contractRoutes.post('/:reference/milestone', async (c) => {
   // Auth check
   const authToken = c.env.CONTRACT_AUTH_TOKEN
-  if (authToken) {
-    const auth = c.req.header('Authorization')
-    if (auth !== `Bearer ${authToken}`) {
-      return c.json({ error: 'unauthorized' }, 401)
-    }
+  if (!authToken) return c.json({ error: 'contract_auth_token_unconfigured' }, 503)
+  if (!hasValidBearer(c.req.header('Authorization'), authToken)) {
+    return c.json({ error: 'unauthorized' }, 401)
   }
 
   const reference = c.req.param('reference')

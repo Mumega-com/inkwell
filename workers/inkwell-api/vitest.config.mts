@@ -9,6 +9,12 @@ export default defineConfig({
     cloudflareTest({
       main: './src/index.ts',
       remoteBindings: false,
+      miniflare: {
+        bindings: {
+          PUBLISH_TOKEN: 'dev-inkwell-local-test-token-do-not-use-in-prod',
+          INKWELL_MCP_TOKEN: 'dev-inkwell-local-test-token-do-not-use-in-prod',
+        },
+      },
       wrangler: { configPath: './wrangler.toml' },
     }),
   ],
