@@ -1,3 +1,4 @@
+import { hasValidBearer, requirePublishBearer } from '../../workers/inkwell-api/src/lib/bearer-auth'
 import { Hono } from 'hono'
 import type { AppBindings } from '../types'
 import type { GraphNode } from '../../kernel/types'
@@ -38,38 +39,47 @@ graphRoutes.get('/graph/node/:slug', async (c) => {
   const depth = Math.min(parseInt(c.req.query('depth') ?? '1', 10) || 1, 3)
 
   const node = await c.get('graph').getNode(slug, tenant)
-  if (!node) return c.json({ error: 'not_found' }, 404)
+  const preview = hasValidBearer(c.req.header('Authorization'), c.env.PUBLISH_TOKEN)
+  if (!node || (node.visibility !== 'public' && !preview)) {
+    return c.json({ error: 'not_found' }, 404)
+  }
 
   const neighbors = await c.get('graph').getNeighbors(slug, depth, tenant)
-  return c.json({ node, neighbors })
+  if (preview) return c.json({ node, neighbors })
+  const nodes = neighbors.nodes.filter(n => n.visibility === 'public')
+  const publicSlugs = new Set(nodes.map(n => n.slug))
+  const edges = neighbors.edges.filter(e => publicSlugs.has(e.source) && publicSlugs.has(e.target))
+  return c.json({ node, neighbors: { nodes, edges } })
 })
 
 // GET /api/graph/backlinks/:slug — backlinks for a page
 graphRoutes.get('/graph/backlinks/:slug', async (c) => {
   const slug = c.req.param('slug')
   const tenant = c.get('tenant_slug') ?? undefined
+  const preview = hasValidBearer(c.req.header('Authorization'), c.env.PUBLISH_TOKEN)
+  const node = await c.get('graph').getNode(slug, tenant)
+  if (!node || (node.visibility !== 'public' && !preview)) {
+    return c.json({ error: 'not_found' }, 404)
+  }
 
   const edges = await c.get('graph').getBacklinks(slug, tenant)
 
   // Enrich with node titles
   const nodes = []
+  const visibleEdges = []
   for (const edge of edges) {
     const sourceNode = await c.get('graph').getNode(edge.source, tenant)
-    if (sourceNode) nodes.push(sourceNode)
+    if (sourceNode && (sourceNode.visibility === 'public' || preview)) {
+      nodes.push(sourceNode)
+      visibleEdges.push(edge)
+    }
   }
 
-  return c.json({ slug, backlinks: edges, sources: nodes })
+  return c.json({ slug, backlinks: visibleEdges, sources: nodes })
 })
 
 // POST /api/ingest — accept raw MDX, compile, store, graph
-graphRoutes.post('/ingest', async (c) => {
-  // Auth check
-  const token = c.env.PUBLISH_TOKEN
-  if (token) {
-    const auth = c.req.header('Authorization')
-    if (auth !== `Bearer ${token}`) return c.json({ error: 'unauthorized' }, 401)
-  }
-
+graphRoutes.post('/ingest', requirePublishBearer, async (c) => {
   let body: Record<string, unknown>
   try {
     body = await c.req.json()

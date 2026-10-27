@@ -1,3 +1,4 @@
+import { hasValidBearer, isPublished, requirePublishBearer } from '../../workers/inkwell-api/src/lib/bearer-auth'
 import { Hono } from 'hono'
 import type { AppBindings } from '../types'
 import { getContent, getContentMeta, putContent, tenantFilter } from '../lib'
@@ -95,15 +96,7 @@ function parsePublishPayload(body: unknown):
 }
 
 // Publish content
-contentRoutes.post('/publish', async (c) => {
-  const token = c.env.PUBLISH_TOKEN
-  if (token) {
-    const auth = c.req.header('Authorization')
-    if (auth !== `Bearer ${token}`) {
-      return c.json({ error: 'unauthorized' }, 401)
-    }
-  }
-
+contentRoutes.post('/publish', requirePublishBearer, async (c) => {
   let rawBody: unknown
   try {
     rawBody = await c.req.json()
@@ -184,7 +177,7 @@ contentRoutes.post('/publish', async (c) => {
       type: 'blog',
       tags,
       tenant: tenantSlug ?? undefined,
-      visibility: status === 'draft' ? 'private' : 'public',
+      visibility: status === 'published' ? 'public' : 'private',
       author,
       date,
       url: `/${slug}`,
@@ -257,26 +250,18 @@ contentRoutes.get('/posts', async (c) => {
     [...tf.bind]
   )
 
-  // Filter out drafts from public listing
+  // Only explicitly published metadata is public
   const published = []
   for (const post of posts) {
     const meta = await getContentMeta(c.get('content'), tenantSlug, post.slug as string)
-    if (!meta || meta.status !== 'draft') published.push(post)
+    if (isPublished(meta)) published.push(post)
   }
 
   return c.json({ posts: published })
 })
 
 // List drafts (auth required)
-contentRoutes.get('/drafts', async (c) => {
-  const token = c.env.PUBLISH_TOKEN
-  if (token) {
-    const auth = c.req.header('Authorization')
-    if (auth !== `Bearer ${token}`) {
-      return c.json({ error: 'unauthorized' }, 401)
-    }
-  }
-
+contentRoutes.get('/drafts', requirePublishBearer, async (c) => {
   const tenantSlug = c.get('tenant_slug')
   const tf = tenantFilter(tenantSlug)
   const all = await c.get('db_analytics').query<Record<string, unknown>>(
@@ -300,6 +285,9 @@ contentRoutes.get('/posts/:slug', async (c) => {
   const content = await getContent(c.get('content'), tenantSlug, slug)
   if (!content) return c.json({ error: 'not found' }, 404)
   const meta = await getContentMeta(c.get('content'), tenantSlug, slug)
+  if (!isPublished(meta) && !hasValidBearer(c.req.header('Authorization'), c.env.PUBLISH_TOKEN)) {
+    return c.json({ error: 'not found' }, 404)
+  }
   return c.json({ slug, meta, markdown: content })
 })
 
