@@ -10,3 +10,7 @@
 ## 2026-08-24 - Optimize O(N^2) force calculation in KnowledgeGraph
 **Learning:** In hot loops like React requestAnimationFrame canvas renders, O(N^2) loops can be reduced to O(N^2/2) by starting inner loops at i+1 and applying equal/opposite forces. Intermediate array allocations inside loops should be avoided to reduce GC overhead.
 **Action:** Use standard iterative loops for Map population and O(N^2/2) optimization for N-body simulations.
+
+## 2026-11-10 - Prevent per-frame Map allocation in RAF
+**Learning:** Instantiating new Maps inside a requestAnimationFrame loop (like in KnowledgeGraph) causes per-frame memory allocations leading to garbage collection pauses.
+**Action:** Pre-compute and cache lookup maps in a useRef when dependencies change, and reuse the cached map inside the hot loop.
